@@ -25,7 +25,7 @@ $moneda = ($moneda) ? '(' . $moneda['sigla'] . ')' : '';
 // Obtiene el modelo almacenes
 $almacenes = $db->from('inv_almacenes')->order_by('almacen')->fetch();
 // Obtiene los proveedores
-$proveedores = $db->select('id_proveedor, proveedor as nombre_proveedor')->from('inv_proveedores')->group_by('proveedor')->order_by('proveedor asc')->fetch();
+$proveedores = $db->select('id_proveedor, proveedor')->from('inv_proveedores')->group_by('id_proveedor, proveedor')->order_by('id_proveedor, proveedor asc')->fetch();
 // Obtiene los permisos
 $permisos = explode(',', permits);
 // Almacena los permisos en variables
@@ -79,10 +79,10 @@ $permiso_listar = in_array('listar', $permisos);
 						<div class="form-group">
 							<label for="proveedor" class="col-sm-4 control-label">Proveedor:</label>
 							<div class="col-sm-8">
-								<select name="nombre_proveedor" id="proveedor" class="form-control" data-validation="required letternumber length" data-validation-allowing="-.#() " data-validation-length="max100">
+								<select name="proveedor" id="proveedor" class="form-control" data-validation="required letternumber length" data-validation-allowing="-.#() " data-validation-length="max100">
 									<option value="">Buscar</option>
 									<?php foreach ($proveedores as $elemento) { ?>
-										<option value="<?= escape($elemento['nombre_proveedor']); ?>"><?= escape($elemento['nombre_proveedor']); ?></option>
+										<option value="<?= escape($elemento['proveedor']); ?>"><?= escape($elemento['proveedor']); ?></option>
 									<?php } ?>
 								</select>
 							</div>
@@ -149,12 +149,12 @@ $permiso_listar = in_array('listar', $permisos);
 							</div>
 						</div>
 						<div class="form-group">
-							<label for="proveedor" class="col-sm-4 control-label">Proveedor:</label>
+							<label for="nombre_proveedor" class="col-sm-4 control-label">Proveedor:</label>
 							<div class="col-sm-8">
 								<select name="nombre_proveedor" id="proveedor" class="form-control" data-validation="required letternumber length" data-validation-allowing="-.#() " data-validation-length="max100">
 									<option value="">Buscar</option>
 									<?php foreach ($proveedores as $elemento) { ?>
-										<option value="<?= escape($elemento['nombre_proveedor']); ?>"><?= escape($elemento['nombre_proveedor']); ?></option>
+										<option value="<?= escape($elemento['proveedor']); ?>"><?= escape($elemento['proveedor']); ?></option>
 									<?php } ?>
 								</select>
 							</div>
