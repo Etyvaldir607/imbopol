@@ -23,3 +23,5 @@ CREATE TABLE IF NOT EXISTS `inv_clientes` (
 
 #error al crear proveedor (Acceso a la ruta restringido)
 #error crear proveedor corregido (editandolos permisos del susper usuario)
+
+#error al listar la tabla proveeedores (modules/proveeedores/listar.php)
