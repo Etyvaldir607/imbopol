@@ -1,9 +1,13 @@
 <?php
 
 // Obtiene los clientes
-$clientes = $db->select('nombre_cliente, nit_ci, count(nombre_cliente) as nro_visitas, sum(monto_total) as total_ventas')->from('inv_egresos')->group_by('nombre_cliente, nit_ci')->order_by('nombre_cliente asc, nit_ci asc')->fetch();
-//$clientes = $db->query('SELECT a.cliente, a.nit, a.id_cliente, a.estado, a.telefono, a.direccion,  count(a.cliente) as nro_visitas FROM inv_clientes a LEFT OUTER JOIN inv_egresos b ON a.cliente = b.nombre_cliente ')->group_by('a.cliente, a.nit')->order_by('cliente asc, nit asc')->fetch();
-//$clientes = $db->query('SELECT a.nombre_cliente, a.nit_ci, b.id_cliente, b.estado, b.telefono, b.direccion,  count(a.nombre_cliente) as nro_visitas FROM inv_egresos a LEFT JOIN inv_clientes b ON a.nombre_cliente = b.cliente')->group_by('a.nombre_cliente, a.nit_ci')->order_by('cliente asc, nit asc')->fetch();
+$clientes = $db->select('cliente, nit, direccion, telefono, count(cliente) as nro_visitas')
+->from('inv_clientes')
+->group_by('cliente, nit, direccion, telefono')
+->order_by('cliente asc, nit, direccion, telefono asc')
+->fetch();
+//$clientes = $db->query('SELECT a.cliente, a.nit, a.id_cliente, a.estado, a.telefono, a.direccion,  count(a.cliente) as nro_visitas FROM inv_clientes a LEFT OUTER JOIN inv_egresos b ON a.cliente = b.cliente ')->group_by('a.cliente, a.nit')->order_by('cliente asc, nit asc')->fetch();
+//$clientes = $db->query('SELECT a.cliente, a.nit, b.id_cliente, b.estado, b.telefono, b.direccion,  count(a.cliente) as nro_visitas FROM inv_egresos a LEFT JOIN inv_clientes b ON a.cliente = b.cliente')->group_by('a.cliente, a.nit')->order_by('cliente asc, nit asc')->fetch();
 
 // Obtiene los permisos
 $permisos = explode(',', permits);
@@ -45,9 +49,9 @@ $moneda = ($moneda) ? '(' . $moneda['sigla'] . ')' : '';
 				<th class="text-nowrap">#</th>
 				<th class="text-nowrap">Cliente</th>
                 <th class="text-nowrap">NIT/CI</th>
+				<th class="text-nowrap">Dirección</th>
                 <th class="text-nowrap">Telefono</th>
-                <th class="text-nowrap">Dirección</th>
-				<th class="text-nowrap">Visitas</th>
+				<th class="text-nowrap">Nro de visitas</th>
             <?php if ($permiso_modificar || $permiso_eliminar) : ?>
                     <th class="text-nowrap">Opciones</th>
             <?php endif ?>
@@ -58,9 +62,9 @@ $moneda = ($moneda) ? '(' . $moneda['sigla'] . ')' : '';
 				<th class="text-nowrap text-middle" data-datafilter-filter="false">#</th>
 				<th class="text-nowrap text-middle" data-datafilter-filter="true">Cliente</th>
                 <th class="text-nowrap text-middle" data-datafilter-filter="true">NIT/CI</th>
+				<th class="text-nowrap text-middle" data-datafilter-filter="true">Dirección</th>
                 <th class="text-nowrap text-middle" data-datafilter-filter="true">Telefono</th>
-                <th class="text-nowrap text-middle" data-datafilter-filter="true">Dirección</th>
-				<th class="text-nowrap text-middle" data-datafilter-filter="true">Visitas</th>
+				<th class="text-nowrap text-middle" data-datafilter-filter="true">Nro de visitas</th>
             <?php if ($permiso_modificar || $permiso_eliminar) : ?>
 				<th class="text-nowrap text-middle" data-datafilter-filter="true">Opciones</th>
             <?php endif ?>
@@ -70,10 +74,10 @@ $moneda = ($moneda) ? '(' . $moneda['sigla'] . ')' : '';
 			<?php foreach ($clientes as $nro => $cliente) { ?>
 			<tr>
 				<th class="text-nowrap"><?= $nro + 1; ?></th>
-				<td class="text-nowrap"><?= escape($cliente['nombre_cliente']); ?></td>
-                <td class="text-nowrap"><?= escape($cliente['nit_ci']); ?></td>
+				<td class="text-nowrap"><?= escape($cliente['cliente']); ?></td>
+                <td class="text-nowrap"><?= escape($cliente['nit']); ?></td>
+				<td class="text-nowrap"><?= escape($cliente['direccion']); ?></td>
                 <td class="text-nowrap"><?= escape($cliente['telefono']); ?></td>
-                <td class="text-nowrap"><?= escape($cliente['direccion']); ?></td>
 				<td class="text-nowrap"><?= escape($cliente['nro_visitas']); ?></td>
                 <?php if ($permiso_modificar || $permiso_eliminar) : ?>
 				<td class="text-nowrap">
