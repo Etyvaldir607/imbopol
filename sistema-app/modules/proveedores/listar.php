@@ -1,8 +1,8 @@
 <?php
 
 // Obtiene los proveedores
-//$proveedores = $db->select('nombre_proveedor, count(nombre_proveedor) as nro_visitas, sum(monto_total) as total_compras')->from('inv_ingresos')->group_by('nombre_proveedor')->order_by('nombre_proveedor asc')->fetch();
-$proveedores = $db->query('SELECT a.id_proveedor, a.proveedor, a.nit, a.telefono, a.direccion,  count(a.proveedor) as nro_visitas, sum(b.monto_total) as total_compras FROM inv_proveedores a LEFT OUTER JOIN inv_ingresos b ON a.proveedor = b.nombre_proveedor')->group_by('a.proveedor')->order_by('proveedor asc, nit asc')->fetch();
+$proveedores = $db->select('nombre_proveedor, count(nombre_proveedor) as nro_visitas, sum(monto_total) as total_compras')->from('inv_ingresos')->group_by('nombre_proveedor')->order_by('nombre_proveedor asc')->fetch();
+//$proveedores = $db->query('SELECT a.id_proveedor, a.proveedor, a.nit, a.telefono, a.direccion,  count(a.proveedor) as nro_visitas, sum(b.monto_total) as total_compras FROM inv_proveedores a LEFT OUTER JOIN inv_ingresos b ON a.proveedor = b.nombre_proveedor')->group_by('a.proveedor')->order_by('proveedor asc, nit asc')->fetch();
 
 // Obtiene los permisos
 $permisos = explode(',', permits);
