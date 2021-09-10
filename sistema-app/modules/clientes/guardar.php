@@ -12,7 +12,7 @@ if (is_post()) {
 
 	// Verifica la existencia de los datos enviados
 	if (isset($_POST['nombres']) && isset($_POST['ci']) ) {
-		// Obtiene los datos del empleado
+		// Obtiene los datos del cliente
 		$nombres = trim($_POST['nombres']);
 		$ci = trim($_POST['ci']);
 		$direccion= trim($_POST['direccion']);
@@ -27,7 +27,16 @@ if (is_post()) {
                 'telefono' => $telefono,
                 'estado' => 'si'
             );
+
+            // Actualiza la informacion
             $db->where('id_cliente',$id)->update('inv_clientes', $cliente);
+            
+            // Define la variable para mostrar los cambios
+			$_SESSION[temporary] = array(
+				'alert' => 'success',
+				'title' => 'Actualización satisfactoria!',
+				'message' => 'El registro se actualizó correctamente.'
+			);
         }else{
             $bus = $db->select('*')->from('inv_clientes')->where(array('cliente' => $nombres, 'nit' => $ci))->fetch_first();
 
