@@ -17,3 +17,4 @@ CREATE TABLE IF NOT EXISTS `inv_clientes` (
   PRIMARY KEY (`id_cliente`)
 ) ENGINE=MyISAM AUTO_INCREMENT=8 DEFAULT CHARSET=UTF8;
 
+#error al listar la tabla clientes (modules/clientes/listar.php)
