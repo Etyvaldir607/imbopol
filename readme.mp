@@ -25,3 +25,4 @@ CREATE TABLE IF NOT EXISTS `inv_clientes` (
 #error crear proveedor corregido (editandolos permisos del susper usuario)
 
 #error al listar la tabla proveeedores (modules/proveeedores/listar.php)
+#error al crear comprar (modules/proveeedores/crear.php)
