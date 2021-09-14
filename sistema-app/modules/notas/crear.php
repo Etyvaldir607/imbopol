@@ -16,10 +16,10 @@ $moneda = $db->from('inv_monedas')->where('oficial', 'S')->fetch_first();
 $moneda = ($moneda) ? '(' . $moneda['sigla'] . ')' : '';
 
 // Obtiene la fecha de hoy
-$hoy = date('Y-m-d');
+$hoy = date('Y-m-d'); 
 
 // Obtiene los clientes
-$clientes = $db->select('nombre_cliente, nit_ci, count(nombre_cliente) as nro_visitas, sum(monto_total) as total_ventas')->from('inv_egresos')->group_by('nombre_cliente, nit_ci')->order_by('nombre_cliente asc, nit_ci asc')->fetch();
+$clientes = $db->select('cliente, nit, telefono, count(cliente) as nro_visitas')->from('inv_clientes')->group_by('cliente, nit, telefono')->order_by('cliente asc, nit asc')->fetch();
 
 
 // Obtiene el almacen principal
@@ -149,7 +149,7 @@ $permiso_mostrar = in_array('mostrar', $permisos);
 								<select name="cliente" id="cliente" class="form-control text-uppercase" data-validation="letternumber" data-validation-allowing="-+./&() " data-validation-optional="true">
 									<option value="">Buscar</option>
 									<?php foreach ($clientes as $cliente) { ?>
-									<option value="<?= escape($cliente['nit_ci']) . '|' . escape($cliente['nombre_cliente']); ?>"><?= escape($cliente['nit_ci']) . ' &mdash; ' . escape($cliente['nombre_cliente']); ?></option>
+									<option value="<?= escape($cliente['nit']) . '|' . escape($cliente['cliente']) . '|' . escape($cliente['telefono']); ?>"><?= escape($cliente['nit']) . ' &mdash; ' . escape($cliente['cliente']); ?></option>
 									<?php } ?>
 								</select>
 							</div>
@@ -169,7 +169,7 @@ $permiso_mostrar = in_array('mostrar', $permisos);
 						<div class="form-group">
 							<label for="telefono_cliente" class="col-sm-4 control-label">Teléfono:</label>
 							<div class="col-sm-8">
-								<input type="text" value="0" name="telefono_cliente" id="telefono_cliente" class="form-control text-uppercase" autocomplete="off" data-validation="required" data-validation-length="max100">
+								<input type="text" value="" name="telefono_cliente" id="telefono_cliente" class="form-control text-uppercase" autocomplete="off" data-validation="required" data-validation-length="max100">
 							</div>
 						</div>
 					</div>
@@ -487,6 +487,7 @@ $(function () {
 	var $cliente = $('#cliente');
 	var $nit_ci = $('#nit_ci');
 	var $nombre_cliente = $('#nombre_cliente');
+	var $telefono_cliente = $('#telefono_cliente');
 	var $formulario = $('#formulario');
 
 
@@ -528,17 +529,22 @@ $(function () {
 		if (valor.length != 1) {
 			$nit_ci.prop('readonly', true);
 			$nombre_cliente.prop('readonly', true);
+			$telefono_cliente.prop('readonly', true);
 			$nit_ci.val(valor[0]);
 			$nombre_cliente.val(valor[1]);
+			$telefono_cliente.val(valor[2]);
 		} else {
 			$nit_ci.prop('readonly', false);
 			$nombre_cliente.prop('readonly', false);
+			$telefono_cliente.prop('readonly', false);
 			if (es_nit(valor[0])) {
 				$nit_ci.val(valor[0]);
 				$nombre_cliente.val('').focus();
+				$telefono_cliente.val('');
 			} else {
 				$nombre_cliente.val(valor[0]);
 				$nit_ci.val('').focus();
+				$telefono_cliente.val('');
 			}
 		}
 	});
