@@ -27,14 +27,14 @@ if (is_post()) {
 		$monto_total = trim($_POST['monto_total']);
 
         //obtiene a el cliente
-        /*$cliente = $db->select('*')->from('inv_clientes')->where(array('cliente' => $nombre_cliente, 'nit' => $nit_ci))->fetch_first();
-        if(!cliente){
+        $cliente = $db->select('*')->from('inv_clientes')->where(array('cliente' => $nombre_cliente, 'nit' => $nit_ci))->fetch_first();
+        if(!$cliente){
             $cl = array(
                 'cliente' => $nombre_cliente,
                 'nit' => $nit_ci
             );
             $db->insert('inv_clientes',$cl);
-        }*/
+        }
 
         // Instancia la venta
 		$venta = array(
@@ -46,7 +46,7 @@ if (is_post()) {
 			'nro_factura' => $nro_factura,
 			'nro_autorizacion' => $nro_autorizacion,
 			'codigo_control' => '',
-			'fecha_limite' => '0000-00-00',
+			'fecha_limite' => date('Y-m-d'),
 			'monto_total' => $monto_total,
 			'nombre_cliente' => strtoupper($nombre_cliente),
 			'nit_ci' => $nit_ci,
