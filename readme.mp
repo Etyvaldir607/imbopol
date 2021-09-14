@@ -34,3 +34,4 @@ CREATE TABLE IF NOT EXISTS `inv_clientes` (
 #modificar acciones - listar el cliente, buscar por id
 
 #error al crear proformas (modules/proformas/crear.php)
+#error al guardar proformas (modules/proformas/guardar.php)
