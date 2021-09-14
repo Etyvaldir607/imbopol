@@ -89,7 +89,7 @@ if (is_post()) {
                 'precio' => (isset($precios[$nro])) ? $precios[$nro]: 0,
                 'unidad_id'=>'1',
 				'cantidad' => (isset($cantidades[$nro])) ? $cantidades[$nro]: 0,
-				'descuento' => 0,
+				'descuento' => (isset($descuentos[$nro])) ? $descuentos[$nro]: 0,
 				'producto_id' => $productos[$nro],
 				'egreso_id' => $egreso_id
 			);
