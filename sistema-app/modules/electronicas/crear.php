@@ -15,7 +15,7 @@ $hoy = date('Y-m-d');
 $dosificacion = $db->from('inv_dosificaciones')->where('fecha_registro <=', $hoy)->where('fecha_limite >=', $hoy)->where('activo', 'S')->fetch_first();
 
 // Obtiene los clientes
-$clientes = $db->query("select * from ((select nombre_cliente, nit_ci from inv_egresos) union (select nombre_cliente, nit_ci from inv_proformas)) c group by c.nombre_cliente, c.nit_ci order by c.nombre_cliente asc, c.nit_ci asc")->fetch();
+$clientes = $db->select('cliente, nit, telefono, count(cliente) as nro_visitas')->from('inv_clientes')->group_by('cliente, nit, telefono')->order_by('cliente asc, nit asc')->fetch();
 
 // Define el limite de filas
 $limite_longitud = 200;
@@ -110,7 +110,7 @@ $permiso_mostrar = in_array('mostrar', $permisos);
 }
 </style>
 <div class="row">
-	<?php if ($_terminal && $dosificacion && $almacen) { ?>
+	<?php if ($dosificacion && $almacen) { ?>
 	<div class="col-md-6">
 		<div class="panel panel-info">
 			<div class="panel-heading">
@@ -130,7 +130,7 @@ $permiso_mostrar = in_array('mostrar', $permisos);
 								<select name="cliente" id="cliente" class="form-control text-uppercase" data-validation="letternumber" data-validation-allowing="-+./&() " data-validation-optional="true">
 									<option value="">Buscar</option>
 									<?php foreach ($clientes as $cliente) { ?>
-									<option value="<?= escape($cliente['nit_ci']) . '|' . escape($cliente['nombre_cliente']); ?>"><?= escape($cliente['nit_ci']) . ' &mdash; ' . escape($cliente['nombre_cliente']); ?></option>
+									<option value="<?= escape($cliente['nit']) . '|' . escape($cliente['cliente']) . '|' . escape($cliente['telefono']); ?>"><?= escape($cliente['nit']) . ' &mdash; ' . escape($cliente['cliente']); ?></option>
 									<?php } ?>
 								</select>
 							</div>
@@ -418,6 +418,7 @@ $(function () {
 			$nombre_cliente.prop('readonly', true);
 			$nit_ci.val(valor[0]);
 			$nombre_cliente.val(valor[1]);
+			$telefono_cliente.val(valor[2]);
 		} else {
 			$nit_ci.prop('readonly', false);
 			$nombre_cliente.prop('readonly', false);
