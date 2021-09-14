@@ -28,14 +28,14 @@ if (is_ajax() && is_post()) {
 		$almacen_id = trim($_POST['almacen_id']);
 
         //obtiene al cliente
-        /*$cliente = $db->select('*')->from('inv_clientes')->where(array('cliente' => $nombre_cliente, 'nit' => $nit_ci))->fetch_first();
-        if(!cliente){
+        $cliente = $db->select('*')->from('inv_clientes')->where(array('cliente' => $nombre_cliente, 'nit' => $nit_ci))->fetch_first();
+        if(!$cliente){
             $cl = array(
                 'cliente' => $nombre_cliente,
                 'nit' => $nit_ci
             );
             $db->insert('inv_clientes',$cl);
-        }*/
+        }
 
 		// Obtiene la fecha de hoy
 		$hoy = date('Y-m-d');
@@ -76,7 +76,8 @@ if (is_ajax() && is_post()) {
 				'fecha_egreso' => date('Y-m-d'),
 				'hora_egreso' => date('H:i:s'),
 				'tipo' => 'Venta',
-				'descripcion' => 'Venta de productos',
+				'provisionado' => 'S',
+				'descripcion' => 'Venta de productos electronica',
 				'nro_factura' => $nro_factura,
 				'nro_autorizacion' => $nro_autorizacion,
 				'codigo_control' => $codigo_control,
@@ -108,8 +109,8 @@ if (is_ajax() && is_post()) {
 				$detalle = array(
 					'cantidad' => $cantidad,
 					'precio' => $precios[$nro],
-                    'unidad_id' => $id_unidad,
 					'descuento' => $descuentos[$nro],
+					'unidad_id' => $id_unidad,
 					'producto_id' => $productos[$nro],
 					'egreso_id' => $egreso_id
 				);
