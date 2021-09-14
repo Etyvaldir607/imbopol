@@ -28,3 +28,4 @@ CREATE TABLE IF NOT EXISTS `inv_clientes` (
 #error al crear comprar (modules/ingresos/crear.php)
 
 #error al crear egresos (modules/egresos/crear.php)
+#error al crear egresos (modules/egresos/guardar.php)
