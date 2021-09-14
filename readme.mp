@@ -29,3 +29,6 @@ CREATE TABLE IF NOT EXISTS `inv_clientes` (
 
 #error al crear egresos (modules/egresos/crear.php)
 #error al crear egresos (modules/egresos/guardar.php)
+
+#error al crear egresos (modules/notas/crear.php)
+#modificar acciones - listar el cliente, buscar por id
