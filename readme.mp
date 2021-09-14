@@ -35,3 +35,5 @@ CREATE TABLE IF NOT EXISTS `inv_clientes` (
 
 #error al crear proformas (modules/proformas/crear.php)
 #error al guardar proformas (modules/proformas/guardar.php)
+
+#error al crear manuales (modules/manuales/crear.php)
