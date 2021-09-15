@@ -83,6 +83,9 @@ if (is_ajax() && is_post()) {
             // Recorre los productos
             foreach ($productos as $nro => $elemento) {
                 
+                // recupera unidades
+                $id_unidad = $db->select('id_unidad')->from('inv_unidades')->where('unidad',$unidad[$nro])->fetch_first()['id_unidad'];
+                /*
                 $id_unidade=$db->select('*')->from('inv_asignaciones a')->join('inv_unidades u','a.unidad_id=u.id_unidad')->where(array('u.unidad' => $unidad[$nro], 'a.producto_id' => $productos[$nro]))->fetch_first();
                 if($id_unidade){
                     $id_unidad = $id_unidade['id_unidad'];
@@ -92,6 +95,7 @@ if (is_ajax() && is_post()) {
                     $id_unidad = $id_uni['id_unidad'];
                     $cantidad = $cantidades[$nro];
                 }
+                */
 
                 // Forma el detalle
                 $detalle = array(
