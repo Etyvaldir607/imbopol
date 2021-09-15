@@ -23,6 +23,7 @@ if (is_post()) {
 		$productos = (isset($_POST['productos'])) ? $_POST['productos']: array();
 		$cantidades = (isset($_POST['cantidades'])) ? $_POST['cantidades']: array();
 		$costos = (isset($_POST['costos'])) ? $_POST['costos']: array();
+        $fechas = (isset($_POST['fechas'])) ? $_POST['fechas']: array();
         $nombre_producto = (isset($_POST['nprod'])) ? $_POST['nprod']: array();
 
         // obtiene el proeevedor
@@ -62,6 +63,7 @@ if (is_post()) {
 			$detalle = array(
 				'cantidad' => (isset($cantidades[$nro])) ? $cantidades[$nro]: 0,
 				'costo' => (isset($costos[$nro])) ? $costos[$nro]: 0,
+                'fecha_vencimiento'=>(isset($fechas[$nro])) ? $fechas[$nro]: null,
 				'producto_id' => $productos[$nro],
 				'ingreso_id' => $ingreso_id
 			);
