@@ -49,3 +49,4 @@ CREATE TABLE IF NOT EXISTS `inv_clientes` (
 
 #añadir parametro de compra - fecha de vencimiento en la vista
 #añadir parametro de compra - fecha de vencimiento en la base datos
+#añadir parametro de compra - fecha de vencimiento en el procesador (modules/ingresos/guardar.php)
