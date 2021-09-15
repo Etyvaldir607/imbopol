@@ -46,3 +46,5 @@ CREATE TABLE IF NOT EXISTS `inv_clientes` (
 #modificar guardar proformas (modules/proformas/guardar.php)
 #modificar guardar manuales (modules/manuales/guardar.php)
 #modificar guardar electronicas (modules/electronicas/guardar.php)
+
+#añadir parametro de compra - fecha de vencimiento en la vista

@@ -1,4 +1,19 @@
 <?php
+// Obtiene los formatos para la fecha
+$formato_textual = get_date_textual($_institution['formato']);
+$formato_numeral = get_date_numeral($_institution['formato']);
+
+// Obtiene el rango de fechas
+$gestion = date('Y');
+$gestion_base = date('Y-m-d');
+//$gestion_base = ($gestion - 16) . date('-m-d');
+$gestion_limite = ($gestion + 16) . date('-m-d');
+
+// Obtiene fecha inicial
+$fecha_inicial = (isset($params[0])) ? $params[0] : $gestion_base;
+$fecha_inicial = (is_date($fecha_inicial)) ? $fecha_inicial : $gestion_base;
+$fecha_inicial = date_encode($fecha_inicial);
+
 //var_dump($_SESSION);
 //echo "<br><br>";
 foreach ($_SESSION as $key) {
@@ -47,7 +62,7 @@ $permiso_listar = in_array('listar', $permisos);
 <div class="row">
 	<div class="col-md-6">
 		<div class="panel panel-default" data-servidor="<?= ip_local . name_project . '/ingreso.php'; ?>">
-			<div class="panel-heading">
+			<div class="panel-heading" data-formato="<?= strtoupper($formato_textual); ?>" data-mascara="<?= $formato_numeral; ?>" data-gestion="<?= date_decode($gestion_base, $_institution['formato']); ?>">
 				<h3 class="panel-title">
 					<span class="glyphicon glyphicon-list"></span>
 					<strong>Datos del ingreso</strong>
@@ -93,7 +108,7 @@ $permiso_listar = in_array('listar', $permisos);
 								<textarea name="descripcion" id="descripcion" class="form-control" autocomplete="off" data-validation="letternumber" data-validation-allowing="+-/.,:;#º()\n " data-validation-optional="true"></textarea>
 							</div>
 						</div>
-						<div class="table-responsive margin-none">
+						<div class="table-responsive margin-none" >
 							<table id="compras" class="table table-bordered table-condensed table-striped table-hover table-xl margin-none table-responsive-md">
 								<thead>
 									<tr class="active">
@@ -172,6 +187,7 @@ $permiso_listar = in_array('listar', $permisos);
 										<th class="text-nowrap">Código</th>
 										<th class="text-nowrap">Nombre</th>
 										<th class="text-nowrap">Color</th>
+										<th class="text-nowrap">Fecha de vencimiento</th>
 										<th class="text-nowrap">Cantidad</th>
 										<th class="text-nowrap">Costo</th>
 										<th class="text-nowrap">Importe</th>
@@ -180,7 +196,7 @@ $permiso_listar = in_array('listar', $permisos);
 								</thead>
 								<tfoot>
 									<tr class="active">
-										<th class="text-nowrap text-right" colspan="5">Importe total <?= escape($moneda); ?></th>
+										<th class="text-nowrap text-right" colspan="6">Importe total <?= escape($moneda); ?></th>
 										<th class="text-nowrap text-right" data-subtotal="">0.00</th>
 										<th class="text-nowrap text-center"><span class="glyphicon glyphicon-trash"></span></th>
 									</tr>
@@ -286,17 +302,23 @@ $permiso_listar = in_array('listar', $permisos);
 </div>
 <script src="<?= js; ?>/jquery.form-validator.min.js"></script>
 <script src="<?= js; ?>/jquery.form-validator.es.js"></script>
+<script src="<?= js; ?>/jquery.maskedinput.min.js"></script>
 <script src="<?= js; ?>/jquery.dataTables.min.js"></script>
 <script src="<?= js; ?>/dataTables.bootstrap.min.js"></script>
 <script src="<?= js; ?>/selectize.min.js"></script>
 <script src="<?= js; ?>/bootstrap-notify.min.js"></script>
 <script src="<?= js; ?>/buzz.min.js"></script>
+<script src="<?= js; ?>/jquery.dataFilters.min.js"></script>
+<script src="<?= js; ?>/moment.min.js"></script>
+<script src="<?= js; ?>/moment.es.js"></script>
+<script src="<?= js; ?>/bootstrap-datetimepicker.min.js"></script>
 <script>
 	var rol_id= "<?= $rol_id;?>";
 //console.log(rol_id);
 $(function () {
 	var $formulario = $('#formulario');
 	var blup = new buzz.sound('<?= media; ?>/blup.mp3');
+	
 	$.validate({
 		form: '#formulario',
 		modules: 'basic',
@@ -385,6 +407,39 @@ calcular_total();
 });
 	$('#formulario :reset').trigger('click');
 });
+
+// inicia date picker para cada celda
+function adicionar_fecha(id_producto){
+	var $producto = $('[data-producto=' + id_producto + ']');
+	var $inicial_fecha = $producto.find('[data-fecha]');
+	var $fecha = $producto.find('#fecha-'+id_producto );
+	
+
+	var formato = $('[data-formato]').attr('data-formato');
+	var mascara = $('[data-mascara]').attr('data-mascara');
+	var gestion = $('[data-gestion]').attr('data-gestion');
+
+	$.validate({
+		form: '#formulario',
+		modules: 'date',
+		onSuccess: function () {
+			var inicial_fecha = $.trim($('#fecha').val());
+			inicial_fecha = inicial_fecha.replace(new RegExp('\\.', 'g'), '-');
+			inicial_fecha = inicial_fecha.replace(new RegExp('/', 'g'), '-'); 
+			window.location = '?/manuales/mostrar' + inicial_fecha + final_fecha;
+		}
+	});
+		
+	$inicial_fecha.datetimepicker({
+		format: formato
+	});
+
+	$inicial_fecha.on('click', function (e) {
+		$inicial_fecha.val(e.date);
+		$fecha.data('DateTimePicker').minDate('now');
+	});
+}
+
 function adicionar_producto(id_producto) {
 	var $producto = $('[data-producto=' + id_producto + ']');
 	var $cantidad = $producto.find('[data-cantidad]');
@@ -394,57 +449,61 @@ function adicionar_producto(id_producto) {
 	var color = $.trim($('[data-color=' + id_producto + ']').text());
 	var plantilla = '';
 	var cantidad;
-//console.log(nombre,color);
-if ($producto.size()) {
-	cantidad = $.trim($cantidad.val());
-	cantidad = ($.isNumeric(cantidad)) ? parseInt(cantidad) : 0;
-	cantidad = (cantidad < 9999999) ? cantidad + 1: cantidad;
-	$cantidad.val(cantidad).trigger('blur');
-} else {
-	if ("<?= $rol_id >= 3;?>") {
-		plantilla = '<tr class="active" data-producto="' + id_producto + '">' +
-		'<td class="text-nowrap"><input type="text" value="' + id_producto + '" name="productos[]" class="translate" tabindex="-1" data-validation="required number" data-validation-error-msg="Debe ser número">' + codigo + '</td>' +
-		'<td><input type="hidden" value="' + nombre + '" name="nprod[]">' + nombre + '</td>' + '<td>' + color + '</td>' +
-		'<td><input type="text" value="1" name="cantidades[]" class="form-control input-xs text-right" maxlength="7" autocomplete="off" data-cantidad="" data-validation="required number" data-validation-error-msg="Debe ser número entero positivo" onkeyup="calcular_importe(' + id_producto + ')"></td>' +
-		'<td style="display: none;"><input type="text" value="0.00" name="costos[]" class="form-control input-xs text-right" autocomplete="off" data-costo="" data-validation="required number" data-validation-allowing="range[0.01;1000000.00],float" data-validation-error-msg="Debe ser número decimal positivo" onkeyup="calcular_importe(' + id_producto + ')" onblur="redondear_importe(' + id_producto + ')"></td>' +
-		'<td style="display: none;" class="text-nowrap text-right" data-importe="">0.00</td>' +
-		'<td class="text-nowrap text-center">' +
-		'<button type="button" class="btn btn-xs btn-danger" data-toggle="tooltip" data-title="Eliminar producto" tabindex="-1" onclick="eliminar_producto(' + id_producto + ')"><span class="glyphicon glyphicon-remove"></span></button>' +
-		'</td>' +
-		'</tr>';
-	}else{
-		if ("<?= $rol_id <= 2;?> " ) {
+	//console.log(nombre,color);
+	if ($producto.size()) {
+		cantidad = $.trim($cantidad.val());
+		cantidad = ($.isNumeric(cantidad)) ? parseInt(cantidad) : 0;
+		cantidad = (cantidad < 9999999) ? cantidad + 1: cantidad;
+		$cantidad.val(cantidad).trigger('blur');
+	} else {
+		if ("<?= $rol_id >= 3;?>") {
 			plantilla = '<tr class="active" data-producto="' + id_producto + '">' +
 			'<td class="text-nowrap"><input type="text" value="' + id_producto + '" name="productos[]" class="translate" tabindex="-1" data-validation="required number" data-validation-error-msg="Debe ser número">' + codigo + '</td>' +
 			'<td><input type="hidden" value="' + nombre + '" name="nprod[]">' + nombre + '</td>' + '<td>' + color + '</td>' +
+			'<td><input type="text" name="inicial" value="<?= ($fecha_inicial != $gestion_base) ? date_decode($fecha_inicial, $_institution['formato']) : ''; ?>" id="fecha-' + id_producto + '" class="form-control input-xs text-right" autocomplete="off" data-fecha="" data-validation="date" data-validation-format="<?= $formato_textual; ?>" data-validation-optional="true" onclick="adicionar_fecha(' + id_producto + ')"></td>'+
 			'<td><input type="text" value="1" name="cantidades[]" class="form-control input-xs text-right" maxlength="7" autocomplete="off" data-cantidad="" data-validation="required number" data-validation-error-msg="Debe ser número entero positivo" onkeyup="calcular_importe(' + id_producto + ')"></td>' +
-			'<td><input type="text" value="0.00" name="costos[]" class="form-control input-xs text-right" autocomplete="off" data-costo="" data-validation="required number" data-validation-allowing="range[0.01;1000000.00],float" data-validation-error-msg="Debe ser número decimal positivo" onkeyup="calcular_importe(' + id_producto + ')" onblur="redondear_importe(' + id_producto + ')"></td>' +
-			'<td class="text-nowrap text-right" data-importe="">0.00</td>' +
+			'<td style="display: none;"><input type="text" value="0.00" name="costos[]" class="form-control input-xs text-right" autocomplete="off" data-costo="" data-validation="required number" data-validation-allowing="range[0.01;1000000.00],float" data-validation-error-msg="Debe ser número decimal positivo" onkeyup="calcular_importe(' + id_producto + ')" onblur="redondear_importe(' + id_producto + ')"></td>' +
+			'<td style="display: none;" class="text-nowrap text-right" data-importe="">0.00</td>' +
 			'<td class="text-nowrap text-center">' +
 			'<button type="button" class="btn btn-xs btn-danger" data-toggle="tooltip" data-title="Eliminar producto" tabindex="-1" onclick="eliminar_producto(' + id_producto + ')"><span class="glyphicon glyphicon-remove"></span></button>' +
 			'</td>' +
 			'</tr>';
+		}else{
+			if ("<?= $rol_id <= 2;?> " ) {
+				plantilla = '<tr class="active" data-producto="' + id_producto + '">' +
+				'<td class="text-nowrap"><input type="text" value="' + id_producto + '" name="productos[]" class="translate" tabindex="-1" data-validation="required number" data-validation-error-msg="Debe ser número">' + codigo + '</td>' +
+				'<td><input type="hidden" value="' + nombre + '" name="nprod[]">' + nombre + '</td>' + '<td>' + color + '</td>' +
+				'<td><input type="text" name="inicial" value="<?= ($fecha_inicial != $gestion_base) ? date_decode($fecha_inicial, $_institution['formato']) : ''; ?>" id="fecha-' + id_producto + '"  class="form-control input-xs text-right" autocomplete="off" data-fecha="" data-validation="date" data-validation-format="<?= $formato_textual; ?>" data-validation-optional="true" onclick="adicionar_fecha(' + id_producto + ')"> </td>'+
+				'<td><input type="text" value="1" name="cantidades[]" class="form-control input-xs text-right" maxlength="7" autocomplete="off" data-cantidad="" data-validation="required number" data-validation-error-msg="Debe ser número entero positivo" onkeyup="calcular_importe(' + id_producto + ')"></td>' +
+				'<td><input type="text" value="0.00" name="costos[]" class="form-control input-xs text-right" autocomplete="off" data-costo="" data-validation="required number" data-validation-allowing="range[0.01;1000000.00],float" data-validation-error-msg="Debe ser número decimal positivo" onkeyup="calcular_importe(' + id_producto + ')" onblur="redondear_importe(' + id_producto + ')"></td>' +
+				'<td class="text-nowrap text-right" data-importe="">0.00</td>' +
+				'<td class="text-nowrap text-center">' +
+				'<button type="button" class="btn btn-xs btn-danger" data-toggle="tooltip" data-title="Eliminar producto" tabindex="-1" onclick="eliminar_producto(' + id_producto + ')"><span class="glyphicon glyphicon-remove"></span></button>' +
+				'</td>' +
+				'</tr>';
+			}
 		}
+		//console.log(plantilla);
+		$compras.append(plantilla);
+		$compras.find('[data-cantidad], [data-costo]').on('click', function () {
+			$(this).select();
+		});
+		$compras.find('[title]').tooltip({
+			container: 'body',
+			trigger: 'hover'
+		});
+		$.validate({
+			form: '#formulario',
+			modules: 'basic',
+			onSuccess: function () {
+				guardar_nota();
+			}
+		});
 	}
-//console.log(plantilla);
-$compras.append(plantilla);
-$compras.find('[data-cantidad], [data-costo]').on('click', function () {
-	$(this).select();
-});
-$compras.find('[title]').tooltip({
-	container: 'body',
-	trigger: 'hover'
-});
-$.validate({
-	form: '#formulario',
-	modules: 'basic',
-	onSuccess: function () {
-		guardar_nota();
-	}
-});
+	calcular_importe(id_producto);
+	adicionar_fecha(id_producto);
 }
-calcular_importe(id_producto);
-}
+
 function eliminar_producto(id_producto) {
 	bootbox.confirm('Está seguro que desea eliminar el producto?', function (result) {
 		if(result){
