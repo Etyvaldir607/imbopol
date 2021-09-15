@@ -418,7 +418,6 @@ $(function () {
 			$nombre_cliente.prop('readonly', true);
 			$nit_ci.val(valor[0]);
 			$nombre_cliente.val(valor[1]);
-			$telefono_cliente.val(valor[2]);
 		} else {
 			$nit_ci.prop('readonly', false);
 			$nombre_cliente.prop('readonly', false);
@@ -739,6 +738,7 @@ function guardar_factura() {
 		url: '?/electronicas/guardar',
 		data: data
 	}).done(function (venta) {
+		console.log(venta);
 		if (venta) {
 			$.notify({
 				message: 'La venta computarizada fue realizada satisfactoriamente.'
@@ -754,7 +754,8 @@ function guardar_factura() {
 				type: 'danger'
 			});
 		}
-	}).fail(function () {
+	}).fail(function (e) {
+		console.log(e);
 		$('#loader').fadeOut(100);
 		$.notify({
 			message: 'Ocurrió un problema en el proceso, no se puedo obtener la dosificación ni tampoco guardar los datos de la venta, verifique si la se guardó parcialmente.'
