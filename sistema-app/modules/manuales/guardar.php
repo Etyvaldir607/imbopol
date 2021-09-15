@@ -27,11 +27,15 @@ if (is_post()) {
 		$monto_total = trim($_POST['monto_total']);
 
         //obtiene a el cliente
+        //obtiene al cliente
         $cliente = $db->select('*')->from('inv_clientes')->where(array('cliente' => $nombre_cliente, 'nit' => $nit_ci))->fetch_first();
         if(!$cliente){
             $cl = array(
                 'cliente' => $nombre_cliente,
-                'nit' => $nit_ci
+                'nit' => $nit_ci,
+				'direccion'=>null,
+                'telefono' => null,
+				'estado'=>'Si'
             );
             $db->insert('inv_clientes',$cl);
         }
@@ -61,21 +65,25 @@ if (is_post()) {
 
 		// Recorre los productos
 		foreach ($productos as $nro => $elemento) {
+			// recupera unidades
+			$id_unidad = $db->select('id_unidad')->from('inv_unidades')->where('unidad',$unidad[$nro])->fetch_first()['id_unidad'];
+			/*
 			$id_unidade=$db->select('*')->from('inv_asignaciones a')->join('inv_unidades u','a.unidad_id=u.id_unidad')->where(array('u.unidad' => $unidad[$nro], 'a.producto_id' => $productos[$nro]))->fetch_first();
-            if($id_unidade){
-                $id_unidad = $id_unidade['id_unidad'];
-                $cantidad = $cantidades[$nro]*$id_unidade['cantidad_unidad'];
-            }else{
-                $id_uni = $db->select('id_unidad')->from('inv_unidades')->where('unidad',$unidad[$nro])->fetch_first();
-                $id_unidad = $id_uni['id_unidad'];
-                $cantidad = $cantidades[$nro];
-            }
+			if($id_unidade){
+				$id_unidad = $id_unidade['id_unidad'];
+				$cantidad = $cantidades[$nro]*$id_unidade['cantidad_unidad'];
+			}else{
+				$id_uni = $db->select('id_unidad')->from('inv_unidades')->where('unidad',$unidad[$nro])->fetch_first();
+				$id_unidad = $id_uni['id_unidad'];
+				$cantidad = $cantidades[$nro];
+			}
+			*/
 			// Forma el detalle
 			$detalle = array(
-				'cantidad' => $cantidad,
-				'precio' => $precios[$nro],
-				'descuento' => $descuentos[$nro],
-                'unidad_id' => $id_unidad,
+				'precio' => (isset($precios[$nro])) ? $precios[$nro]: 0,
+				'unidad_id' => $id_unidad,
+				'cantidad' => (isset($cantidades[$nro])) ? $cantidades[$nro]: 0,
+				'descuento' =>(isset($descuentos[$nro])) ? $descuentos[$nro]: 0,
 				'producto_id' => $productos[$nro],
 				'egreso_id' => $egreso_id
 			);
