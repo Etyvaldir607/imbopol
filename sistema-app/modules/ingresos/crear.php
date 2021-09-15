@@ -419,6 +419,7 @@ function adicionar_fecha(id_producto){
 	var mascara = $('[data-mascara]').attr('data-mascara');
 	var gestion = $('[data-gestion]').attr('data-gestion');
 
+	/*
 	$.validate({
 		form: '#formulario',
 		modules: 'date',
@@ -426,10 +427,10 @@ function adicionar_fecha(id_producto){
 			var inicial_fecha = $.trim($('#fecha').val());
 			inicial_fecha = inicial_fecha.replace(new RegExp('\\.', 'g'), '-');
 			inicial_fecha = inicial_fecha.replace(new RegExp('/', 'g'), '-'); 
-			window.location = '?/manuales/mostrar' + inicial_fecha + final_fecha;
+			window.location = '?/ingresos/crear' + inicial_fecha;
 		}
 	});
-		
+	*/	
 	$inicial_fecha.datetimepicker({
 		format: formato
 	});
@@ -460,7 +461,7 @@ function adicionar_producto(id_producto) {
 			plantilla = '<tr class="active" data-producto="' + id_producto + '">' +
 			'<td class="text-nowrap"><input type="text" value="' + id_producto + '" name="productos[]" class="translate" tabindex="-1" data-validation="required number" data-validation-error-msg="Debe ser número">' + codigo + '</td>' +
 			'<td><input type="hidden" value="' + nombre + '" name="nprod[]">' + nombre + '</td>' + '<td>' + color + '</td>' +
-			'<td><input type="text" name="inicial" value="<?= ($fecha_inicial != $gestion_base) ? date_decode($fecha_inicial, $_institution['formato']) : ''; ?>" id="fecha-' + id_producto + '" class="form-control input-xs text-right" autocomplete="off" data-fecha="" data-validation="date" data-validation-format="<?= $formato_textual; ?>" data-validation-optional="true" onclick="adicionar_fecha(' + id_producto + ')"></td>'+
+			'<td><input type="text" name="fechas[]" value="<?= ($fecha_inicial != $gestion_base) ? date_decode($fecha_inicial, $_institution['formato']) : ''; ?>" id="fecha-' + id_producto + '" class="form-control input-xs text-right" autocomplete="off" data-fecha="" data-validation="date" data-validation-format="<?= $formato_textual; ?>" data-validation-optional="true" onclick="adicionar_fecha(' + id_producto + ')"></td>'+
 			'<td><input type="text" value="1" name="cantidades[]" class="form-control input-xs text-right" maxlength="7" autocomplete="off" data-cantidad="" data-validation="required number" data-validation-error-msg="Debe ser número entero positivo" onkeyup="calcular_importe(' + id_producto + ')"></td>' +
 			'<td style="display: none;"><input type="text" value="0.00" name="costos[]" class="form-control input-xs text-right" autocomplete="off" data-costo="" data-validation="required number" data-validation-allowing="range[0.01;1000000.00],float" data-validation-error-msg="Debe ser número decimal positivo" onkeyup="calcular_importe(' + id_producto + ')" onblur="redondear_importe(' + id_producto + ')"></td>' +
 			'<td style="display: none;" class="text-nowrap text-right" data-importe="">0.00</td>' +
@@ -473,7 +474,7 @@ function adicionar_producto(id_producto) {
 				plantilla = '<tr class="active" data-producto="' + id_producto + '">' +
 				'<td class="text-nowrap"><input type="text" value="' + id_producto + '" name="productos[]" class="translate" tabindex="-1" data-validation="required number" data-validation-error-msg="Debe ser número">' + codigo + '</td>' +
 				'<td><input type="hidden" value="' + nombre + '" name="nprod[]">' + nombre + '</td>' + '<td>' + color + '</td>' +
-				'<td><input type="text" name="inicial" value="<?= ($fecha_inicial != $gestion_base) ? date_decode($fecha_inicial, $_institution['formato']) : ''; ?>" id="fecha-' + id_producto + '"  class="form-control input-xs text-right" autocomplete="off" data-fecha="" data-validation="date" data-validation-format="<?= $formato_textual; ?>" data-validation-optional="true" onclick="adicionar_fecha(' + id_producto + ')"> </td>'+
+				'<td><input type="text" name="fechas[]"  value="<?= ($fecha_inicial != $gestion_base) ? date_decode($fecha_inicial, $_institution['formato']) : ''; ?>" id="fecha-' + id_producto + '"  class="form-control input-xs text-right" autocomplete="off" data-fecha="" data-validation="date" data-validation-format="<?= $formato_textual; ?>" data-validation-optional="true" onclick="adicionar_fecha(' + id_producto + ')"> </td>'+
 				'<td><input type="text" value="1" name="cantidades[]" class="form-control input-xs text-right" maxlength="7" autocomplete="off" data-cantidad="" data-validation="required number" data-validation-error-msg="Debe ser número entero positivo" onkeyup="calcular_importe(' + id_producto + ')"></td>' +
 				'<td><input type="text" value="0.00" name="costos[]" class="form-control input-xs text-right" autocomplete="off" data-costo="" data-validation="required number" data-validation-allowing="range[0.01;1000000.00],float" data-validation-error-msg="Debe ser número decimal positivo" onkeyup="calcular_importe(' + id_producto + ')" onblur="redondear_importe(' + id_producto + ')"></td>' +
 				'<td class="text-nowrap text-right" data-importe="">0.00</td>' +
