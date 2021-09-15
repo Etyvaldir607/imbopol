@@ -43,3 +43,4 @@ CREATE TABLE IF NOT EXISTS `inv_clientes` (
 #error al guardar electronicas (modules/electronicas/guardar.php)
 
 #modificar guardar notas (modules/notas/guardar.php)
+#modificar guardar proformas (modules/proformas/guardar.php)
