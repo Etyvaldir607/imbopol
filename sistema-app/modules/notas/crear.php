@@ -6,7 +6,55 @@ $id_almacen = ($almacen) ? $almacen['id_almacen'] : 0;
 // Verifica si existe el almacen
 if ($id_almacen != 0) {
 	// Obtiene los productos
-	$productos = $db->query("select p.id_producto,p.color, p.descripcion, p.imagen, p.codigo, p.nombre, p.nombre_factura, p.cantidad_minima, p.precio_actual, p.unidad_id, ifnull(e.cantidad_ingresos, 0) as cantidad_ingresos, ifnull(s.cantidad_egresos, 0) as cantidad_egresos, u.unidad, u.sigla, c.categoria from inv_productos p left join (select d.producto_id, sum(d.cantidad) as cantidad_ingresos from inv_ingresos_detalles d left join inv_ingresos i on i.id_ingreso = d.ingreso_id where i.almacen_id = $id_almacen group by d.producto_id ) as e on e.producto_id = p.id_producto left join (select d.producto_id, sum(d.cantidad) as cantidad_egresos from inv_egresos_detalles d left join inv_egresos e on e.id_egreso = d.egreso_id where e.almacen_id = $id_almacen group by d.producto_id ) as s on s.producto_id = p.id_producto left join inv_unidades u on u.id_unidad = p.unidad_id left join inv_categorias c on c.id_categoria = p.categoria_id")->fetch();
+	$productos = $db->query("select
+    p.id_producto,
+    p.color,
+    p.descripcion,
+    p.imagen,
+    p.codigo,
+    p.nombre,
+    p.nombre_factura,
+    p.cantidad_minima,
+    p.precio_actual,
+    p.unidad_id,
+    ifnull(e.cantidad_ingresos, 0) as cantidad_ingresos,
+    ifnull(s.cantidad_egresos, 0) as cantidad_egresos,
+    e.fecha_vencimiento,
+    u.unidad,
+    u.sigla,
+    c.categoria
+from
+    inv_productos p
+    left join (
+        select
+            d.producto_id,
+            d.fecha_vencimiento,
+            sum(d.cantidad) as cantidad_ingresos
+        from
+            inv_ingresos_detalles d
+            left join inv_ingresos i on i.id_ingreso = d.ingreso_id
+        where
+            i.almacen_id = 8
+        group by
+            d.producto_id,
+            d.fecha_vencimiento
+    ) as e on e.producto_id = p.id_producto
+    left join (
+        select
+            d.producto_id,
+            sum(d.cantidad) as cantidad_egresos
+        from
+            inv_egresos_detalles d
+            left join inv_egresos e on e.id_egreso = d.egreso_id
+        where
+            e.almacen_id = 8
+        group by
+            d.producto_id
+    ) as s on s.producto_id = p.id_producto
+    left join inv_unidades u on u.id_unidad = p.unidad_id
+    left join inv_categorias c on c.id_categoria = p.categoria_id")->fetch();
+	//
+	//$productos = $db->query("select p.id_producto,p.color, p.descripcion, p.imagen, p.codigo, p.nombre, p.nombre_factura, p.cantidad_minima, p.precio_actual, p.unidad_id, ifnull(e.cantidad_ingresos, 0) as cantidad_ingresos, ifnull(s.cantidad_egresos, 0) as cantidad_egresos, u.unidad, u.sigla, c.categoria from inv_productos p left join (select d.producto_id, sum(d.cantidad) as cantidad_ingresos from inv_ingresos_detalles d left join inv_ingresos i on i.id_ingreso = d.ingreso_id where i.almacen_id = $id_almacen group by d.producto_id ) as e on e.producto_id = p.id_producto left join (select d.producto_id, sum(d.cantidad) as cantidad_egresos from inv_egresos_detalles d left join inv_egresos e on e.id_egreso = d.egreso_id where e.almacen_id = $id_almacen group by d.producto_id ) as s on s.producto_id = p.id_producto left join inv_unidades u on u.id_unidad = p.unidad_id left join inv_categorias c on c.id_categoria = p.categoria_id")->fetch();
 } else {
 	$productos = null;
 }
