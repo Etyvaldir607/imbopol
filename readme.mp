@@ -48,3 +48,4 @@ CREATE TABLE IF NOT EXISTS `inv_clientes` (
 #modificar guardar electronicas (modules/electronicas/guardar.php)
 
 #añadir parametro de compra - fecha de vencimiento en la vista
+#añadir parametro de compra - fecha de vencimiento en la base datos
