@@ -19,7 +19,7 @@ if ($id_almacen != 0) {
     p.unidad_id,
     ifnull(e.cantidad_ingresos, 0) as cantidad_ingresos,
     ifnull(s.cantidad_egresos, 0) as cantidad_egresos,
-    e.fecha_vencimiento,
+	GROUP_CONCAT(e.fecha_vencimiento) AS fecha_vencimiento,
     u.unidad,
     u.sigla,
     c.categoria
@@ -34,9 +34,8 @@ from
             inv_ingresos_detalles d
             left join inv_ingresos i on i.id_ingreso = d.ingreso_id
         where
-            i.almacen_id = 8
+            i.almacen_id = 8 
         group by
-            d.producto_id,
             d.fecha_vencimiento
     ) as e on e.producto_id = p.id_producto
     left join (
@@ -47,12 +46,13 @@ from
             inv_egresos_detalles d
             left join inv_egresos e on e.id_egreso = d.egreso_id
         where
-            e.almacen_id = 8
+            e.almacen_id =8 
         group by
             d.producto_id
     ) as s on s.producto_id = p.id_producto
     left join inv_unidades u on u.id_unidad = p.unidad_id
-    left join inv_categorias c on c.id_categoria = p.categoria_id")->fetch();
+    left join inv_categorias c on c.id_categoria = p.categoria_id
+group by p.id_producto")->fetch();
 	//
 	//$productos = $db->query("select p.id_producto,p.color, p.descripcion, p.imagen, p.codigo, p.nombre, p.nombre_factura, p.cantidad_minima, p.precio_actual, p.unidad_id, ifnull(e.cantidad_ingresos, 0) as cantidad_ingresos, ifnull(s.cantidad_egresos, 0) as cantidad_egresos, u.unidad, u.sigla, c.categoria from inv_productos p left join (select d.producto_id, sum(d.cantidad) as cantidad_ingresos from inv_ingresos_detalles d left join inv_ingresos i on i.id_ingreso = d.ingreso_id where i.almacen_id = $id_almacen group by d.producto_id ) as e on e.producto_id = p.id_producto left join (select d.producto_id, sum(d.cantidad) as cantidad_egresos from inv_egresos_detalles d left join inv_egresos e on e.id_egreso = d.egreso_id where e.almacen_id = $id_almacen group by d.producto_id ) as s on s.producto_id = p.id_producto left join inv_unidades u on u.id_unidad = p.unidad_id left join inv_categorias c on c.id_categoria = p.categoria_id")->fetch();
 } else {
@@ -228,6 +228,7 @@ $permiso_mostrar = in_array('mostrar', $permisos);
 									<th class="text-nowrap text-center width-collapse">#</th>
 									<th class="text-nowrap text-center width-collapse">CÓDIGO</th>
 									<th class="text-nowrap text-center">PRODUCTO</th>
+									<th class="text-nowrap">FECHA DE VENCIMIENTO</th>
 									<th class="text-nowrap text-center width-collapse">CANTIDAD</th>
                                     <th class="text-nowrap text-center">UNIDAD</th>
                                     <th class="text-nowrap text-center">PRECIO</th>
@@ -238,7 +239,7 @@ $permiso_mostrar = in_array('mostrar', $permisos);
 							</thead>
 							<tfoot>
 								<tr class="active">
-									<th class="text-nowrap text-right" colspan="7">IMPORTE TOTAL <?= escape($moneda); ?></th>
+									<th class="text-nowrap text-right" colspan="8">IMPORTE TOTAL <?= escape($moneda); ?></th>
 									<th class="text-nowrap text-right" data-subtotal="">0.00</th>
 									<th class="text-nowrap text-center">ACCIONES</th>
 								</tr>
@@ -373,6 +374,7 @@ $permiso_mostrar = in_array('mostrar', $permisos);
 							<th class="text-nowrap">Código</th>
 							<th class="text-nowrap">Nombre</th>
                             <th class="text-nowrap">Descripción</th>
+							<th class="text-nowrap">Fecha de vencimiento</th>
                             <th class="text-nowrap">Tipo</th>
 							<th class="text-nowrap">Stock</th>
 							<th class="text-nowrap">Precio</th>
@@ -380,31 +382,54 @@ $permiso_mostrar = in_array('mostrar', $permisos);
 						</tr>
 					</thead>
 					<tbody>
-						<?php foreach ($productos as $nro => $producto) {
-                            $otro_precio = $db->select('*')->from('inv_asignaciones a')->join('inv_unidades b','a.unidad_id=b.id_unidad')->where('a.producto_id',$producto['id_producto'])->fetch();
-                            ?>
-						<tr>
-							<td class="text-nowrap"><img src="<?= ($producto['imagen'] == '') ? imgs . '/image.jpg' : files . '/productos/' . $producto['imagen']; ?>" width="75" height="75"></td>
-							<td class="text-nowrap" data-codigo="<?= $producto['id_producto']; ?>"><?= escape($producto['codigo']); ?></td>
-							<td>
-								<span ><?= escape($producto['nombre']); ?> <?= escape($producto['color']); ?></span>
-								<span class="hidden" data-color="<?= $producto['id_producto']; ?>"><?= escape($producto['color']); ?></span>
-								<span class="hidden" data-nombre="<?= $producto['id_producto']; ?>"><?= escape($producto['nombre_factura']); ?></span>
-							</td>
-                            <td class="text-nowrap"><?= escape($producto['descripcion']); ?></td>
-                            <td class="text-nowrap"><?= escape($producto['categoria']); ?></td>
-							<td class="text-right" data-stock="<?= $producto['id_producto']; ?>"><?= escape($producto['cantidad_ingresos'] - $producto['cantidad_egresos']); ?></td>
-							<td class="text-right" data-valor="<?= $producto['id_producto']; ?>">
-                                *<?= escape($producto['unidad'].': '); ?><b><?= escape($producto['precio_actual']); ?></b>
-                                <?php foreach($otro_precio as $otro){ ?>
-                                    <br/>*<?= escape($otro['unidad'].': '); ?><b><?= escape($otro['otro_precio']); ?></b>
-                                <?php } ?>
-                            </td>
-							<td class="text-nowrap">
-								<button type="button" class="btn btn-xs btn-primary" data-vender="<?= $producto['id_producto']; ?>" data-toggle="tooltip" data-title="Vender"><span class="glyphicon glyphicon-shopping-cart"></span></button>
-								<button type="button" class="btn btn-xs btn-success" data-actualizar="<?= $producto['id_producto']; ?>" onclick="actualizar(this)" data-toggle="tooltip" data-title="Actualizar stock y precio del producto"><span class="glyphicon glyphicon-refresh"></span></button>
-							</td>
-						</tr>
+						<?php foreach ($productos as $nro => $producto) {?>
+                            <?php $otro_precio = $db->select('*')->from('inv_asignaciones a')->join('inv_unidades b','a.unidad_id=b.id_unidad')->where('a.producto_id',$producto['id_producto'])->fetch(); ?>
+							<tr>
+								<td class="text-nowrap"><img src="<?= ($producto['imagen'] == '') ? imgs . '/image.jpg' : files . '/productos/' . $producto['imagen']; ?>" width="75" height="75"></td>
+								<td class="text-nowrap" data-codigo="<?= $producto['id_producto']; ?>"><?= escape($producto['codigo']); ?></td>
+								<td>
+									<span ><?= escape($producto['nombre']); ?> <?= escape($producto['color']); ?></span>
+									<span class="hidden" data-color="<?= $producto['id_producto']; ?>"><?= escape($producto['color']); ?></span>
+									<span class="hidden" data-nombre="<?= $producto['id_producto']; ?>"><?= escape($producto['nombre_factura']); ?></span>
+								</td>
+								<td class="text-nowrap"><?= escape($producto['descripcion']); ?></td>
+								<td class="text-right" data-fecha="<?= $producto['id_producto']; ?>">
+								
+									<?php foreach ( explode(',', $producto['fecha_vencimiento']) as $val => $fecha) {?>
+										<?= escape($fecha); ?></br>
+									<?php } ?>
+								</td>
+								
+								
+								<td class="text-nowrap"><?= escape($producto['categoria']); ?></td>
+								<?php if($producto['cantidad_ingresos'] - $producto['cantidad_egresos'] <= 0){ ?>
+									<td class="text-right danger" data-stock="<?= $producto['id_producto']; ?>">
+										<?= escape(0); ?>
+									</td>
+								<?php } else { ?>
+									<td class="text-right success" data-stock="<?= $producto['id_producto']; ?>">
+										<?= escape($producto['cantidad_ingresos'] - $producto['cantidad_egresos']); ?>
+									</td>
+								<?php } ?>
+								
+								<td class="text-right" data-valor="<?= $producto['id_producto']; ?>">
+									*<?= escape($producto['unidad'].': '); ?><b><?= escape($producto['precio_actual']); ?></b>
+									<?php foreach($otro_precio as $otro){ ?>
+										<br/>*<?= escape($otro['unidad'].': '); ?><b><?= escape($otro['otro_precio']); ?></b>
+									<?php } ?>
+								</td>
+								<?php if($producto['cantidad_ingresos'] - $producto['cantidad_egresos'] <= 0){ ?>
+									<td class="text-nowrap">
+									<button type="button" class="btn btn-xs btn-danger" data-vender="<?= $producto['id_producto']; ?>" data-toggle="tooltip" data-title="Vender" disabled><span class="glyphicon glyphicon-shopping-cart"></span></button>
+									<button type="button" class="btn btn-xs btn-success" data-actualizar="<?= $producto['id_producto']; ?>" onclick="actualizar(this)" data-toggle="tooltip" data-title="Actualizar stock y precio del producto"><span class="glyphicon glyphicon-refresh"></span></button>
+								</td>
+								<?php } else { ?>
+									<td class="text-nowrap">
+										<button type="button" class="btn btn-xs btn-primary" data-vender="<?= $producto['id_producto']; ?>" data-toggle="tooltip" data-title="Vender"><span class="glyphicon glyphicon-shopping-cart"></span></button>
+										<button type="button" class="btn btn-xs btn-success" data-actualizar="<?= $producto['id_producto']; ?>" onclick="actualizar(this)" data-toggle="tooltip" data-title="Actualizar stock y precio del producto"><span class="glyphicon glyphicon-refresh"></span></button>
+									</td>
+								<?php } ?>
+							</tr>
 
 						<?php } ?>
 					</tbody>
@@ -829,8 +854,22 @@ function adicionar_producto(id_producto) {
 	var numero = $ventas.find('[data-producto]').size() + 1;
 	var codigo = $.trim($('[data-codigo=' + id_producto + ']').text());
 	var nombre = $.trim($('[data-nombre=' + id_producto + ']').text());
+
+
 	var color = $.trim($('[data-color=' + id_producto + ']').text());
-	var stock = $.trim($('[data-stock=' + id_producto + ']').text());
+	var fecha = $.trim($('[data-fecha=' + id_producto + ']').text());
+
+	var fechas = $('[data-fecha=' + id_producto + ']');
+
+
+	var stocks = $('[data-stock=' + id_producto + ']');
+	var suma = 0;
+	var stock = 0;
+	for (let i = 0; i < stocks.size(); i++) {
+		suma = suma + parseInt(stocks[i].innerText, 10);
+	}
+	stock = suma;
+
     var valor = $.trim($('[data-valor=' + id_producto + ']').text());
 
     var posicion = valor.indexOf(':');
@@ -839,17 +878,26 @@ function adicionar_producto(id_producto) {
 	var plantilla = '';
 	var cantidad;
 
+
+
 	if ($producto.size()) {
 		cantidad = $.trim($cantidad.val());
 		cantidad = ($.isNumeric(cantidad)) ? parseInt(cantidad) : 0;
 		cantidad = (cantidad < 9999999) ? cantidad + 1: cantidad;
 		$cantidad.val(cantidad).trigger('blur');
 	} else {
+
 		plantilla = '<tr class="active" data-producto="' + id_producto + '">' +
 						'<td class="text-nowrap">' + numero + '</td>' +
 						'<td class="text-nowrap"><input type="text" value="' + id_producto + '" name="productos[]" class="translate" tabindex="-1" data-validation="required number" data-validation-error-msg="Debe ser número">' + codigo + '</td>' +
-						'<td><input type="text" value="' + nombre + '" name="nombres[]" class="translate" tabindex="-1" data-validation="required">' + nombre +' '+color  +'</td>' +
-						'<td><input type="text" value="1" name="cantidades[]" class="form-control input-xs text-right" maxlength="7" autocomplete="off" data-cantidad="" data-validation="required number" data-validation-allowing="range[1;' + stock + ']" data-validation-error-msg="Debe ser un número positivo entre 1 y ' + stock + '" onkeyup="calcular_importe(' + id_producto + ')"></td>';
+						'<td><input type="text" value="' + nombre + '" name="nombres[]" class="translate" tabindex="-1" data-validation="required">' + nombre +' '+color  +'</td>';
+		plantilla = plantilla+'<td><select name="fecha[]" id="fecha[]" data-xxx="true" class="form-control input-xs" >';
+		for(var ic=0;ic<fechas.size() ;ic++){			
+			plantilla = plantilla+ '<option value="' +fechas[ic].innerText+ '" >' +fechas[ic].innerText+ '</option>';
+		}
+		plantilla = plantilla+'</select></td>';
+		
+		'<td><input type="text" value="1" name="cantidades[]" class="form-control input-xs text-right" maxlength="7" autocomplete="off" data-cantidad="" data-validation="required number" data-validation-allowing="range[1;' + stock + ']" data-validation-error-msg="Debe ser un número positivo entre 1 y ' + stock + '" onkeyup="calcular_importe(' + id_producto + ')"></td>';
 		if(porciones.length>2){
             plantilla = plantilla+'<td><select name="unidad[]" id="unidad[]" data-xxx="true" class="form-control input-xs" >';
             aparte = porciones[1].split(':');
