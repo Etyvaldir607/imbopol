@@ -568,7 +568,8 @@ function guardar_nota() {
 			}, {
 				type: 'success'
 			});
-			imprimir_nota(venta);
+			//imprimir_nota(venta);
+			$('#loader').fadeOut(100);
 		} else {
 			$('#loader').fadeOut(100);
 			$.notify({
