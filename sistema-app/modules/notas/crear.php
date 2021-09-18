@@ -405,7 +405,7 @@ span.block.text-right.text-success, span.block.text-right.text-danger {
 									<span class="hidden" data-nombre="<?= $producto['id_producto']; ?>"><?= escape($producto['nombre_factura']); ?></span>
 								</td>
 								<td class="text-nowrap"><?= escape($producto['descripcion']); ?></td>
-								<td class="text-right" data-fecha="<?= $producto['id_producto']; ?>">
+								<td class="text-right" data-fecha="<?= $producto['id_producto']; ?>" data-val-fecha="<?= $producto['fecha_vencimiento']; ?>">
 									<?php foreach ( explode(',', $producto['fecha_vencimiento']) as $val => $fecha) {?>
 										<?= escape($fecha); ?></br>
 									<?php } ?>
@@ -414,7 +414,7 @@ span.block.text-right.text-success, span.block.text-right.text-danger {
 								
 								<td class="text-nowrap"><?= escape($producto['categoria']); ?></td>
 
-								<td class="text-right block " data-stock="<?= $producto['id_producto']; ?>">
+								<td class="text-right block " data-stock="<?= $producto['id_producto']; ?>" data-val-i="<?= $producto['id_producto']; ?>" data-val-e="<?= $producto['id_producto']; ?>">
 									<?php  $ci = explode(',', $producto['cantidad_ingresos'] ); ?>
 									<?php  $ce = explode(',', $producto['cantidad_egresos'] ); ?>
 									<?php for ($x = 0; $x <= count($ci) - 1; $x++) {?>
@@ -878,18 +878,19 @@ function adicionar_producto(id_producto) {
 
 
 	var color = $.trim($('[data-color=' + id_producto + ']').text());
-	var fecha = $.trim($('[data-fecha=' + id_producto + ']').text());
-
-	var fechas = $('[data-fecha=' + id_producto + ']');
-
+	var fechas = $.trim($('[data-fecha=' + id_producto + ']').attr('[data-val-fecha]'));
+	console.log(fechas);
 
 	var stocks = $('[data-stock=' + id_producto + ']');
+	console.log(stocks);
 	var suma = 0;
 	var stock = 0;
+	
 	for (let i = 0; i < stocks.size(); i++) {
 		suma = suma + parseInt(stocks[i].innerText, 10);
 	}
 	stock = suma;
+	console.log(stock);
 
     var valor = $.trim($('[data-valor=' + id_producto + ']').text());
 
