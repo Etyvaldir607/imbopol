@@ -17,8 +17,12 @@ if ($id_almacen != 0) {
     p.cantidad_minima,
     p.precio_actual,
     p.unidad_id,
-    ifnull(e.cantidad_ingresos, 0) as cantidad_ingresos,
-    ifnull(s.cantidad_egresos, 0) as cantidad_egresos,
+	GROUP_CONCAT(
+    ifnull(e.cantidad_ingresos, 0)            
+	) AS cantidad_ingresos,
+	GROUP_CONCAT(
+    ifnull(s.cantidad_egresos, 0)            
+    ) AS cantidad_egresos,
 	GROUP_CONCAT(e.fecha_vencimiento) AS fecha_vencimiento,
     u.unidad,
     u.sigla,
@@ -26,29 +30,33 @@ if ($id_almacen != 0) {
 from
     inv_productos p
     left join (
-        select
+		select
             d.producto_id,
-            d.fecha_vencimiento,
+			d.fecha_vencimiento,
             sum(d.cantidad) as cantidad_ingresos
         from
             inv_ingresos_detalles d
             left join inv_ingresos i on i.id_ingreso = d.ingreso_id
         where
-            i.almacen_id = 8 
+            i.almacen_id = $id_almacen
         group by
-            d.fecha_vencimiento
+            d.producto_id,
+			d.fecha_vencimiento
     ) as e on e.producto_id = p.id_producto
     left join (
         select
             d.producto_id,
+			d.fecha_vencimiento,
             sum(d.cantidad) as cantidad_egresos
         from
             inv_egresos_detalles d
             left join inv_egresos e on e.id_egreso = d.egreso_id
         where
-            e.almacen_id =8 
+            e.almacen_id =$id_almacen
         group by
-            d.producto_id
+            d.producto_id,
+
+			d.fecha_vencimiento
     ) as s on s.producto_id = p.id_producto
     left join inv_unidades u on u.id_unidad = p.unidad_id
     left join inv_categorias c on c.id_categoria = p.categoria_id
@@ -135,6 +143,9 @@ $permiso_mostrar = in_array('mostrar', $permisos);
 .table-display > .tfoot > .tr > .th {
 	font-weight: bold;
 }
+span.block.text-right.text-success, span.block.text-right.text-danger {
+		display: block;
+}
 @media (min-width: 768px) {
 	.table-display {
 		display: table;
@@ -174,6 +185,7 @@ $permiso_mostrar = in_array('mostrar', $permisos);
 	.table-display > .thead > .tr > .th:first-child {
 		padding-right: 15px;
 	}
+
 }
 </style>
 <div class="row">
@@ -394,7 +406,6 @@ $permiso_mostrar = in_array('mostrar', $permisos);
 								</td>
 								<td class="text-nowrap"><?= escape($producto['descripcion']); ?></td>
 								<td class="text-right" data-fecha="<?= $producto['id_producto']; ?>">
-								
 									<?php foreach ( explode(',', $producto['fecha_vencimiento']) as $val => $fecha) {?>
 										<?= escape($fecha); ?></br>
 									<?php } ?>
@@ -402,15 +413,25 @@ $permiso_mostrar = in_array('mostrar', $permisos);
 								
 								
 								<td class="text-nowrap"><?= escape($producto['categoria']); ?></td>
-								<?php if($producto['cantidad_ingresos'] - $producto['cantidad_egresos'] <= 0){ ?>
-									<td class="text-right danger" data-stock="<?= $producto['id_producto']; ?>">
-										<?= escape(0); ?>
-									</td>
-								<?php } else { ?>
-									<td class="text-right success" data-stock="<?= $producto['id_producto']; ?>">
-										<?= escape($producto['cantidad_ingresos'] - $producto['cantidad_egresos']); ?>
-									</td>
-								<?php } ?>
+
+								<td class="text-right block " data-stock="<?= $producto['id_producto']; ?>">
+									<?php  $ci = explode(',', $producto['cantidad_ingresos'] ); ?>
+									<?php  $ce = explode(',', $producto['cantidad_egresos'] ); ?>
+									<?php for ($x = 0; $x <= count($ci) - 1; $x++) {?>
+									
+										<?php if($ci[$x] - $ce[$x] <= 0){ ?>
+											<span class="block text-right text-danger">
+												<?= escape(0); ?>
+											</span>
+										<?php } else { ?>
+											<span class="block text-right text-success" >
+												<?= escape($ci[$x] - $ce[$x]); ?>
+											</span>
+										<?php } ?>
+
+									<?php } ?>
+								</td>
+
 								
 								<td class="text-right" data-valor="<?= $producto['id_producto']; ?>">
 									*<?= escape($producto['unidad'].': '); ?><b><?= escape($producto['precio_actual']); ?></b>
