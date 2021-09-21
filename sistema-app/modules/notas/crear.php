@@ -5,7 +5,7 @@ $id_almacen = ($almacen) ? $almacen['id_almacen'] : 0;
 
 // Verifica si existe el almacen
 if ($id_almacen != 0) {
-	// Obtiene los productos
+	// Obtiene los productos por fecha de vencimiento
 	$productos = $db->query("select
     p.id_producto,
     p.color,
@@ -23,7 +23,12 @@ if ($id_almacen != 0) {
 	GROUP_CONCAT(
     ifnull(s.cantidad_egresos, 0)            
     ) AS cantidad_egresos,
-	GROUP_CONCAT(e.fecha_vencimiento) AS fecha_vencimiento,
+	GROUP_CONCAT(e.fecha_vencimiento
+    ) AS fecha_vencimiento,
+	GROUP_CONCAT(
+    ifnull(e.cantidad_ingresos, 0) - ifnull(s.cantidad_egresos , 0)
+    ) as stock,
+	e.fecha_vencimiento,
     u.unidad,
     u.sigla,
     c.categoria
@@ -38,7 +43,7 @@ from
             inv_ingresos_detalles d
             left join inv_ingresos i on i.id_ingreso = d.ingreso_id
         where
-            i.almacen_id = $id_almacen
+            i.almacen_id = 9 
         group by
             d.producto_id,
 			d.fecha_vencimiento
@@ -52,7 +57,8 @@ from
             inv_egresos_detalles d
             left join inv_egresos e on e.id_egreso = d.egreso_id
         where
-            e.almacen_id =$id_almacen
+            e.almacen_id = 9
+
         group by
             d.producto_id,
 			d.fecha_vencimiento
@@ -404,9 +410,28 @@ span.block.text-right.text-success, span.block.text-right.text-danger {
 									<span class="hidden" data-nombre="<?= $producto['id_producto']; ?>"><?= escape($producto['nombre_factura']); ?></span>
 								</td>
 								<td class="text-nowrap"><?= escape($producto['descripcion']); ?></td>
-								<td class="text-right" data-fecha="<?= $producto['id_producto']; ?>" data-val-fecha="<?= $producto['fecha_vencimiento']; ?>">
-									<?php foreach ( explode(',', $producto['fecha_vencimiento']) as $val => $fecha) {?>
-										<?= escape($fecha); ?></br>
+								<?php 
+								// $ci = obteniendo cantidad de ingresos
+								$ci = explode(',', $producto['cantidad_ingresos'] ); 
+								// $ce = obteniendo cantidad de egresos
+								$ce = explode(',', $producto['cantidad_egresos']);
+								// $f = obteniendo fechas de vencimiento	
+								$f  = explode(',', $producto['fecha_vencimiento']);	 
+								?>
+
+								<td class="text-right" data-fecha="<?= $producto['id_producto']; ?>" data-val-fecha="<?= $producto['fecha_vencimiento'];?>">
+									<?php for ($x = 0; $x <= count($ci) - 1; $x++) {?>
+										<!-- obteniendo fechas de productos por fecha de vencimiento -->	
+										<?php if($ci[$x] - $ce[$x] <= 0){ ?>
+											<span class="block text-right text-danger " style="display:none">
+												<?= escape($f[$x] ); ?></br>
+											</span>
+										<?php } else { ?>
+											<span class="block text-right text-success" >
+												<?= escape($f[$x]); ?></br>
+											</span>
+										<?php } ?>
+
 									<?php } ?>
 								</td>
 								
@@ -414,14 +439,11 @@ span.block.text-right.text-success, span.block.text-right.text-danger {
 								<td class="text-nowrap"><?= escape($producto['categoria']); ?></td>
 
 								<td class="text-right block " data-stock="<?= $producto['id_producto']; ?>" data-val-i="<?= $producto['cantidad_ingresos']; ?>" data-val-e="<?= $producto['cantidad_egresos']; ?>">
-									<!-- $ci = obteniendo cantidad de ingresos -->
-									<?php  $ci = explode(',', $producto['cantidad_ingresos'] ); ?>
-									<!-- $ce = obteniendo cantidad de egresos -->	
-									<?php  $ce = explode(',', $producto['cantidad_egresos'] ); ?>
+
 									<?php for ($x = 0; $x <= count($ci) - 1; $x++) {?>
 										<!-- obteniendo el stock de productos por fecha de vencimiento -->	
 										<?php if($ci[$x] - $ce[$x] <= 0){ ?>
-											<span class="block text-right text-danger">
+											<span class="block text-right text-danger " style="display:none">
 												<?= escape($ci[$x] - $ce[$x]); ?>
 											</span>
 										<?php } else { ?>
@@ -875,8 +897,8 @@ function adicionar_item(fecha_ven, id_producto){
 
 	var color = $.trim($('[data-color=' + id_producto + ']').text());
 
-	var fecha =$('[data-fecha=' + id_producto + ']')[0].dataset.valFecha;
-	var fechas = fecha.split(',');
+	//var fecha =$('[data-fecha=' + id_producto + ']')[0].dataset.valFecha;
+	var fechas = fecha_ven
 	//console.log(fechas);
 
 
@@ -890,15 +912,6 @@ function adicionar_item(fecha_ven, id_producto){
 		//console.log(stocks[i]);
 	}
 
-	console.log(stocks);
-	var suma = 0;
-	var stock = 0;
-	
-	for (let i = 0; i < stocks.length; i++) {
-		suma = suma + parseInt(stocks[i], 10);
-	}
-	stock = suma;
-	console.log(stock);
 
     var valor = $.trim($('[data-valor=' + id_producto + ']').text());
 
@@ -915,12 +928,10 @@ function adicionar_item(fecha_ven, id_producto){
 
 	// seleccionar fecha de vencimiento para agregar a la venta
 	plantilla = plantilla+'<td><select name="fecha[]" id="fecha" class="form-control input-xs" onchange="actualizar_stock(event.target.value, ' + id_producto + ')">';
-
-	for(var ic=0;ic<fechas.length ;ic++){
-			if(fecha_ven !== fechas[ic]) {
-				plantilla = plantilla+ '<option value="' +fechas[ic]+ '" >' +fechas[ic]+ '</option>';
+	for(var i=0;i<fechas.length ;i++){
+			if(ingresos[i] - egresos[i] > 0) {
+				plantilla = plantilla+ '<option value="' +fechas[i]+ '" >' +fechas[i]+ '</option>';
 			}
-
 		}
 	plantilla = plantilla+'</select></td>';
 
@@ -998,39 +1009,35 @@ function adicionar_producto(id_producto) {
 	var codigo = $.trim($('[data-codigo=' + id_producto + ']').text());
 	var nombre = $.trim($('[data-nombre=' + id_producto + ']').text());
 
-
 	var color = $.trim($('[data-color=' + id_producto + ']').text());
 
 	// recupera la fecha de vencimiento
 	var fechas =$('[data-fecha=' + id_producto + ']')[0].dataset.valFecha.split(',');
-	//console.log(fechas);
 
 	// recupera los ingresos y egresos
 	var ingresos =$('[data-stock=' + id_producto + ']')[0].dataset.valI.split(',');
 	var egresos =$('[data-stock=' + id_producto + ']')[0].dataset.valE.split(',');
-	//console.log(ingresos, egresos);
 
+	// stocks por fechas de vencimiento permitidas	
 	var stocks = new Array();
-	for (let i = 0; i < ingresos.length; i++) {
+	for (let i = 0; i < fechas.length; i++) {
 		stocks[i] = parseInt(ingresos[i]) - parseInt(egresos[i]);
-		//console.log(stocks[i]);
 	}
-
-	console.log(stocks);
-	var suma = 0;
-	var stock = 0;
-	
-	for (let i = 0; i < stocks.length; i++) {
-		suma = suma + parseInt(stocks[i], 10);
-	}
-	stock = suma;
-	console.log(stock);
+	console.log(fechas, stocks)
+	// fechas de vencimiento permitidas
+	stocks.find(function(value, index) {
+		if (value <= 0) {
+			fechas.splice(fechas[index],1);
+			stocks.splice(stocks[index],1);
+		}
+	});
+	console.log(fechas, stocks)
 
     var valor = $.trim($('[data-valor=' + id_producto + ']').text());
 
     var posicion = valor.indexOf(':');
     var porciones = valor.split('*');
-    console.log(color);
+    //console.log(color);
 	var plantilla = '';
 	var cantidad;
 
@@ -1049,9 +1056,11 @@ function adicionar_producto(id_producto) {
 						'<td><input type="text" value="' + nombre + '" name="nombres[]" class="translate" tabindex="-1" data-validation="required">' + nombre +' '+color  +'</td>';
 		
 		// seleccionar fecha de vencimiento para agregar a la venta
-		plantilla = plantilla+'<td><select name="fecha[]" id="fecha" class="form-control input-xs" onchange="actualizar_stock(event.target.value, ' + id_producto + ')">';
-		for(var ic=0;ic<fechas.length ;ic++){	
-			plantilla = plantilla+ '<option value="' +fechas[ic]+ '" >' +fechas[ic]+ '</option>';
+		plantilla = plantilla+'<td><select name="fecha[]" data-ven="' + fechas + '" id="fecha" class="form-control input-xs" onchange="actualizar_stock(event.target.value, ' + id_producto + ')">';
+		for(var i = 0; i < fechas.length; i++){
+			if(ingresos[i] - egresos[i] >= 0) {
+				plantilla = plantilla+ '<option value="' +fechas[i]+ '" >' +fechas[i]+ '</option>';
+			}
 		}
 		plantilla = plantilla+'</select></td>';
 		
@@ -1111,34 +1120,38 @@ function adicionar_producto(id_producto) {
 }
 
 // actualizar el stock por fecha de vencimiento
-function actualizar_stock(fecha_ven, id_producto){
+function actualizar_stock(fecha_ven,id_producto){
 
 	var $ventas = $('#ventas tbody');
 	var $producto = $ventas.find('[data-producto=' + id_producto + ']');
-	var fechas =$('[data-fecha=' + id_producto + ']')[0].dataset.valFecha.split(',');
+	
+	var fechas = $('[data-fecha=' + id_producto + ']')[0].dataset.valFecha.split(',');
+	//var fechas_ven = $('[data-ven]').val($("[data-ven] option:selected").text());
+	//console.log(fechas_ven);
 
 	var ingresos =$('[data-stock=' + id_producto + ']')[0].dataset.valI.split(',');
 	var egresos =$('[data-stock=' + id_producto + ']')[0].dataset.valE.split(',');
 	//console.log(ingresos, egresos);
+	var fechas_ven = fechas;
+	var position = fechas.indexOf(fecha_ven);
+
+	fechas = fechas.filter(function(item) {
+		return fechas.indexOf(item) !== position;
+	});
 
 	var stocks = new Array();
+
 	for (let i = 0; i < ingresos.length; i++) {
 		stocks[i] = parseInt(ingresos[i]) - parseInt(egresos[i]);
 		//console.log(stocks[i]);
 	}
-	var position = fechas.indexOf(fecha_ven)
-	
-	console.log(fechas.splice(0, 1));
+	//console.log(fechas);
 	//actualizando limite
 	$('#cantidades-'+ id_producto).attr("data-validation-allowing", 'range[1;' + stocks[position] + ']');
 	//actulaizando msg de error
 	$('#cantidades-'+ id_producto).attr("data-validation-error-msg", 'Debe ser un número positivo entre 1 y ' + stocks[position] + '');
-	
-	//adicionar_item(fecha_ven, id_producto);
+	adicionar_item(fechas, id_producto);
 }
-
-
-
 
 function eliminar_producto(id_producto) {
     bootbox.confirm('Está seguro que desea eliminar el producto?', function (result) {
