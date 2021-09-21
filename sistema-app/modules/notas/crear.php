@@ -28,7 +28,6 @@ if ($id_almacen != 0) {
 	GROUP_CONCAT(
     ifnull(e.cantidad_ingresos, 0) - ifnull(s.cantidad_egresos , 0)
     ) as stock,
-	e.fecha_vencimiento,
     u.unidad,
     u.sigla,
     c.categoria
@@ -43,7 +42,7 @@ from
             inv_ingresos_detalles d
             left join inv_ingresos i on i.id_ingreso = d.ingreso_id
         where
-            i.almacen_id = 9 
+            i.almacen_id = $id_almacen
         group by
             d.producto_id,
 			d.fecha_vencimiento
@@ -57,7 +56,7 @@ from
             inv_egresos_detalles d
             left join inv_egresos e on e.id_egreso = d.egreso_id
         where
-            e.almacen_id = 9
+            e.almacen_id = $id_almacen
 
         group by
             d.producto_id,
@@ -418,6 +417,7 @@ span.block.text-right.text-success, span.block.text-right.text-danger {
 								// $f = obteniendo fechas de vencimiento	
 								$f  = explode(',', $producto['fecha_vencimiento']);	 
 								?>
+								
 
 								<td class="text-right" data-fecha="<?= $producto['id_producto']; ?>" data-val-fecha="<?= $producto['fecha_vencimiento'];?>">
 									<?php for ($x = 0; $x <= count($ci) - 1; $x++) {?>
