@@ -52,3 +52,16 @@ CREATE TABLE IF NOT EXISTS `inv_clientes` (
 #añadir parametro de compra - fecha de vencimiento en el procesador (modules/ingresos/guardar.php)
 
 #agregar parametro de venta - fecha de vencimiento en (modules/notas/crear.php)
+
+#corregir crear nota (no mostrar los datos que sean menores a cero en el stock)
+#corregir crear nota (debo poder agregar productos de distintas fechas de vencimiento)
+
+#delimitar las fechas de agregacióm
+
+#cambio de metodo para sincornizar los stocks
+#estructuracion de la consulta para que se devuelva los productos asociados a:
+  un array de fechas de vencimiento y un arrray de stocks.
+
+#creación  de metodo para agregar producto por fecha
+#modificación de para adicionar item por fecha
+#creación de metodo para eliminar por fechas
