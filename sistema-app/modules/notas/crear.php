@@ -1003,17 +1003,17 @@ function adicionar_item(fecha_ven, id_producto){
 
 }
 
-function adicionar_item_fecha(id_producto){
+function adicionar_producto_fecha(numero, id_producto){
 	var $ventas = $('#ventas tbody');
-	var $producto = $ventas.find('[data-producto=' + id_producto + ']');
+	var $producto = $ventas.find('[data-producto=' + id_producto + ']').find('#fecha' + numero);
+	// var $producto = $ventas.find('[data-producto=' + id_producto + ']');
 	var $cantidad = $producto.find('[data-cantidad]');
-	if ($producto.size()) {
-		cantidad = $.trim($cantidad.val());
-		cantidad = ($.isNumeric(cantidad)) ? parseInt(cantidad) : 0;
-		cantidad = (cantidad < 9999999) ? cantidad + 1: cantidad;
-		$cantidad.val(cantidad).trigger('blur');
-	}
-	calcular_importe(id_producto);
+	console.log($cantidad.val());
+	cantidad = $.trim($cantidad.val());
+	cantidad = ($.isNumeric(cantidad)) ? parseInt(cantidad) : 0;
+	cantidad = (cantidad < 9999999) ? cantidad + 1: cantidad;
+	$cantidad.val(cantidad).trigger('blur');
+	//calcular_importe(id_producto);
 }
 
 
@@ -1109,7 +1109,7 @@ function adicionar_producto(id_producto) {
 			'<td><input type="text" value="0" name="descuentos[]" class="form-control input-xs text-right" maxlength="2" autocomplete="off" data-descuento="0" data-validation="required number" data-validation-allowing="range[0;50]" data-validation-error-msg="Debe ser un número positivo entre 0 y 50" onkeyup="descontar_precio(' + id_producto + ')"></td>'+
 			'<td class="text-nowrap text-right" data-importe="">0.00</td>'+
 			'<td class="text-nowrap text-center">'+
-				'<button type="button" class="btn btn-xs btn-primary" data-toggle="tooltip"  data-title="Item por fecha"  title=""  onclick="adicionar_item_fecha('+ id_producto+')"><span class="glyphicon glyphicon-plus"></span></button>'+
+				'<button type="button" class="btn btn-xs btn-primary" data-toggle="tooltip"  data-title="Item por fecha"  title=""  onclick="adicionar_producto_fecha('+numero +','+ id_producto+')"><span class="glyphicon glyphicon-plus"></span></button>'+
 				'<button type="button" class="btn btn-xs btn-danger" data-toggle="tooltip" data-title="Eliminar producto" tabindex="-1" onclick="eliminar_producto_fecha('+numero +', ' + id_producto + ')"><span class="glyphicon glyphicon-remove"></span></button>'+
 			'</td>' +
 		'</tr>';
@@ -1184,23 +1184,18 @@ function actualizar_stock(numero, id_producto){
 	//adicionar_item(fechas, id_producto);
 }
 
+// eliminar item generado por la fecha de vencimiento
 function eliminar_producto_fecha(numero, id_producto) {
-	
 	// definiendo base de la tabla
 	var $ventas = $('#ventas tbody');
 	// recupera fecha seleccionada
-	var fecha_seleccionada =  $ventas.find('[data-producto=' + id_producto + ']').find('#fecha :selected').val();
-	
-
-	console.log($('[data-fecha ='+fecha_seleccionada+ ']' ))
-	$ventas.find('[data-producto=' + id_producto + ']').find('#fecha' + numero).remove();
+	// var fecha_seleccionada =  $ventas.find('[data-producto=' + id_producto + ']').find('#fecha :selected').val();
+	$ventas.find('[data-producto=' + id_producto + ']').find('#fecha' + numero).parent().parent().remove();
 	renumerar_productos();
 	calcular_total();
-
 	// recupera un contador para cada producto
 	var contador = parseInt($('[data-fecha=' + id_producto + ']')[0].dataset.contador);
 	$('[data-fecha=' + id_producto + ']').attr("data-contador",   + contador - 1 );
-
 }
 
 function eliminar_producto(id_producto) {
