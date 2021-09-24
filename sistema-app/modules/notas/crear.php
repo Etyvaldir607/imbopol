@@ -393,7 +393,7 @@ span.block.text-right.text-success, span.block.text-right.text-danger {
 				<?php if ($permiso_mostrar) { ?>
 				<div class="row">
 					<div class="col-xs-12 text-right">
-						<a href="?/manuales/mostrar" class="btn btn-primary"><i class="glyphicon glyphicon-list-alt"></i><span> Ventas personales</span></a>
+					<a href="?/notas/mostrar" class="btn btn-warning"></i><span> Ventas por nota</span></a>
 					</div>
 				</div>
 				<hr>
