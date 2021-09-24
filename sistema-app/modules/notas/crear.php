@@ -695,6 +695,7 @@ $(function () {
 		$('#ventas tbody').empty();
 		$nit_ci.prop('readonly', false);
 		$nombre_cliente.prop('readonly', false);
+		$telefono_cliente.prop('readonly', false);
 		calcular_total();
 	}).trigger('reset');
 
@@ -1286,7 +1287,7 @@ function guardar_nota() {
 			}, {
 				type: 'success'
 			});
-			imprimir_nota(venta);
+			//imprimir_nota(venta);
 		} else {
 			$('#loader').fadeOut(100);
 			$.notify({
@@ -1302,6 +1303,8 @@ function guardar_nota() {
 		}, {
 			type: 'danger'
 		});
+	}).always(function (){
+		$('#formulario :reset').trigger('click');
 	});
 }
 
