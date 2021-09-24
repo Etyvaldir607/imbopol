@@ -574,8 +574,6 @@ function guardar_nota() {
 			type: 'danger'
 		});
 	}).always(function () {
-		$('#compras tbody').empty();
-		calcular_total();
 		$('#formulario :reset').trigger('click');
 	});
 }
