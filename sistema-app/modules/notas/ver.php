@@ -14,7 +14,12 @@ if (!$venta) {
 }
 
 // Obtiene los detalles
-$detalles = $db->select('d.*, p.codigo, p.nombre, p.nombre_factura')->from('inv_egresos_detalles d')->join('inv_productos p', 'd.producto_id = p.id_producto', 'left')->where('d.egreso_id', $id_venta)->order_by('id_detalle asc')->fetch();
+$detalles = $db->select('d.*, p.codigo, p.nombre, p.nombre_factura')
+->from('inv_egresos_detalles d')
+->join('inv_productos p', 'd.producto_id = p.id_producto', 'left')
+->where('d.egreso_id', $id_venta)
+->order_by('id_detalle asc')
+->fetch();
 
 // Obtiene la moneda oficial
 $moneda = $db->from('inv_monedas')->where('oficial', 'S')->fetch_first();
@@ -30,7 +35,7 @@ $permisos = explode(',', permits);
 $permiso_editar = in_array('editar', $permisos);
 $permiso_mostrar = in_array('mostrar', $permisos);
 $permiso_reimprimir = in_array('obtener', $permisos);
-$permiso_modificar = in_array('modificar', 'true');
+$permiso_modificar = in_array('modificar', $permisos);
 
 ?>
 <?php require_once show_template('header-advanced'); ?>
@@ -85,6 +90,7 @@ $permiso_modificar = in_array('modificar', 'true');
 									<th class="text-nowrap">Código</th>
 									<th class="text-nowrap">Nombre</th>
 									<th class="text-nowrap">Cantidad</th>
+									<th class="text-nowrap">Fecha de vencimiento</th>
 									<th class="text-nowrap">Precio <?= escape($moneda); ?></th>
 									<th class="text-nowrap">Descuento (%)</th>
 									<th class="text-nowrap">Importe <?= escape($moneda); ?></th>
@@ -114,6 +120,7 @@ $permiso_modificar = in_array('modificar', 'true');
 									<td class="text-nowrap"><?= escape($detalle['codigo']); ?></td>
 									<td class="text-nowrap"><?= escape($detalle['nombre_factura']); ?></td>
 									<td class="text-nowrap text-right"><?= $cantidad.' '.$unidad; ?></td>
+									<td class="text-nowrap"><?= escape($detalle['fecha_vencimiento']); ?></td>
 									<td class="text-nowrap text-right"><?= $precio; ?></td>
 									<td class="text-nowrap text-right"><?= $detalle['descuento']; ?></td>
 									<td class="text-nowrap text-right"><?= number_format($importe, 2, '.', ''); ?></td>
@@ -127,7 +134,7 @@ $permiso_modificar = in_array('modificar', 'true');
 							</tbody>
 							<tfoot>
 								<tr class="active">
-									<th class="text-nowrap text-right" colspan="6">Importe total <?= escape($moneda); ?></th>
+									<th class="text-nowrap text-right" colspan="7">Importe total <?= escape($moneda); ?></th>
 									<th class="text-nowrap text-right"><?= number_format($total, 2, '.', ''); ?></th>
 								</tr>
 							</tfoot>
