@@ -401,12 +401,12 @@ $(function () {
 		modules: 'basic'
 	});
 	$('#formulario').on('reset', function () {
-//$('#compras tbody').find('[data-importe]').text('0.00');
-$('#compras tbody').empty();
-calcular_total();
-});
-	$('#formulario :reset').trigger('click');
-});
+	//$('#compras tbody').find('[data-importe]').text('0.00');
+		$('#compras tbody').empty();
+			calcular_total();
+		});
+		$('#formulario :reset').trigger('click');
+	});
 
 // inicia date picker para cada celda
 function adicionar_fecha(id_producto){
@@ -419,18 +419,6 @@ function adicionar_fecha(id_producto){
 	var mascara = $('[data-mascara]').attr('data-mascara');
 	var gestion = $('[data-gestion]').attr('data-gestion');
 
-	/*
-	$.validate({
-		form: '#formulario',
-		modules: 'date',
-		onSuccess: function () {
-			var inicial_fecha = $.trim($('#fecha').val());
-			inicial_fecha = inicial_fecha.replace(new RegExp('\\.', 'g'), '-');
-			inicial_fecha = inicial_fecha.replace(new RegExp('/', 'g'), '-'); 
-			window.location = '?/ingresos/crear' + inicial_fecha;
-		}
-	});
-	*/	
 	$inicial_fecha.datetimepicker({
 		format: formato
 	});
@@ -585,6 +573,10 @@ function guardar_nota() {
 		}, {
 			type: 'danger'
 		});
+	}).always(function () {
+		$('#compras tbody').empty();
+		calcular_total();
+		$('#formulario :reset').trigger('click');
 	});
 }
 function imprimir_nota(nota) {
