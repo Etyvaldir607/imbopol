@@ -622,7 +622,7 @@ $(function () {
 
 
 	// inicia el datatable para el filtrado
-	table = $('#productos').DataTable({
+	var table = $('#productos').DataTable({
 		info: false,
 		scrollY: 508,
 		lengthMenu: [[25, 50, 100, 500, -1], [25, 50, 100, 500, 'Todos']],
@@ -676,7 +676,7 @@ $(function () {
 		}
 	});
 
-
+	// valida todo el formulario
 	$.validate({
 		form: '#formulario',
 		modules: 'basic',
