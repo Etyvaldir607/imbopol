@@ -111,6 +111,10 @@ $permiso_mostrar = in_array('mostrar', $permisos);
 ?>
 <?php require_once show_template('header-empty'); ?>
 <style>
+
+span.block.text-right.text-success, span.block.text-right.text-danger {
+	display: block;
+}
 .table-xs tbody {
 	font-size: 12px;
 }
@@ -143,6 +147,7 @@ $permiso_mostrar = in_array('mostrar', $permisos);
 	height: 75px;
 	width: 75px;
 }
+
 </style>
 <div class="row">
 	<?php if ($almacen) { ?>
@@ -206,6 +211,7 @@ $permiso_mostrar = in_array('mostrar', $permisos);
 									<th class="text-nowrap">#</th>
 									<th class="text-nowrap">Código</th>
 									<th class="text-nowrap">Nombre</th>
+									<th class="text-nowrap">Fecha de vencimiento</th>
                                     <th class="text-nowrap">Cantidad</th>
                                     <th class="text-nowrap">Unidad</th>
 									<th class="text-nowrap">Precio</th>
@@ -216,7 +222,7 @@ $permiso_mostrar = in_array('mostrar', $permisos);
 							</thead>
 							<tfoot>
 								<tr class="active">
-									<th class="text-nowrap text-right" colspan="7">Importe total <?= escape($moneda); ?></th>
+									<th class="text-nowrap text-right" colspan="8">Importe total <?= escape($moneda); ?></th>
 									<th class="text-nowrap text-right" data-subtotal="">0.00</th>
 									<th class="text-nowrap text-center"><span class="glyphicon glyphicon-trash"></span></th>
 								</tr>
@@ -300,6 +306,7 @@ $permiso_mostrar = in_array('mostrar', $permisos);
 							<th class="text-nowrap">Código</th>
 							<th class="text-nowrap">Nombre</th>
                             <th class="text-nowrap">Descripción</th>
+							<th class="text-nowrap">Fecha de vencimiento</th>
                             <th class="text-nowrap">Tipo</th>
 							<th class="text-nowrap">Stock</th>
 							<th class="text-nowrap">Precio</th>
@@ -314,12 +321,55 @@ $permiso_mostrar = in_array('mostrar', $permisos);
 							<td class="text-nowrap"><img src="<?= ($producto['imagen'] == '') ? imgs . '/image.jpg' : files . '/productos/' . $producto['imagen']; ?>" width="75" height="75"></td>
 							<td class="text-nowrap" data-codigo="<?= $producto['id_producto']; ?>"><?= escape($producto['codigo']); ?></td>
 							<td>
-								<span><?= escape($producto['nombre']); ?></span>
-								<span class="hidden" data-nombre="<?= $producto['id_producto']; ?>"><?= escape($producto['nombre_factura']); ?></span>
-							</td>
-                            <td class="text-nowrap"><?= escape($producto['descripcion']); ?></td>
-                            <td class="text-nowrap"><?= escape($producto['categoria']); ?></td>
-							<td class="text-nowrap text-right" data-stock="<?= $producto['id_producto']; ?>"><?= escape($producto['cantidad_ingresos'] - $producto['cantidad_egresos']); ?></td>
+									<span ><?= escape($producto['nombre']); ?> <?= escape($producto['color']); ?></span>
+									<span class="hidden" data-color="<?= $producto['id_producto']; ?>"><?= escape($producto['color']); ?></span>
+									<span class="hidden" data-nombre="<?= $producto['id_producto']; ?>"><?= escape($producto['nombre_factura']); ?></span>
+								</td>
+								<td class="text-nowrap"><?= escape($producto['descripcion']); ?></td>
+								<?php 
+								// obteniendo fechas de vencimiento	
+								$fechas_ven  = explode(',', $producto['fecha_vencimiento']);
+								// obteniendo stocks
+								$stocks  = explode(',', $producto['stock']);	 
+								?>
+								
+
+								<td class="text-right" data-fecha="<?= $producto['id_producto']; ?>" data-contador="0" data-val-fecha="<?= $producto['fecha_vencimiento'];?>">
+									<?php for ($x = 0; $x <= count($stocks) - 1; $x++) {?>
+										<!-- obteniendo fechas de productos por fecha de vencimiento -->	
+										<?php if($stocks[$x] < 1){ ?>
+											<span class="block text-right text-danger " style="display:none">
+												<?= escape($fechas_ven[$x] ); ?></br>
+											</span>
+										<?php } else { ?>
+											<span class="block text-right text-success" >
+												<?= escape($fechas_ven[$x]); ?></br>
+											</span>
+										<?php } ?>
+
+									<?php } ?>
+								</td>
+								
+								
+								<td class="text-nowrap"><?= escape($producto['categoria']); ?></td>
+
+								<td class="text-right block" data-stock="<?= $producto['id_producto']; ?>" data-val-stock="<?= $producto['stock']; ?>">
+
+									<?php for ($x = 0; $x <= count($stocks) - 1; $x++) {?>
+										<!-- obteniendo el stock de productos por fecha de vencimiento -->	
+										<?php if($stocks[$x] < 1){ ?>
+											<span class="block text-right text-danger " style="display:none">
+												<?= escape($stocks[$x]); ?>
+											</span>
+										<?php } else { ?>
+											<span class="block text-right text-success" >
+												<?= escape($stocks[$x]); ?>
+											</span>
+										<?php } ?>
+
+									<?php } ?>
+								</td>
+
 							<td class="text-nowrap text-right" data-valor="<?= $producto['id_producto']; ?>">
                                 *<?= escape($producto['unidad'].': '); ?><b><?= escape($producto['precio_actual']); ?></b>
                                 <?php foreach($otro_precio as $otro){ ?>
