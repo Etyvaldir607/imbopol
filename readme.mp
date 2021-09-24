@@ -71,3 +71,11 @@ CREATE TABLE IF NOT EXISTS `inv_clientes` (
 #creacion de metodo adicionar por fecha
 #creacion de metodo para importe por producto y fecha
 #creacion de metodo para cantidad por producto y fecha
+
+#creacion de metodo para realizar descuentos por producto y fechas de vencimiento
+#realizar reportes por producto y fecha de vencimiento
+
+
+#realizar modificacion en proformas
+#realizar modificacion en ventas electronicas
+#realizar modificacion en ventas manuales
