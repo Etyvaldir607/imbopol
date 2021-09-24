@@ -1006,15 +1006,12 @@ function adicionar_item(fecha_ven, id_producto){
 
 
 
-function sincronizar_fechas(fecha){
-	// definiendo base de la tabla
-	var $ventas = $('#ventas tbody');
-	// busca el dom venta - producto
-	var $producto = $ventas.find('[data-producto=' + id_producto + ']').fecha;
-	
-	
-	console.log($producto)
-
+function sincronizar_fechas(numero){
+	for (let i = 0; i < numero; i++) {
+		$(document).on('change','#fecha'+i ,function(){
+			$(this).siblings().find('option[value="'+$(this).val()+'"]').remove();
+		});
+	}
 }
 
 
@@ -1080,7 +1077,7 @@ function adicionar_producto(id_producto) {
 			'</td>';
 			
 			plantilla = plantilla +
-			'<td><input type="text" value="1" name="cantidades[]" class="form-control input-xs text-right" maxlength="7" autocomplete="off" data-cantidad="" data-validation="required number" data-validation-allowing="range[1;' + stocks[posicion_stock] + ']" data-validation-error-msg="Debe ser un número positivo entre 1 y ' + stocks[posicion_stock] + '" onkeyup="calcular_importe(' + id_producto + ')"></td>';
+			'<td><input type="text" value="1" name="cantidades[]" class="form-control input-xs text-right" maxlength="7" autocomplete="off" data-cantidad="" data-validation="required number" data-validation-allowing="range[1;' + stocks[posicion_stock] + ']" data-validation-error-msg="Debe ser un número positivo entre 1 y ' + stocks[posicion_stock] + '" onkeyup="calcular_importe('+numero +',' + id_producto + ')"></td>';
 			if(porciones.length>2){
 				plantilla = plantilla+'<td><select name="unidad[]" id="unidad" data-xxx="true" class="form-control input-xs" >';
 				aparte = porciones[1].split(':');
@@ -1090,12 +1087,12 @@ function adicionar_producto(id_producto) {
 					plantilla = plantilla+'<option value="' +parte[0]+ '" data-yyy="' +parte[1]+ '" >' +parte[0]+ '</option>';
 				}
 				plantilla = plantilla+'</select></td>'+
-				'<td><input type="text" value="' + parseFloat(aparte[1]) + '" name="precios[]" class="form-control input-xs text-right" autocomplete="off" data-precio="' + parseFloat(aparte[1]) + '"  data-validation-error-msg="Debe ser un número decimal positivo" onkeyup="calcular_importeplantilla = plantilla+></td>';
+				'<td><input type="text" value="' + parseFloat(aparte[1]) + '" name="precios[]" class="form-control input-xs text-right" autocomplete="off" data-precio="' + parseFloat(aparte[1]) + '"  data-validation-error-msg="Debe ser un número decimal positivo" onkeyup="calcular_importe('+numero +',' + id_producto + ')"></td>';
 			}
 			else{
 				parte = porciones[1].split(':');
 				plantilla = plantilla + '<td><input type="text" value="' + parte[0] + '" name="unidad[]" class="form-control input-xs text-right" autocomplete="off" data-unidad="' + parte[0] + '" readonly data-validation-error-msg="Debe ser un número decimal positivo"></td>'+
-										'<td><input type="text" value="' + parseFloat(parte[1]) + '" name="precios[]" class="form-control input-xs text-right" autocomplete="off" data-precio="' + parseFloat(parte[1]) + '"  data-validation-error-msg="Debe ser un número decimal positivo" onkeyup="calcular_importe(' + id_producto + ')"></td>';
+										'<td><input type="text" value="' + parseFloat(parte[1]) + '" name="precios[]" class="form-control input-xs text-right" autocomplete="off" data-precio="' + parseFloat(parte[1]) + '"  data-validation-error-msg="Debe ser un número decimal positivo" onkeyup="calcular_importe('+numero +',' + id_producto + ')"></td>';
 			}
 			plantilla = plantilla + 
 			'<td><input type="text" value="0" name="descuentos[]" class="form-control input-xs text-right" maxlength="2" autocomplete="off" data-descuento="0" data-validation="required number" data-validation-allowing="range[0;50]" data-validation-error-msg="Debe ser un número positivo entre 0 y 50" onkeyup="descontar_precio('+numero +',' + id_producto + ')"></td>'+
@@ -1138,8 +1135,9 @@ function adicionar_producto(id_producto) {
 			}
 		});
 	}
-	sincronizar_fechas(id_producto, fechas);
-	calcular_importe(id_producto);
+
+	calcular_importe(numero, id_producto);
+	// sincronizar_fechas(contador);
 }
 
 // actualizar el stock por fecha de vencimiento
