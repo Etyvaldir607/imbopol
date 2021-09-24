@@ -888,7 +888,7 @@ function guardar_nota() {
 	}).done(function (venta) {
 		if (venta) {
 			$.notify({
-				message: 'La nota de entrega fue realizada satisfactoriamente.'
+				message: 'La Venta manual fue realizada satisfactoriamente.'
 			}, {
 				type: 'success'
 			});
