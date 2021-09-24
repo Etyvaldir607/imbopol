@@ -88,6 +88,7 @@ $permiso_mostrar = in_array('mostrar', $permisos);
 									<th class="text-nowrap">Código</th>
 									<th class="text-nowrap">Nombre</th>
 									<th class="text-nowrap">Cantidad</th>
+									<th class="text-nowrap">Fecha de vencimiento</th>
 									<th class="text-nowrap">Precio <?= escape($moneda); ?></th>
 									<th class="text-nowrap">Descuento (%)</th>
 									<th class="text-nowrap">Importe <?= escape($moneda); ?></th>
@@ -117,6 +118,7 @@ $permiso_mostrar = in_array('mostrar', $permisos);
 									<td class="text-nowrap"><?= escape($detalle['codigo']); ?></td>
 									<td class="text-nowrap"><?= escape($detalle['nombre_factura']); ?></td>
 									<td class="text-nowrap text-right"><?= $cantidad.' '.$unidad; ?></td>
+									<td class="text-nowrap"><?= escape($detalle['fecha_vencimiento']); ?></td>
 									<td class="text-nowrap text-right"><?= $precio; ?></td>
 									<td class="text-nowrap text-right"><?= $detalle['descuento']; ?></td>
 									<td class="text-nowrap"><?= number_format($importe, 2, '.', ''); ?></td>
