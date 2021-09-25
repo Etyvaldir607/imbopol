@@ -558,6 +558,8 @@ span.block.text-right.text-success, span.block.text-right.text-danger {
 
 <script src="<?= js; ?>/jquery.form-validator.min.js"></script>
 <script src="<?= js; ?>/jquery.form-validator.es.js"></script>
+<script src="<?= js; ?>/jquery.dataTables.min.js"></script>
+<script src="<?= js; ?>/dataTables.bootstrap.min.js"></script>
 <script src="<?= js; ?>/selectize.min.js"></script>
 <script src="<?= js; ?>/bootstrap-notify.min.js"></script>
 <script src="<?= js; ?>/buzz.min.js"></script>
