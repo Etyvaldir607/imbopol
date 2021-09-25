@@ -931,16 +931,9 @@ function eliminar_producto(id_producto) {
 	});
 }
 
-function renumerar_productos() {
-	var $ventas = $('#ventas tbody');
-	var $productos = $ventas.find('[data-producto]');
-	$productos.each(function (i) {
-		$(this).find('td:first').text(i + 1);
-	});
-}
-
-function descontar_precio(id_producto) {
-	var $producto = $('[data-producto=' + id_producto + ']');
+// realiza descuento de cada item
+function descontar_precio(numero, id_producto) {
+	var $producto = $('[data-producto=' + id_producto + '][data-position='+numero+ ']');
 	var $precio = $producto.find('[data-precio]');
 	var $descuento = $producto.find('[data-descuento]');
 	var precio, descuento;
@@ -952,7 +945,15 @@ function descontar_precio(id_producto) {
 	precio = precio - (precio * descuento / 100);
 	$precio.val(precio.toFixed(2));
 
-	calcular_importe(id_producto);
+	calcular_importe(numero, id_producto);
+}
+
+function renumerar_productos() {
+	var $ventas = $('#ventas tbody');
+	var $productos = $ventas.find('[data-producto]');
+	$productos.each(function (i) {
+		$(this).find('td:first').text(i + 1);
+	});
 }
 
 function calcular_importe(id_producto) {
