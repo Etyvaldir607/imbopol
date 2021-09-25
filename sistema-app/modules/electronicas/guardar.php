@@ -20,6 +20,7 @@ if (is_ajax() && is_post()) {
 		$nombre_cliente = trim($_POST['nombre_cliente']);
 		$productos = (isset($_POST['productos'])) ? $_POST['productos'] : array();
 		$nombres = (isset($_POST['nombres'])) ? $_POST['nombres'] : array();
+		$fechas = (isset($_POST['fecha'])) ? $_POST['fecha'] : array();
 		$cantidades = (isset($_POST['cantidades'])) ? $_POST['cantidades'] : array();
 		$unidad = (isset($_POST['unidad'])) ? $_POST['unidad']: array();
 		$precios = (isset($_POST['precios'])) ? $_POST['precios'] : array();
@@ -119,6 +120,7 @@ if (is_ajax() && is_post()) {
                     'unidad_id' => $id_unidad,
                     'cantidad' => (isset($cantidades[$nro])) ? $cantidades[$nro]: 0,
                     'descuento' =>(isset($descuentos[$nro])) ? $descuentos[$nro]: 0,
+					'fecha_vencimiento' => (isset($fechas[$nro])) ? $fechas[$nro]: 0,
                     'producto_id' => $productos[$nro],
 					'egreso_id' => $egreso_id
 				);
