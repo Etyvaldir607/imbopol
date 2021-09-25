@@ -244,6 +244,7 @@ span.block.text-right.text-success, span.block.text-right.text-danger {
 									<th class="text-nowrap text-center">#</th>
 									<th class="text-nowrap text-center">CÓDIGO</th>
 									<th class="text-nowrap text-center">PRODUCTO</th>
+									<th class="text-nowrap text-center">FECHA DE VENCIMIENTO</th>
                                     <th class="text-nowrap text-center">CANTIDAD</th>
                                     <th class="text-nowrap text-center">UNIDAD</th>
 									<th class="text-nowrap text-center">PRECIO</th>
@@ -254,7 +255,7 @@ span.block.text-right.text-success, span.block.text-right.text-danger {
 							</thead>
 							<tfoot>
 								<tr class="active">
-									<th class="text-nowrap text-right" colspan="7">IMPORTE TOTAL <?= escape($moneda); ?></th>
+									<th class="text-nowrap text-right" colspan="8">IMPORTE TOTAL <?= escape($moneda); ?></th>
 									<th class="text-nowrap text-right" data-subtotal="">0.00</th>
 									<th class="text-nowrap text-center">ACCIONES</th>
 								</tr>
