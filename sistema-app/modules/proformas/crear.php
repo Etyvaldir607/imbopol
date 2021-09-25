@@ -895,6 +895,32 @@ function adicionar_producto(id_producto) {
 }
 
 
+// actualizar el stock por fecha de vencimiento
+function actualizar_stock(numero, id_producto){
+	// definiendo base de la tabla
+	var $ventas = $('#ventas tbody');
+	// recupera fecha seleccionada
+	var fecha_seleccionada =  $ventas.find('[data-producto=' + id_producto + ']').find('#fecha' + numero + '  :selected').val();
+	// busca el dom venta - producto
+	var $producto = $ventas.find('[data-producto=' + id_producto + '][data-position='+numero+ ']');
+	// recupera un array de fechas de vencimiento
+	var fechas =$('[data-fecha=' + id_producto + ']')[0].dataset.valFecha.split(',');
+	// recupera un array de stocks
+	var stocks =$('[data-stock=' + id_producto + ']')[0].dataset.valStock.split(',');
+	// recupera posicion de fecha seleccionada
+	var position = fechas.indexOf(fecha_seleccionada);
+	fechas = fechas.filter(function(item) {
+		return fechas.indexOf(item) !== position;
+	});
+	//actualizando fecha_vencimiento
+	$ventas.find('[data-producto=' + id_producto + ']').attr("data-fecha", fechas[position] );
+	//actualizando limite
+	$producto.find('[data-cantidad]').attr("data-validation-allowing", 'range[1;' + stocks[position] + ']')
+	//actulaizando msg de error
+	$producto.find('[data-cantidad]').attr("data-validation-error-msg", 'Debe ser un número positivo entre 1 y ' + stocks[position] + '');
+	//adicionar_item(fechas, id_producto);
+}
+
 function eliminar_producto(id_producto) {
 	bootbox.confirm('Está seguro que desea eliminar el producto?', function (result) {
 		if(result){
