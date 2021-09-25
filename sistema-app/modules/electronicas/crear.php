@@ -934,6 +934,18 @@ function descontar_precio(numero, id_producto) {
 	calcular_importe(numero, id_producto);
 }
 
+// adiciona item por fecha de vencimiento
+function adicionar_producto_fecha(numero, id_producto){
+	var $ventas = $('#ventas tbody');
+	var $producto = $ventas.find('[data-producto=' + id_producto + '][data-position='+numero+ ']');
+	var $cantidad = $producto.find('[data-cantidad]');
+	console.log($cantidad.val());
+	cantidad = $.trim($cantidad.val());
+	cantidad = ($.isNumeric(cantidad)) ? parseInt(cantidad) : 0;
+	cantidad = (cantidad < 9999999) ? cantidad + 1: cantidad;
+	$cantidad.val(cantidad).trigger('blur');
+	calcular_importe(numero, id_producto);
+}
 
 function eliminar_producto(id_producto) {
 	bootbox.confirm('Está seguro que desea eliminar el producto?', function (result) {
