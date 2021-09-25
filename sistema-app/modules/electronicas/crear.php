@@ -30,7 +30,8 @@ if ($id_almacen != 0) {
     ) as stock,
 	u.unidad,
     u.sigla,
-    c.categoria
+    c.categoria,
+	pf.codigo_barras
 from
     inv_productos pf
 left join(
@@ -151,6 +152,10 @@ $permiso_mostrar = in_array('mostrar', $permisos);
 .table-display > .tbody > .tr > .th,
 .table-display > .tfoot > .tr > .th {
 	font-weight: bold;
+}
+
+span.block.text-right.text-success, span.block.text-right.text-danger {
+		display: block;
 }
 @media (min-width: 768px) {
 	.table-display {
@@ -328,6 +333,7 @@ $permiso_mostrar = in_array('mostrar', $permisos);
 	</div>
 	<div class="col-md-6">
 		<div class="panel panel-default">
+			<!-- busqueda de productos que filtra por codigo de barras por cualquiera de los campos-->
 			<div class="panel-heading">
 				<h3 class="panel-title">
 					<span class="glyphicon glyphicon-search"></span>
@@ -335,28 +341,112 @@ $permiso_mostrar = in_array('mostrar', $permisos);
 				</h3>
 			</div>
 			<div class="panel-body">
-				<h2 class="lead">Búsqueda de productos</h2>
+				<?php if ($permiso_mostrar) { ?>
+				<div class="row">
+					<div class="col-xs-12 text-right">
+					<a href="?/electronicas/mostrar" class="btn btn-success"></i><span> Ventas Electronicas</span></a>
+					</div>
+				</div>
 				<hr>
-				<?php if ($permiso_mostrar) : ?>
-				<p class="text-right">
-					<a href="?/electronicas/mostrar" class="btn btn-info">Mis ventas computarizadas</a>
-				</p>
-				<?php endif ?>
-				<form method="post" action="?/electronicas/buscar" id="form_buscar_0" class="margin-bottom" autocomplete="off">
-					<div class="form-group has-feedback">
-						<input type="text" value="" name="busqueda" class="form-control" placeholder="Buscar por código" autofocus="autofocus">
-						<span class="glyphicon glyphicon-barcode form-control-feedback"></span>
-					</div>
-					<button type="submit" class="translate" tabindex="-1"></button>
-				</form>
-				<form method="post" action="?/electronicas/buscar" id="form_buscar_1" class="margin-bottom" autocomplete="off">
-					<div class="form-group has-feedback">
-						<input type="text" value="" name="busqueda" class="form-control" placeholder="Buscar por código, producto o categoría">
-						<span class="glyphicon glyphicon-search form-control-feedback"></span>
-					</div>
-					<button type="submit" class="translate" tabindex="-1"></button>
-				</form>
-				<div id="contenido_filtrar"></div>
+				<?php } ?>
+				<?php if ($productos) { ?>
+				<table id="productos" class="table table-bordered table-condensed table-striped table-hover table-xs">
+					<thead>
+						<tr class="active">
+							<th class="text-nowrap">Imagen</th>
+							<th class="text-nowrap">Código</th>
+							<th class="text-nowrap">Nombre</th>
+                            <th class="text-nowrap">Descripción</th>
+							<th class="text-nowrap">Fecha de vencimiento</th>
+                            <th class="text-nowrap">Tipo</th>
+							<th class="text-nowrap">Stock</th>
+							<th class="text-nowrap">Precio</th>
+							<th class="text-nowrap"><i class="glyphicon glyphicon-cog"></i></th>
+						</tr>
+					</thead>
+					<tbody>
+						<?php foreach ($productos as $nro => $producto) {?>
+                            <?php $otro_precio = $db->select('*')->from('inv_asignaciones a')->join('inv_unidades b','a.unidad_id=b.id_unidad')->where('a.producto_id',$producto['id_producto'])->fetch(); ?>
+							<tr>
+								<td class="text-nowrap"><img src="<?= ($producto['imagen'] == '') ? imgs . '/image.jpg' : files . '/productos/' . $producto['imagen']; ?>" width="75" height="75"></td>
+									<td class="text-nowrap" data-codigo="<?= $producto['id_producto']; ?>">
+										<span><?= escape($producto['codigo']); ?></span>
+										<span class="hidden"><?= escape($producto['codigo_barras']); ?></span>
+									</td>
+								<td>
+									<span ><?= escape($producto['nombre']); ?> <?= escape($producto['color']); ?></span>
+									<span class="hidden" data-color="<?= $producto['id_producto']; ?>"><?= escape($producto['color']); ?></span>
+									<span class="hidden" data-nombre="<?= $producto['id_producto']; ?>"><?= escape($producto['nombre_factura']); ?></span>
+								</td>
+								<td class="text-nowrap"><?= escape($producto['descripcion']); ?></td>
+								<?php 
+								// obteniendo fechas de vencimiento	
+								$fechas_ven  = explode(',', $producto['fecha_vencimiento']);
+								// obteniendo stocks
+								$stocks  = explode(',', $producto['stock']);	 
+								?>
+								
+
+								<td class="text-right" data-fecha="<?= $producto['id_producto']; ?>" data-contador="0" data-val-fecha="<?= $producto['fecha_vencimiento'];?>">
+									<?php for ($x = 0; $x <= count($stocks) - 1; $x++) {?>
+										<!-- obteniendo fechas de productos por fecha de vencimiento -->	
+										<?php if($stocks[$x] < 1){ ?>
+											<span class="block text-right text-danger " style="display:none">
+												<?= escape($fechas_ven[$x] ); ?></br>
+											</span>
+										<?php } else { ?>
+											<span class="block text-right text-success" >
+												<?= escape($fechas_ven[$x]); ?></br>
+											</span>
+										<?php } ?>
+
+									<?php } ?>
+								</td>
+								
+								
+								<td class="text-nowrap"><?= escape($producto['categoria']); ?></td>
+
+								<td class="text-right block " data-stock="<?= $producto['id_producto']; ?>" data-val-stock="<?= $producto['stock']; ?>">
+
+									<?php for ($x = 0; $x <= count($stocks) - 1; $x++) {?>
+										<!-- obteniendo el stock de productos por fecha de vencimiento -->	
+										<?php if($stocks[$x] < 1){ ?>
+											<span class="block text-right text-danger " style="display:none">
+												<?= escape($stocks[$x]); ?>
+											</span>
+										<?php } else { ?>
+											<span class="block text-right text-success" >
+												<?= escape($stocks[$x]); ?>
+											</span>
+										<?php } ?>
+
+									<?php } ?>
+								</td>
+
+								
+								<td class="text-right" data-valor="<?= $producto['id_producto']; ?>">
+									*<?= escape($producto['unidad'].': '); ?><b><?= escape($producto['precio_actual']); ?></b>
+									<?php foreach($otro_precio as $otro){ ?>
+										<br/>*<?= escape($otro['unidad'].': '); ?><b><?= escape($otro['otro_precio']); ?></b>
+									<?php } ?>
+								</td>
+
+								<td class="text-nowrap">
+									<button type="button" class="btn btn-xs btn-primary" data-vender="<?= $producto['id_producto']; ?>" data-toggle="tooltip" data-title="Vender"><span class="glyphicon glyphicon-shopping-cart"></span></button>
+									<button type="button" class="btn btn-xs btn-success" data-actualizar="<?= $producto['id_producto']; ?>" onclick="actualizar(this)" data-toggle="tooltip" data-title="Actualizar stock y precio del producto"><span class="glyphicon glyphicon-refresh"></span></button>
+								</td>
+
+							</tr>
+
+						<?php } ?>
+					</tbody>
+				</table>
+				<?php } else { ?>
+				<div class="alert alert-danger">
+					<strong>Advertencia!</strong>
+					<p>No existen productos registrados en la base de datos.</p>
+				</div>
+				<?php } ?>
 			</div>
 		</div>
 	</div>
@@ -464,6 +554,8 @@ $permiso_mostrar = in_array('mostrar', $permisos);
 
 <script src="<?= js; ?>/jquery.form-validator.min.js"></script>
 <script src="<?= js; ?>/jquery.form-validator.es.js"></script>
+<script src="<?= js; ?>/jquery.dataTables.min.js"></script>
+<script src="<?= js; ?>/dataTables.bootstrap.min.js"></script>
 <script src="<?= js; ?>/selectize.min.js"></script>
 <script src="<?= js; ?>/bootstrap-notify.min.js"></script>
 <script src="<?= js; ?>/buzz.min.js"></script>
@@ -474,6 +566,15 @@ $(function () {
 	var $nombre_cliente = $('#nombre_cliente');
 	var $formulario = $('#formulario');
 
+	// inicia el datatable para el filtrado
+	var table = $('#productos').DataTable({
+		info: false,
+		scrollY: 508,
+		lengthMenu: [[25, 50, 100, 500, -1], [25, 50, 100, 500, 'Todos']],
+		order: []
+	});
+
+	// rellena el formulaario del cliente en caso de que exista y crea nueva instancia en caso de que no exista
 	$cliente.selectize({
 		persist: false,
 		createOnBlur: true,
@@ -515,6 +616,7 @@ $(function () {
 		}
 	});
 
+	// valida todo el formulario
 	$.validate({
 		form: '#formulario',
 		modules: 'basic',
@@ -527,10 +629,12 @@ $(function () {
 		}
 	});
 
+	// envia toda la tabla y el formulaario del cliente 
 	$formulario.on('submit', function (e) {
 		e.preventDefault();
 	});
 
+	// vacia toda la tabla y el formulaario del cliente 
 	$formulario.on('reset', function () {
 		$('#ventas tbody').empty();
 		$nit_ci.prop('readonly', false);
@@ -570,7 +674,7 @@ $(function () {
 						$contenido_filtrar.find('tbody tr:last').attr('data-busqueda', productos[i].id_producto);
                         $ultimo = $contenido_filtrar.find('tbody tr:nth-last-child(2)').children();
                         $ultimo2 = $contenido_filtrar.find('tbody tr:last').children();
-                        $ultimo2.eq(0).find('em2').text(productos[i].descripcion);
+
                         $ultimo.eq(0).find('img').attr('src', productos[i].imagen);
 						$ultimo.eq(1).attr('data-codigo', productos[i].id_producto);
 						$ultimo.eq(1).text(productos[i].codigo);
