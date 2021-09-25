@@ -948,16 +948,11 @@ function descontar_precio(numero, id_producto) {
 	calcular_importe(numero, id_producto);
 }
 
-function renumerar_productos() {
-	var $ventas = $('#ventas tbody');
-	var $productos = $ventas.find('[data-producto]');
-	$productos.each(function (i) {
-		$(this).find('td:first').text(i + 1);
-	});
-}
 
-function calcular_importe(id_producto) {
-	var $producto = $('[data-producto=' + id_producto + ']');
+// calcula el importe de cada item de producto
+function calcular_importe(numero, id_producto) {
+	var $producto = $('[data-producto=' + id_producto + '][data-position='+numero+ ']');
+	// var $producto = $('[data-producto=' + id_producto + ']').find();
 	var $cantidad = $producto.find('[data-cantidad]');
 	var $precio = $producto.find('[data-precio]');
 	var $descuento = $producto.find('[data-descuento]');
@@ -975,8 +970,15 @@ function calcular_importe(id_producto) {
 	importe = cantidad * precio;
 	importe = importe.toFixed(2);
 	$importe.text(importe);
-
 	calcular_total();
+}
+
+function renumerar_productos() {
+	var $ventas = $('#ventas tbody');
+	var $productos = $ventas.find('[data-producto]');
+	$productos.each(function (i) {
+		$(this).find('td:first').text(i + 1);
+	});
 }
 
 function calcular_total() {
