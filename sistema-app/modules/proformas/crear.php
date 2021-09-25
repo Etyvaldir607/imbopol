@@ -973,6 +973,19 @@ function calcular_importe(numero, id_producto) {
 	calcular_total();
 }
 
+// eliminar item generado por la fecha de vencimiento
+function eliminar_producto_fecha(numero, id_producto) {
+	// definiendo base de la tabla
+	var $ventas = $('#ventas tbody');
+	// elimina item de la posicion "numero"
+	$ventas.find('[data-producto=' + id_producto + '][data-position='+numero+ ']').remove();
+	// recupera un contador para cada producto
+	var contador = parseInt($('[data-fecha=' + id_producto + ']')[0].dataset.contador);
+	$('[data-fecha=' + id_producto + ']').attr("data-contador",   + contador - 1 );
+	renumerar_productos();
+    calcular_total();
+}
+
 function renumerar_productos() {
 	var $ventas = $('#ventas tbody');
 	var $productos = $ventas.find('[data-producto]');
