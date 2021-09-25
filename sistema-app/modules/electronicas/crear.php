@@ -917,6 +917,22 @@ function actualizar_stock(numero, id_producto){
 	//adicionar_item(fechas, id_producto);
 }
 
+// realiza descuento de cada item
+function descontar_precio(numero, id_producto) {
+	var $producto = $('[data-producto=' + id_producto + '][data-position='+numero+ ']');
+	var $precio = $producto.find('[data-precio]');
+	var $descuento = $producto.find('[data-descuento]');
+	var precio, descuento;
+
+	precio = $.trim($precio.attr('data-precio'));
+	precio = ($.isNumeric(precio)) ? parseFloat(precio) : 0;
+	descuento = $.trim($descuento.val());
+	descuento = ($.isNumeric(descuento)) ? parseFloat(descuento) : 0;
+	precio = precio - (precio * descuento / 100);
+	$precio.val(precio.toFixed(2));
+
+	calcular_importe(numero, id_producto);
+}
 
 
 function eliminar_producto(id_producto) {
