@@ -570,6 +570,15 @@ $(function () {
     var $adelanto = $('#adelanto');
 	var $formulario = $('#formulario');
 
+	// inicia el datatable para el filtrado
+	var table = $('#productos').DataTable({
+		info: false,
+		scrollY: 508,
+		lengthMenu: [[25, 50, 100, 500, -1], [25, 50, 100, 500, 'Todos']],
+		order: []
+	});
+
+	// rellena el formulaario del cliente en caso de que exista y crea nueva instancia en caso de que no exista
 	$cliente.selectize({
 		persist: false,
 		createOnBlur: true,
@@ -616,6 +625,7 @@ $(function () {
 		}
 	});
 
+	// valida todo el formulario
 	$.validate({
 		form: '#formulario',
 		modules: 'basic',
@@ -624,10 +634,12 @@ $(function () {
 		}
 	});
 
+	// envia toda la tabla y el formulaario del cliente 
 	$formulario.on('submit', function (e) {
 		e.preventDefault();
 	});
 
+	// vacia toda la tabla y el formulaario del cliente 
 	$formulario.on('reset', function () {
 		$('#ventas tbody').empty();
 		$nit_ci.prop('readonly', false);
@@ -737,6 +749,7 @@ $(function () {
 	});
 });
 
+// funcion verificar si es nit
 function es_nit(texto) {
 	var numeros = '0123456789';
 	for(i = 0; i < texto.length; i++){
@@ -749,6 +762,13 @@ function es_nit(texto) {
 function desp(elemento) {
     $(elemento).next('tr').toggle();
 }
+
+// funcion disparador de evento vender
+$('[data-vender]').on('click', function () {
+	adicionar_producto($.trim($(this).attr('data-vender')));
+});
+
+
 function adicionar_producto(id_producto) {
 	var $ventas = $('#ventas tbody');
 	var $producto = $ventas.find('[data-producto=' + id_producto + ']');
