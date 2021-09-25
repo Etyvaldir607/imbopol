@@ -66,8 +66,8 @@ left join(
                 d.fecha_vencimiento,
                 sum(d.cantidad) as cantidad_egresos
             from
-                inv_egresos_detalles d
-                left join inv_egresos e on e.id_egreso = d.egreso_id
+                inv_proformas_detalles d
+                left join inv_egresos e on e.id_egreso = d.proforma_id
             where
                 e.almacen_id = $id_almacen
 
@@ -646,6 +646,7 @@ $(function () {
 		$('#ventas tbody').empty();
 		$nit_ci.prop('readonly', false);
 		$nombre_cliente.prop('readonly', false);
+		$telefono_cliente.prop('readonly', false);
 		calcular_total();
 	}).trigger('reset');
 
@@ -887,7 +888,7 @@ function adicionar_producto(id_producto) {
 			form: '#formulario',
 			modules: 'basic',
 			onSuccess: function () {
-				guardar_factura();
+				guardar_proforma();
 			}
 		});
 	}
