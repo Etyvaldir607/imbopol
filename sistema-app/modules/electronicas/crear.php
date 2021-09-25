@@ -199,7 +199,7 @@ span.block.text-right.text-success, span.block.text-right.text-danger {
 }
 </style>
 <div class="row">
-	<?php if ($almacen) { ?>
+	<?php if ($dosificacion && $almacen) { ?>
 	<div class="col-md-6">
 		<div class="panel panel-info">
 			<div class="panel-heading">
@@ -773,7 +773,7 @@ function adicionar_producto(id_producto) {
 	var $ventas = $('#ventas tbody');
 	// busca el dom venta - producto
 	var $producto = $ventas.find('[data-producto=' + id_producto + ']');
-	console.log($producto.val())
+	//console.log($producto.val())
 	// busca el dom venta - producto - cantidad
 	var $cantidad = $producto.find('[data-cantidad]');
 	// define un contador anonimo
@@ -802,9 +802,9 @@ function adicionar_producto(id_producto) {
 	var cantidad;
 
 	if (contador < fechas.length) {
-		console.log(fechas, stocks);
+		//console.log(fechas, stocks);
 		// incrementa cantidad
-		console.log(contador);
+		//console.log(contador);
 		plantilla =
 		'<tr class="active" data-producto="' + id_producto + '" data-position="'+numero+'">'+
 			'<td class="text-nowrap">' + numero + '</td>'+
@@ -940,7 +940,7 @@ function adicionar_producto_fecha(numero, id_producto){
 	var $ventas = $('#ventas tbody');
 	var $producto = $ventas.find('[data-producto=' + id_producto + '][data-position='+numero+ ']');
 	var $cantidad = $producto.find('[data-cantidad]');
-	console.log($cantidad.val());
+	//console.log($cantidad.val());
 	cantidad = $.trim($cantidad.val());
 	cantidad = ($.isNumeric(cantidad)) ? parseInt(cantidad) : 0;
 	cantidad = (cantidad < 9999999) ? cantidad + 1: cantidad;
@@ -1022,7 +1022,6 @@ function calcular_total() {
 
 function guardar_factura() {
 	var data = $('#formulario').serialize();
-
 	$('#loader').fadeIn(100);
 
 	$.ajax({
@@ -1031,7 +1030,6 @@ function guardar_factura() {
 		url: '?/electronicas/guardar',
 		data: data
 	}).done(function (venta) {
-		console.log(venta);
 		if (venta) {
 			$.notify({
 				message: 'La venta computarizada fue realizada satisfactoriamente.'
@@ -1048,7 +1046,6 @@ function guardar_factura() {
 			});
 		}
 	}).fail(function (e) {
-		console.log(e);
 		$('#loader').fadeOut(100);
 		$.notify({
 			message: 'Ocurrió un problema en el proceso, no se puedo obtener la dosificación ni tampoco guardar los datos de la venta, verifique si la se guardó parcialmente.'
@@ -1060,7 +1057,7 @@ function guardar_factura() {
 
 function imprimir_factura(venta) {
 	var servidor = $.trim($('[data-servidor]').attr('data-servidor'));
-
+	$('#loader').fadeOut(100);
 	$.ajax({
 		type: 'POST',
 		dataType: 'json',
@@ -1088,12 +1085,14 @@ function imprimir_factura(venta) {
 				break;
 		}
 	}).fail(function () {
+		/*
 		$('#loader').fadeOut(100);
 		$.notify({
 			message: 'Ocurrió un problema durante el proceso, reinicie la terminal para dar solución al problema y si el problema persiste contactese con el con los desarrolladores.'
 		}, {
 			type: 'danger'
 		});
+		*/
 	}).always(function () {
 		$('#formulario').trigger('reset');
 		$('#form_buscar_0').trigger('submit');
