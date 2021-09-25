@@ -947,6 +947,31 @@ function adicionar_producto_fecha(numero, id_producto){
 	calcular_importe(numero, id_producto);
 }
 
+// calcula el importe de cada item de producto
+function calcular_importe(numero, id_producto) {
+	var $producto = $('[data-producto=' + id_producto + '][data-position='+numero+ ']');
+	// var $producto = $('[data-producto=' + id_producto + ']').find();
+	var $cantidad = $producto.find('[data-cantidad]');
+	var $precio = $producto.find('[data-precio]');
+	var $descuento = $producto.find('[data-descuento]');
+	var $importe = $producto.find('[data-importe]');
+	var cantidad, precio, importe, fijo;
+
+	fijo = $descuento.attr('data-descuento');
+	fijo = ($.isNumeric(fijo)) ? parseFloat(fijo) : 0;
+	cantidad = $.trim($cantidad.val());
+	cantidad = ($.isNumeric(cantidad)) ? parseInt(cantidad) : 0;
+	precio = $.trim($precio.val());
+	precio = ($.isNumeric(precio)) ? parseFloat(precio) : 0.00;
+	descuento = $.trim($descuento.val());
+	descuento = ($.isNumeric(descuento)) ? parseFloat(descuento) : 0;
+	importe = cantidad * precio;
+	importe = importe.toFixed(2);
+	$importe.text(importe);
+	calcular_total();
+}
+
+
 function eliminar_producto(id_producto) {
 	bootbox.confirm('Está seguro que desea eliminar el producto?', function (result) {
 		if(result){
