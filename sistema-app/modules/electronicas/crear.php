@@ -369,10 +369,11 @@ span.block.text-right.text-success, span.block.text-right.text-danger {
                             <?php $otro_precio = $db->select('*')->from('inv_asignaciones a')->join('inv_unidades b','a.unidad_id=b.id_unidad')->where('a.producto_id',$producto['id_producto'])->fetch(); ?>
 							<tr>
 								<td class="text-nowrap"><img src="<?= ($producto['imagen'] == '') ? imgs . '/image.jpg' : files . '/productos/' . $producto['imagen']; ?>" width="75" height="75"></td>
-									<td class="text-nowrap" data-codigo="<?= $producto['id_producto']; ?>">
-										<span><?= escape($producto['codigo']); ?></span>
-										<span class="hidden"><?= escape($producto['codigo_barras']); ?></span>
-									</td>
+								<td class="text-nowrap" data-codigo="<?= $producto['id_producto']; ?>">
+									<span><?= escape($producto['codigo']); ?></span>
+									<span class="hidden"><?= escape($producto['codigo_barras']); ?></span>
+								</td>
+
 								<td>
 									<span ><?= escape($producto['nombre']); ?> <?= escape($producto['color']); ?></span>
 									<span class="hidden" data-color="<?= $producto['id_producto']; ?>"><?= escape($producto['color']); ?></span>
@@ -746,6 +747,7 @@ $(function () {
 	});
 });
 
+// funcion verificar si es nit
 function es_nit(texto) {
 	var numeros = '0123456789';
 	for(i = 0; i < texto.length; i++){
@@ -758,65 +760,115 @@ function es_nit(texto) {
 function desp(elemento) {
     $(elemento).next('tr').toggle();
 }
-function adicionar_producto(id_producto) {
-	var $ventas = $('#ventas tbody');
-	var $producto = $ventas.find('[data-producto=' + id_producto + ']');
-	var $cantidad = $producto.find('[data-cantidad]');
-	var numero = $ventas.find('[data-producto]').size() + 1;
-	var codigo = $.trim($('[data-codigo=' + id_producto + ']').text());
-	var nombre = $.trim($('[data-nombre=' + id_producto + ']').text());
-	var stock = $.trim($('[data-stock=' + id_producto + ']').text());
-	var valor = $.trim($('[data-valor=' + id_producto + ']').text());
-	var plantilla = '';
-	var cantidad;
 
+// funcion disparador de evento vender
+$('[data-vender]').on('click', function () {
+	adicionar_producto($.trim($(this).attr('data-vender')));
+});
+
+/** funcion adicionar producto */
+function adicionar_producto(id_producto) {
+	// definiendo base de la tabla
+	var $ventas = $('#ventas tbody');
+	// busca el dom venta - producto
+	var $producto = $ventas.find('[data-producto=' + id_producto + ']');
+	console.log($producto.val())
+	// busca el dom venta - producto - cantidad
+	var $cantidad = $producto.find('[data-cantidad]');
+	// define un contador anonimo
+	var numero = $ventas.find('[data-producto]').size() + 1;
+	// recupera el codigo de producto
+	var codigo = $.trim($('[data-codigo=' + id_producto + ']').text());
+	// recupera el nombre de producto
+	var nombre = $.trim($('[data-nombre=' + id_producto + ']').text());
+	// recupera el color de producto
+	var color = $.trim($('[data-color=' + id_producto + ']').text());
+	// recupera un array de fechas de vencimiento
+	var fechas =$('[data-fecha=' + id_producto + ']')[0].dataset.valFecha.split(',');
+	// recupera un array de stocks
+	var stocks =$('[data-stock=' + id_producto + ']')[0].dataset.valStock.split(',');
+	// recupera un contador para cada producto
+	var contador = parseInt($('[data-fecha=' + id_producto + ']')[0].dataset.contador);
+	
+	var posicion_stock = contador;
+
+    var valor = $.trim($('[data-valor=' + id_producto + ']').text());
+	//console.log(valor)
     var posicion = valor.indexOf(':');
     var porciones = valor.split('*');
 
-	if ($producto.size()) {
-		cantidad = $.trim($cantidad.val());
-		cantidad = ($.isNumeric(cantidad)) ? parseInt(cantidad) : 0;
-		cantidad = (cantidad < 9999999) ? cantidad + 1 : cantidad;
-		$cantidad.val(cantidad).trigger('blur');
-	} else {
-		plantilla = '<tr class="active" data-producto="' + id_producto + '">' +
-						'<td class="text-nowrap text-middle"><b>' + numero + '</b></td>' +
-						'<td class="text-nowrap text-middle"><input type="text" value="' + id_producto + '" name="productos[]" class="translate" tabindex="-1" data-validation="required number" data-validation-error-msg="Debe ser número">' + codigo + '</td>' +
-						'<td class="text-middle"><input type="text" value=\'' + nombre + '\' name="nombres[]" class="translate" tabindex="-1" data-validation="required">' + nombre + '</td>' +
-						'<td class="text-middle"><input type="text" value="1" name="cantidades[]" class="form-control text-right" maxlength="10" autocomplete="off" data-cantidad="" data-validation="required number" data-validation-allowing="range[1;' + stock + ']" data-validation-error-msg="Debe ser un número positivo entre 1 y ' + stock + '" onkeyup="calcular_importe(' + id_producto + ')"></td>';
-        if(porciones.length>2){
-            plantilla = plantilla+'<td><select name="unidad[]" id="unidad[]" data-xxx="true" class="form-control " >';
-            aparte = porciones[1].split(':');
-            for(var ic=1;ic<porciones.length;ic++){
-                parte = porciones[ic].split(':');
-                //console.log(parte);
-                plantilla = plantilla+'<option value="' +parte[0]+ '" data-yyy="' +parte[1]+ '" >' +parte[0]+ '</option>';
-            }
-            plantilla = plantilla+'</select></td>'+
-            '<td><input type="text" value="' + parseFloat(aparte[1]) + '" name="precios[]" class="form-control text-right" autocomplete="off" data-precio="' + parseFloat(aparte[1]) + '"  data-validation-error-msg="Debe ser un número decimal positivo" onkeyup="calcular_importe(' + id_producto + ')"></td>';
-        }else{
-            parte = porciones[1].split(':');
-            plantilla = plantilla + '<td><input type="text" value="' + parte[0] + '" name="unidad[]" class="form-control text-right" autocomplete="off" data-unidad="' + parte[0] + '" readonly data-validation-error-msg="Debe ser un número decimal positivo"></td>'+
-            '<td><input type="text" value="' + parseFloat(parte[1]) + '" name="precios[]" class="form-control text-right" autocomplete="off" data-precio="' + parseFloat(parte[1]) + '"   data-validation-error-msg="Debe ser un número decimal positivo" onkeyup="calcular_importe(' + id_producto + ')"></td>';
-        }
-                        //'<td class="text-middle"><input type="text" value="' + valor + '" name="precios[]" class="form-control text-right" autocomplete="off" data-precio="' + valor + '" data-validation="required number" data-validation-allowing="range[0.01;10000000.00],float" data-validation-error-msg="Debe ser un número decimal positivo" onkeyup="calcular_importe(' + id_producto + ')"></td>' +
-            plantilla = plantilla +'<td class="text-middle"><input type="text" value="0" name="descuentos[]" class="form-control text-right" maxlength="10" autocomplete="off" data-descuento="0" data-validation="required number" data-validation-allowing="float,range[-100.00;100.00],negative" data-validation-error-msg="Debe ser un número entre -100.00 y 100.00" onkeyup="descontar_precio(' + id_producto + ')"></td>' +
-						'<td class="text-nowrap text-middle text-right" data-importe="">0.00</td>' +
-						'<td class="text-nowrap text-middle text-center">' +
-							'<button type="button" class="btn btn-info" tabindex="-1" onclick="eliminar_producto(' + id_producto + ')">Eliminar</button>' +
-						'</td>' +
-					'</tr>';
+	var plantilla = '';
+	var cantidad;
+
+	if (contador < fechas.length) {
+		console.log(fechas, stocks);
+		// incrementa cantidad
+		console.log(contador);
+		plantilla =
+		'<tr class="active" data-producto="' + id_producto + '" data-position="'+numero+'">'+
+			'<td class="text-nowrap">' + numero + '</td>'+
+			'<td class="text-nowrap"><input type="text" value="' + id_producto + '" name="productos[]" class="translate" tabindex="-1" data-validation="required number" data-validation-error-msg="Debe ser número">' + codigo + '</td>'+
+			'<td><input type="text" value="' + nombre + '" name="nombres[]" class="translate" tabindex="-1" data-validation="required">' + nombre +' '+ color  +'</td>'+
+		
+			// seleccionar fecha de vencimiento para agregar a la venta
+			'<td>'+
+				'<select name="fecha[]" id="fecha' + numero + '" class="form-control input-xs" onchange="actualizar_stock(' + numero + ',' + id_producto + ')">';
+			for(var i = 0; i < fechas.length; i++){
+				if(i === contador ){
+					// selecciona la `rimera fecha por defecto
+					plantilla = plantilla+ '<option value="' +fechas[i]+ '" selected>' +fechas[i]+ '</option>';
+				}else{
+					plantilla = plantilla+ '<option value="' +fechas[i]+ '" >' +fechas[i]+ '</option>';
+				}
+
+			}
+
+			plantilla = plantilla +
+				'</select>'+
+			'</td>';
+			
+			plantilla = plantilla +
+			'<td><input type="text" value="1" name="cantidades[]" class="form-control input-xs text-right" maxlength="7" autocomplete="off" data-cantidad="" data-validation="required number" data-validation-allowing="range[1;' + stocks[posicion_stock] + ']" data-validation-error-msg="Debe ser un número positivo entre 1 y ' + stocks[posicion_stock] + '" onkeyup="calcular_importe('+numero +',' + id_producto + ')"></td>';
+			if(porciones.length>2){
+				plantilla = plantilla+'<td><select name="unidad[]" id="unidad" data-xxx="true" class="form-control input-xs" >';
+				aparte = porciones[1].split(':');
+				for(var ic=1;ic<porciones.length;ic++){
+						parte = porciones[ic].split(':');
+					//console.log(parte);
+					plantilla = plantilla+'<option value="' +parte[0]+ '" data-yyy="' +parte[1]+ '" >' +parte[0]+ '</option>';
+				}
+				plantilla = plantilla+'</select></td>'+
+				'<td><input type="text" value="' + parseFloat(aparte[1]) + '" name="precios[]" class="form-control input-xs text-right" autocomplete="off" data-precio="' + parseFloat(aparte[1]) + '"  data-validation-error-msg="Debe ser un número decimal positivo" onkeyup="calcular_importe('+numero +',' + id_producto + ')"></td>';
+			}
+			else{
+				parte = porciones[1].split(':');
+				plantilla = plantilla + '<td><input type="text" value="' + parte[0] + '" name="unidad[]" class="form-control input-xs text-right" autocomplete="off" data-unidad="' + parte[0] + '" readonly data-validation-error-msg="Debe ser un número decimal positivo"></td>'+
+										'<td><input type="text" value="' + parseFloat(parte[1]) + '" name="precios[]" class="form-control input-xs text-right" autocomplete="off" data-precio="' + parseFloat(parte[1]) + '"  data-validation-error-msg="Debe ser un número decimal positivo" onkeyup="calcular_importe('+numero +',' + id_producto + ')"></td>';
+			}
+			plantilla = plantilla + 
+			'<td><input type="text" value="0" name="descuentos[]" class="form-control input-xs text-right" maxlength="2" autocomplete="off" data-descuento="0" data-validation="required number" data-validation-allowing="range[0;50]" data-validation-error-msg="Debe ser un número positivo entre 0 y 50" onkeyup="descontar_precio('+numero +',' + id_producto + ')"></td>'+
+			'<td class="text-nowrap text-right" data-importe="">0.00</td>'+
+			'<td class="text-nowrap text-center">'+
+				'<button type="button" class="btn btn-xs btn-primary" data-toggle="tooltip"  data-title="Item por fecha"  title=""  onclick="adicionar_producto_fecha('+numero +','+ id_producto+')"><span class="glyphicon glyphicon-plus"></span></button>'+
+				'<button type="button" class="btn btn-xs btn-danger" data-toggle="tooltip" data-title="Eliminar producto" tabindex="-1" onclick="eliminar_producto_fecha('+numero +', ' + id_producto + ')"><span class="glyphicon glyphicon-remove"></span></button>'+
+			'</td>' +
+		'</tr>';
+
 
 		$ventas.append(plantilla);
-
+		contador = contador + 1;
+		$('[data-fecha=' + id_producto + ']').attr("data-contador",   + contador );
+        
+		
 		$ventas.find('[data-cantidad], [data-precio], [data-descuento]').on('click', function () {
-			$(this).select();
-		});
+            $(this).select();
+        });
 
+		//obtendra el precio inicial por cada producto
         $ventas.find('[data-xxx]').on('change', function () {
             var v = $(this).find('option:selected').attr('data-yyy');
-            $(this).parent().parent().find('[data-precio]').val(v);
-            $(this).parent().parent().find('[data-precio]').attr(v);
+            $(this).parent().parent().find('[data-precio]').val(parseFloat(v));
+            $(this).parent().parent().find('[data-precio]').attr(parseFloat(v));
             calcular_importe(id_producto);
         });
 
@@ -825,21 +877,47 @@ function adicionar_producto(id_producto) {
 			trigger: 'hover'
 		});
 
+		// validar datos
 		$.validate({
 			form: '#formulario',
 			modules: 'basic',
 			onSuccess: function () {
-				bootbox.confirm('Está seguro de realizar la venta computarizada?', function (respuesta) {
-					if (respuesta) {
-						guardar_factura();
-					}
-				});
+				guardar_factura();
 			}
 		});
 	}
 
-	calcular_importe(id_producto);
+	calcular_importe(numero, id_producto);
+	// sincronizar_fechas(contador);
 }
+
+// actualizar el stock por fecha de vencimiento
+function actualizar_stock(numero, id_producto){
+	// definiendo base de la tabla
+	var $ventas = $('#ventas tbody');
+	// recupera fecha seleccionada
+	var fecha_seleccionada =  $ventas.find('[data-producto=' + id_producto + ']').find('#fecha' + numero + '  :selected').val();
+	// busca el dom venta - producto
+	var $producto = $ventas.find('[data-producto=' + id_producto + '][data-position='+numero+ ']');
+	// recupera un array de fechas de vencimiento
+	var fechas =$('[data-fecha=' + id_producto + ']')[0].dataset.valFecha.split(',');
+	// recupera un array de stocks
+	var stocks =$('[data-stock=' + id_producto + ']')[0].dataset.valStock.split(',');
+	// recupera posicion de fecha seleccionada
+	var position = fechas.indexOf(fecha_seleccionada);
+	fechas = fechas.filter(function(item) {
+		return fechas.indexOf(item) !== position;
+	});
+	//actualizando fecha_vencimiento
+	$ventas.find('[data-producto=' + id_producto + ']').attr("data-fecha", fechas[position] );
+	//actualizando limite
+	$producto.find('[data-cantidad]').attr("data-validation-allowing", 'range[1;' + stocks[position] + ']')
+	//actulaizando msg de error
+	$producto.find('[data-cantidad]').attr("data-validation-error-msg", 'Debe ser un número positivo entre 1 y ' + stocks[position] + '');
+	//adicionar_item(fechas, id_producto);
+}
+
+
 
 function eliminar_producto(id_producto) {
 	bootbox.confirm('Está seguro que desea eliminar el producto?', function (result) {
@@ -857,45 +935,6 @@ function renumerar_productos() {
 	$productos.each(function (i) {
 		$(this).find('td:first').text(i + 1);
 	});
-}
-
-function descontar_precio(id_producto) {
-	var $producto = $('[data-producto=' + id_producto + ']');
-	var $precio = $producto.find('[data-precio]');
-	var $descuento = $producto.find('[data-descuento]');
-	var precio, descuento;
-
-	precio = $.trim($precio.attr('data-precio'));
-	precio = ($.isNumeric(precio)) ? parseFloat(precio) : 0;
-	descuento = $.trim($descuento.val());
-	descuento = ($.isNumeric(descuento)) ? parseFloat(descuento) : 0;
-	precio = precio - (precio * descuento / 100);
-	$precio.val(precio.toFixed(2));
-
-	calcular_importe(id_producto);
-}
-
-function calcular_importe(id_producto) {
-	var $producto = $('[data-producto=' + id_producto + ']');
-	var $cantidad = $producto.find('[data-cantidad]');
-	var $precio = $producto.find('[data-precio]');
-	var $descuento = $producto.find('[data-descuento]');
-	var $importe = $producto.find('[data-importe]');
-	var cantidad, precio, importe, fijo;
-
-	fijo = $descuento.attr('data-descuento');
-	fijo = ($.isNumeric(fijo)) ? parseFloat(fijo) : 0;
-	cantidad = $.trim($cantidad.val());
-	cantidad = ($.isNumeric(cantidad)) ? parseInt(cantidad) : 0;
-	precio = $.trim($precio.val());
-	precio = ($.isNumeric(precio)) ? parseFloat(precio) : 0.00;
-	descuento = $.trim($descuento.val());
-	descuento = ($.isNumeric(descuento)) ? parseFloat(descuento) : 0;
-	importe = cantidad * precio;
-	importe = importe.toFixed(2);
-	$importe.text(importe);
-
-	calcular_total();
 }
 
 function calcular_total() {
