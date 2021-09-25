@@ -82,3 +82,15 @@ CREATE TABLE IF NOT EXISTS `inv_clientes` (
 
 #modificacion reportes ventas manuales
 #modificacion reportes ventas manuales en operaciones
+
+#actualizacion de metodos en ventas electronicas
+#actualizacion de consulta en ventas electronicas
+#actualizacion en guardar ventas electronicas
+#modificacion reportes ventas electronicas
+#modificacion reportes operaciones electronicas
+
+#actualizacion de metodos en proformas
+#actualizacion de consulta en proformas
+#actualizacion en guardar proformas
+#modificacion reportes proformas
+#modificacion reportes operaciones proformas
