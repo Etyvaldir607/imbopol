@@ -951,6 +951,18 @@ function descontar_precio(numero, id_producto) {
 	calcular_importe(numero, id_producto);
 }
 
+// adiciona item por fecha de vencimiento
+function adicionar_producto_fecha(numero, id_producto){
+	var $ventas = $('#ventas tbody');
+	var $producto = $ventas.find('[data-producto=' + id_producto + '][data-position='+numero+ ']');
+	var $cantidad = $producto.find('[data-cantidad]');
+	//console.log($cantidad.val());
+	cantidad = $.trim($cantidad.val());
+	cantidad = ($.isNumeric(cantidad)) ? parseInt(cantidad) : 0;
+	cantidad = (cantidad < 9999999) ? cantidad + 1: cantidad;
+	$cantidad.val(cantidad).trigger('blur');
+	calcular_importe(numero, id_producto);
+}
 
 // calcula el importe de cada item de producto
 function calcular_importe(numero, id_producto) {
@@ -1016,9 +1028,7 @@ function calcular_total() {
 
 function guardar_proforma() {
 	var data = $('#formulario').serialize();
-
 	$('#loader').fadeIn(100);
-
 	$.ajax({
 		type: 'POST',
 		dataType: 'json',
@@ -1033,12 +1043,14 @@ function guardar_proforma() {
 			});
 			imprimir_proforma(proforma);
 		} else {
+			
 			$('#loader').fadeOut(100);
 			$.notify({
 				message: 'Ocurrió un problema en el proceso, no se puedo guardar los datos de la proforma, verifique si la se guardó parcialmente.'
 			}, {
 				type: 'danger'
 			});
+			
 		}
 	}).fail(function () {
 		$('#loader').fadeOut(100);
@@ -1052,7 +1064,7 @@ function guardar_proforma() {
 
 function imprimir_proforma(proforma) {
 	var servidor = $.trim($('[data-servidor]').attr('data-servidor'));
-
+	$('#loader').fadeOut(100);
 	$.ajax({
 		type: 'POST',
 		dataType: 'json',
@@ -1080,12 +1092,14 @@ function imprimir_proforma(proforma) {
 				break;
 		}
 	}).fail(function () {
+		/*
 		$('#loader').fadeOut(100);
 		$.notify({
 			message: 'Ocurrió un problema durante el proceso, reinicie la terminal para dar solución al problema y si el problema persiste contactese con el con los desarrolladores.'
 		}, {
 			type: 'danger'
 		});
+		*/
 	}).always(function () {
 		$('#formulario').trigger('reset');
 		$('#form_buscar_0').trigger('submit');
@@ -1094,7 +1108,7 @@ function imprimir_proforma(proforma) {
 
 function cotizar(elemento) {
 	var $elemento = $(elemento), vender;
-	vender = $elemento.attr('data-cotizar');
+	vender = $elemento.attr('data-vender');
 	adicionar_producto(vender);
 }
 
@@ -1107,7 +1121,7 @@ function actualizar(elemento) {
 	$.ajax({
 		type: 'POST',
 		dataType: 'json',
-		url: '?/electronicas/actualizar',
+		url: '?/proformas/actualizar',
 		data: {
 			id_producto: actualizar
 		}
