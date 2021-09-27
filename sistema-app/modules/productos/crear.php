@@ -163,9 +163,10 @@ $(function () {
 	
 	$('.form-control:first').select();
 
-
-
-
+	// anula la accion por defecto del boton
+	$formulario.on('submit', function (e) {
+		e.preventDefault();
+	});
 });
 
 var $generar_crear = $('#generar_crear');
