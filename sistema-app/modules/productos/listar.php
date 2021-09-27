@@ -118,6 +118,41 @@ $permiso_cambiar = in_array('cambiar', $permisos);
                 <td class="text-nowrap text-middle"><?= escape($producto['color']); ?></td>
 				<td class="text-nowrap text-middle text-right"><?= escape($producto['cantidad_minima']); ?></td>
 
+				<!--obtiene las asignaciones de unidad por producto, con sus respectivos precios -->
+
+				<?php $asignaciones= $db->select('*')->from('inv_asignaciones')->where('producto_id',$producto['id_producto'] ); ?>
+				<?php $unidades= $db->select('*')->from('inv_unidades')->where('producto_id',$producto['id_producto'] ); ?>
+
+				<?php 
+					$precios = $db->query("select
+					p.id_producto,
+					p.unidad_id,
+					tu.cantidad_unidad,
+					tp.precio
+					from
+						inv_productos p
+						left join (
+							select
+								a.producto_id,
+								a.cantidad_unidad
+							from
+								inv_asignaciones a
+								left join inv_unidades u on u.id_unidad = a.unidad_id
+						) as tu 
+						on tu.producto_id = p.id_producto
+				
+						left join (
+							select
+								pr.producto_id,
+								pr.id_precio,
+								pr.precio
+							from
+								inv_asignaciones a
+								left join inv_precios pr on pr.asignacion_id = a.id_asignacion
+						) as tp 
+						on tp.producto_id = p.id_producto
+					order by p.id_producto")->fetch();
+				?>
 
 				<td class="text-nowrap text-middle">
 					<?= escape($producto['unidad']); ?>
