@@ -67,7 +67,7 @@ left join(
                 sum(d.cantidad) as cantidad_egresos
             from
                 inv_proformas_detalles d
-                left join inv_egresos e on e.id_egreso = d.proforma_id
+                left join inv_proformas e on e.id_proforma = d.proforma_id
             where
                 e.almacen_id = $id_almacen
 
