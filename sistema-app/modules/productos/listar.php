@@ -3,6 +3,8 @@
 // Obtiene los productos
 $productos = $db->select('p.*, u.unidad, c.categoria')->from('inv_productos p')->join('inv_unidades u', 'p.unidad_id = u.id_unidad', 'left')->join('inv_categorias c', 'p.categoria_id = c.id_categoria', 'left')->order_by('p.id_producto')->fetch();
 
+
+
 // Obtiene la moneda oficial
 $moneda = $db->from('inv_monedas')->where('oficial', 'S')->fetch_first();
 
@@ -66,9 +68,9 @@ $permiso_cambiar = in_array('cambiar', $permisos);
                 <th class="text-nowrap text-middle">Medidas</th>
                 <th class="text-nowrap text-middle width-collapse">Tipo</th>
                 <th class="text-nowrap text-middle width-collapse">Color</th>
-				<th class="text-nowrap text-middle width-collapse">Precio actual <?= $moneda; ?></th>
 				<th class="text-nowrap text-middle width-collapse">Cantidad mínima</th>
 				<th class="text-nowrap text-middle width-collapse">Unidad</th>
+				<th class="text-nowrap text-middle width-collapse">Precio actual <?= $moneda; ?></th>
 				<th class="text-nowrap text-middle">Ubicación</th>
 				<?php if ($permiso_ver || $permiso_editar || $permiso_eliminar || $permiso_cambiar) { ?>
 				<th class="text-nowrap text-middle width-collapse">Opciones</th>
@@ -86,9 +88,9 @@ $permiso_cambiar = in_array('cambiar', $permisos);
                 <th class="text-nowrap text-middle" data-datafilter-filter="true">Medidas</th>
                 <th class="text-nowrap text-middle" data-datafilter-filter="true">Tipo</th>
                 <th class="text-nowrap text-middle" data-datafilter-filter="true">Color</th>
-				<th class="text-nowrap text-middle" data-datafilter-filter="true">Precio actual <?= $moneda; ?></th>
-				<th class="text-nowrap text-middle" data-datafilter-filter="true">Cantidad mínima</th>
+				<th class="text-nowrap text-middle" data-datafilter-filter="true">Cantidad mínima</th>	
 				<th class="text-nowrap text-middle" data-datafilter-filter="true">Unidad</th>
+				<th class="text-nowrap text-middle" data-datafilter-filter="true">Precio actual <?= $moneda; ?></th>
 				<th class="text-nowrap text-middle" data-datafilter-filter="true">Ubicación</th>
 				<?php if ($permiso_ver || $permiso_editar || $permiso_eliminar || $permiso_cambiar) { ?>
 				<th class="text-nowrap text-middle" data-datafilter-filter="false">Opciones</th>
@@ -112,10 +114,19 @@ $permiso_cambiar = in_array('cambiar', $permisos);
 				<td class="text-middle"><?= escape($producto['nombre_factura']); ?></td>
                 <td class="text-middle"><?= str_replace("\n", "<br>", escape($producto['descripcion'])); ?></td>
                 <td class="text-nowrap text-middle"><?= escape($producto['categoria']); ?></td>
+
                 <td class="text-nowrap text-middle"><?= escape($producto['color']); ?></td>
-				<td class="text-nowrap text-middle text-right lead" data-precio="<?= $producto['id_producto']; ?>"><?= escape($producto['precio_actual']); ?></td>
 				<td class="text-nowrap text-middle text-right"><?= escape($producto['cantidad_minima']); ?></td>
-				<td class="text-nowrap text-middle"><?= escape($producto['unidad']); ?></td>
+
+
+				<td class="text-nowrap text-middle">
+					<?= escape($producto['unidad']); ?>
+				</td>
+				<td class="text-nowrap text-middle text-right lead" data-precio="<?= $producto['id_producto']; ?>">
+					<?= escape($producto['precio_actual']); ?>
+				</td>
+
+
 				<td class="text-middle"><?= str_replace("\n", "<br>", escape($producto['ubicacion'])); ?></td>
 				<?php if ($permiso_ver || $permiso_editar || $permiso_eliminar || $permiso_cambiar) { ?>
 				<td class="text-nowrap text-middle">
@@ -131,8 +142,10 @@ $permiso_cambiar = in_array('cambiar', $permisos);
 					<?php if ($permiso_cambiar) { ?>
 					<a href="#" data-toggle="tooltip" data-title="Actualizar precio" data-actualizar="<?= $producto['id_producto']; ?>"><span class="glyphicon glyphicon-refresh"></span></a>
 					<?php } ?>
+					<a href="#" data-toggle="tooltip" data-title="Asignar otra unidad" data-asignar="<?= $producto['id_producto']; ?>"><span class="glyphicon glyphicon-tint"></span></a>
 				</td>
 				<?php } ?>
+
 			</tr>
 			<?php } ?>
 		</tbody>
@@ -214,6 +227,71 @@ $permiso_cambiar = in_array('cambiar', $permisos);
 </div>
 <!-- Modal mostrar fin -->
 
+
+<!-- Inicio modal precio-->
+<?php //if ($permiso_cambiar) { ?>
+<div id="modal_unidad" class="modal fade">
+	<div class="modal-dialog">
+		<form id="form_unidad" class="modal-content loader-wrapper">
+			<div class="modal-header">
+				<h4 class="modal-title">Actualizar unidad</h4>
+			</div>
+			<div class="modal-body">
+				<div class="row">
+					<div class="col-sm-6">
+						<div class="form-group">
+							<label class="control-label">Código:</label>
+							<span id="codigo_unidad" class="form-control"></span>
+						</div>
+					</div>
+					<div class="col-sm-6">
+						<div class="form-group">
+							<label class="control-label">Unidades asignadas:</label>
+						</div>
+						<div class="form-check">
+							<input type="checkbox" class="form-check-input" id="actual_unidad" checked disabled>
+							<label class="form-check-label" for="actual_unidad"></label>
+						</div>
+					</div>
+
+					<div class="col-sm-6">
+						<div class="form-group">
+							<label for="nuevo_unidad">Nueva unidad:</label>
+							<input type="text" value="" id="nuevo_unidad" class="form-control" autocomplete="off" data-validation="required number" data-validation-allowing="range[0;10000000],float">
+						</div>
+					</div>
+					<div class="col-sm-6">
+						<div class="form-group">
+							<label for="nuevo_unidad">Sigla:</label>
+							<input type="text" value="" id="nuevo_unidad" class="form-control" autocomplete="off" data-validation="required number" data-validation-allowing="range[0;10000000],float">
+						</div>
+					</div>
+					<div class="col-sm-12">
+						<div class="form-group">
+							<label for="nuevo_unidad">Descripción:</label>
+							<input type="text" value="" id="nuevo_unidad" class="form-control" autocomplete="off" data-validation="required number" data-validation-allowing="range[0;10000000],float">
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button type="submit" class="btn btn-primary">
+					<span class="glyphicon glyphicon-ok"></span>
+					<span>Guardar</span>
+				</button>
+				<button type="button" class="btn btn-default" data-cancelar="true">
+					<span class="glyphicon glyphicon-remove"></span>
+					<span>Cancelar</span>
+				</button>
+			</div>
+			<div id="loader_unidad" class="loader-wrapper-backdrop occult">
+				<span class="loader"></span>
+			</div>
+		</form>
+	</div>
+</div>
+<?php //} ?>
+
 <script src="<?= js; ?>/jquery.dataTables.min.js"></script>
 <script src="<?= js; ?>/dataTables.bootstrap.min.js"></script>
 <script src="<?= js; ?>/jquery.base64.js"></script>
@@ -287,6 +365,46 @@ $(function () {
 	});
 	<?php } ?>
 	
+
+	var $modal_unidad = $('#modal_unidad');
+	var $form_unidad = $('#form_unidad');
+	var $loader_unidad = $('#loader_unidad');
+
+	$form_unidad.on('submit', function (e) {
+		e.preventDefault();
+	});
+
+	$modal_unidad.on('hidden.bs.modal', function () {
+		$form_unidad.trigger('reset');
+	});
+
+	$modal_unidad.on('shown.bs.modal', function () {
+		$modal_unidad.find('.form-control:first').focus();
+	});
+
+	$modal_unidad.find('[data-cancelar]').on('click', function () {
+		$modal_unidad.modal('hide');
+	});
+
+	$('[data-asignar]').on('click', function (e) {
+		e.preventDefault();
+		var id_producto = $(this).attr('data-asignar');
+		var codigo = $.trim($('[data-codigo=' + id_producto + ']').text());
+		var unidad = $.trim($('[data-unidad=' + id_producto + ']').text());
+
+		$('#producto_unidad').val(id_producto);
+		$('#codigo_unidad').text(codigo);
+		$('#actual_unidad').text(unidad);
+		
+		$modal_unidad.modal({
+			backdrop: 'static'
+		});
+	});
+
+
+
+
+
 	<?php if ($productos) : ?>
 	var table = $('#table').DataFilter({
 		filter: true,
