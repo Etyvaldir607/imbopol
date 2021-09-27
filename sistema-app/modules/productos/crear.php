@@ -163,14 +163,7 @@ $(function () {
 	
 	$('.form-control:first').select();
 
-	// valida todo el formulario
-	$.validate({
-		form: '#formulario',
-		modules: 'basic,security',
-		onSuccess: function () {
-			guardar_producto();
-		}
-	});
+
 
 
 });
