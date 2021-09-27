@@ -167,6 +167,16 @@ $(function () {
 	$formulario.on('submit', function (e) {
 		e.preventDefault();
 	});
+
+	// valida todo el formulario
+	$.validate({
+		form: '#formulario',
+		modules: 'basic,security',
+		onSuccess: function () {
+			guardar_producto();
+		}
+	});
+
 });
 
 var $generar_crear = $('#generar_crear');
@@ -184,8 +194,6 @@ $generar_crear.on('click', function () {
         $codigo_crear.trigger('blur');
     });
 });
-
-
 
 
 
