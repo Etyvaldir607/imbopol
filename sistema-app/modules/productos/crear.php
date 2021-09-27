@@ -5,7 +5,7 @@ $formato_textual = get_date_textual($_institution['formato']);
 $formato_numeral = get_date_numeral($_institution['formato']);
 
 // Obtiene el modelo unidades
-$unidades = $db->from('inv_unidades')->order_by('unidad')->fetch();
+// $unidades = $db->from('inv_unidades')->order_by('unidad')->fetch();
 
 // Obtiene el modelo categorias
 $categorias = $db->from('inv_categorias')->order_by('categoria')->fetch();
@@ -38,7 +38,7 @@ $permiso_listar = in_array('listar', $permisos);
 	<?php } ?>
 	<div class="row">
 		<div class="col-sm-8 col-sm-offset-2">
-			<form method="post" action="?/productos/guardar" class="form-horizontal" autocomplete="off">
+			<form id="formulario" class="form-horizontal" autocomplete="off">
 				<div class="form-group">
 					<label for="codigo" class="col-md-3 control-label">Código:</label>
 					<div class="col-md-9">
@@ -96,6 +96,7 @@ $permiso_listar = in_array('listar', $permisos);
 						<input type="text" value="10" name="cantidad_minima" id="cantidad_minima" class="form-control" data-validation="required number">
 					</div>
 				</div>
+				<!--
 				<div class="form-group">
 					<label for="unidad_id" class="col-md-3 control-label">Unidad:</label>
 					<div class="col-md-9">
@@ -107,8 +108,9 @@ $permiso_listar = in_array('listar', $permisos);
 						</select>
 					</div>
 				</div>
+				-->
 				<div class="form-group">
-					<label for="precio_actual" class="col-md-3 control-label">Precio del producto:</label>
+					<label for="precio_actual" class="col-md-3 control-label">Precio unitario del producto:</label>
 					<div class="col-md-9">
 						<input type="text" value="" name="precio_actual" id="precio_actual" class="form-control" data-validation="number" data-validation-allowing="float" data-validation-optional="true">
 					</div>
@@ -144,7 +146,8 @@ $permiso_listar = in_array('listar', $permisos);
 <script src="<?= js; ?>/jquery.form-validator.min.js"></script>
     <script src="<?= js; ?>/jquery.form-validator.es.js"></script>
     <script src="<?= js; ?>/bootstrap-datetimepicker.min.js"></script>
-<script type="text/javascript">
+	<script src="<?= js; ?>/bootstrap-notify.min.js"></script>
+<script>
 $(function () {
     var $fecha = $('#ven_fecha');
 
@@ -152,23 +155,29 @@ $(function () {
     $fecha.datetimepicker({
         format: formato
     });
-
-
-	$.validate({
-		modules: 'basic,security'
-	});
+	var $formulario = $('#formulario');
 
 	$('#nombre').on('keyup', function () {
 		$('#nombre_factura').val($.trim($(this).val()));
 	});
 	
 	$('.form-control:first').select();
+
+	// valida todo el formulario
+	$.validate({
+		form: '#formulario',
+		modules: 'basic,security',
+		onSuccess: function () {
+			guardar_producto();
+		}
+	});
+
+
 });
 
 var $generar_crear = $('#generar_crear');
 var $codigo_crear = $('#codigo_barras');
 $generar_crear.on('click', function () {
-
     $.ajax({
         type: 'post',
         dataType: 'json',
@@ -181,5 +190,11 @@ $generar_crear.on('click', function () {
         $codigo_crear.trigger('blur');
     });
 });
+
+
+
+
+
+
 </script>
 <?php require_once show_template('footer-advanced'); ?>
