@@ -94,3 +94,18 @@ CREATE TABLE IF NOT EXISTS `inv_clientes` (
 #actualizacion en guardar proformas
 #modificacion reportes proformas
 #modificacion reportes operaciones proformas
+
+
+#fecha: tareas asignasdas (27-09-2021)
+#modelar logica para agregar un tipo de unidad a cualquier producto
+#modificacion de la base de datos para cumplir el objetivo
+
+
+#modificacion en la tabla inv_asignaciones
+ALTER TABLE `inv_asignaciones` ADD `fecha_asignacion` DATE NOT NULL AFTER `otro_precio`;
+
+#modificacion en crear producto
+#modificacion en guardar producto
+
+#creacion de estructura para asignacion de unidades
+#creacion de consulta para asignacion de unidades
