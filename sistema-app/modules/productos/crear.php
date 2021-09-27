@@ -181,6 +181,7 @@ $(function () {
 
 var $generar_crear = $('#generar_crear');
 var $codigo_crear = $('#codigo_barras');
+// genera codigo de barras mediante peticion ajax
 $generar_crear.on('click', function () {
     $.ajax({
         type: 'post',
@@ -195,7 +196,43 @@ $generar_crear.on('click', function () {
     });
 });
 
+// guarda el producto mediante peticion ajax
+function guardar_producto() {
+	var data = $('#formulario').serialize();
 
+	$.ajax({
+		type: 'POST',
+		dataType: 'json',
+		url: '?/productos/guardar',
+		data: data
+	}).done(function (producto) {
+		if (producto) {
+			$.notify({
+				message: 'El producto fue creado satisfactoriamente.'
+			}, {
+				type: 'success'
+			});
+		}else {
+			$('#loader').fadeOut(100);
+			$.notify({
+				message: 'Ocurrió un problema en el proceso, no se puedo guardar los datos de la nota de entrega, verifique si la se guardó parcialmente.'
+			}, {
+				type: 'danger'
+			});
+		}
+		
+	}).fail(function (producto) {
+		console.log(producto)
+		$('#loader').fadeOut(100);
+		$.notify({
+			message: 'Ocurrió un problema en el proceso, no se puedo guardar los datos del producto, verifique si la se guardó parcialmente.'
+		}, {
+			type: 'danger'
+		});
+	}).always(function (){
+		$('#formulario :reset').trigger('click');
+	});
+}
 
 
 </script>
