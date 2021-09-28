@@ -464,6 +464,10 @@ $(function () {
 	// cierra el modal
 	$modal_unidad.find('[data-cancelar]').on('click', function () {
 		$modal_unidad.modal('hide');
+		$nombre_unidad.prop('readonly', false);
+		$sigla.prop('readonly', false);
+		$descripcion.prop('readonly', false);
+
 	});
 
 	// recupera el id_producto dentro el formulario
@@ -532,6 +536,16 @@ $(function () {
 		size: 8
 	});
 
+
+	
+	$.validate({
+		form: '#form_unidad',
+		modules: 'basic',
+		onSuccess: function () {
+			asignar_unidad();
+		}
+	});
+
 	$.validate({
 		form: '#form_precio',
 		modules: 'basic',
@@ -592,5 +606,49 @@ $(function () {
 	});
 	<?php endif ?>
 });
+
+
+function asignar_unidad() {
+	var $form_unidad = $('#form_unidad');
+	var data = $('#form-unidad').serialize();
+	console.log(data);
+	$('#loader_unidad').fadeIn(100);
+	$.ajax({
+		type: 'POST',
+		dataType: 'json',
+		url: '?/productos/asignar-unidad',
+		data: data
+	}).done(function (asignacion) {
+		if (asignacion) {
+			$.notify({
+				message: 'La asignacion ha sido realizada satisfactoriamente.'
+			}, {
+				type: 'success'
+			});
+		} else {
+			$('#loader').fadeOut(100);
+			$.notify({
+				message: 'Ocurrió un problema en el proceso, no se pudorealizar la asignacion, verifique si la se guardó parcialmente.'
+			}, {
+				type: 'danger'
+			});
+		}
+	}).fail(function () {
+		$('#loader').fadeOut(100);
+		$.notify({
+			message: 'Ocurrió un problema en el proceso, no se pudo realizar la asignacion, verifique si la se guardó parcialmente.'
+		}, {
+			type: 'danger'
+		});
+	}).always(function (){
+		$('#loader_unidad').fadeOut(100, function () {
+			$('#modal_unidad').modal('hide');
+			var $unidad = $('#unidad');
+			$('#nombre_unidad').prop('readonly', false);
+			$('#sigla').prop('readonly', false);
+			$('#descripcion').prop('readonly', false);
+		});
+	});
+}
 </script>
 <?php require_once show_template('footer-advanced'); ?>
