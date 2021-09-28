@@ -537,7 +537,7 @@ $(function () {
 	});
 
 
-	
+	// valida el fomulario de asignacion de unidades
 	$.validate({
 		form: '#form_unidad',
 		modules: 'basic',
@@ -610,14 +610,26 @@ $(function () {
 
 function asignar_unidad() {
 	var $form_unidad = $('#form_unidad');
-	var data = $('#form-unidad').serialize();
-	console.log(data);
+
+	var unidad = $form_unidad.find('#nombre_unidad').val();
+	var sigla = $form_unidad.find('#sigla').val();
+	var descripcion =$form_unidad.find('#descripcion').val();
+	var cantidad =$form_unidad.find('#cantidad_unidad').val();
+	var precio =$form_unidad.find('#precio_unidad').val();
+
 	$('#loader_unidad').fadeIn(100);
 	$.ajax({
 		type: 'POST',
 		dataType: 'json',
-		url: '?/productos/asignar-unidad',
-		data: data
+		url: '?/productos/asignar_unidad',
+		data: {
+			unidad : unidad,
+			sigla : sigla,
+			descripcion : descripcion,
+			cantidad: cantidad,
+			precio : parseFloat(precio).toFixed(2)
+		}
+		
 	}).done(function (asignacion) {
 		if (asignacion) {
 			$.notify({
