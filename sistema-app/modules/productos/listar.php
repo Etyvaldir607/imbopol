@@ -3,6 +3,9 @@
 // Obtiene los productos
 $productos = $db->select('p.*, u.unidad, c.categoria')->from('inv_productos p')->join('inv_unidades u', 'p.unidad_id = u.id_unidad', 'left')->join('inv_categorias c', 'p.categoria_id = c.id_categoria', 'left')->order_by('p.id_producto')->fetch();
 
+// Obtine las unidades disponibles
+$unidades = $db->select('id_unidad, unidad, sigla, descripcion')->from('inv_unidades')->order_by('id_unidad asc')->fetch();
+
 
 
 // Obtiene la moneda oficial
@@ -119,28 +122,32 @@ $permiso_cambiar = in_array('cambiar', $permisos);
 				<td class="text-nowrap text-middle text-right"><?= escape($producto['cantidad_minima']); ?></td>
 
 				<!--obtiene las asignaciones de unidad por producto, con sus respectivos precios -->
-
-				<?php $asignaciones= $db->select('*')->from('inv_asignaciones')->where('producto_id',$producto['id_producto'] ); ?>
-				<?php $unidades= $db->select('*')->from('inv_unidades')->where('producto_id',$producto['id_producto'] ); ?>
-
 				<?php 
-					$precios = $db->query("select
+					$id_producto = ($producto) ? $producto['id_producto'] : 0;
+					$asignaciones = $db->query("select
 					p.id_producto,
-					p.unidad_id,
+					tu.id_asignacion,
+					tu.id_unidad,
+					tu.unidad,
+					tu.descripcion,
 					tu.cantidad_unidad,
+					tp.id_precio,
 					tp.precio
 					from
 						inv_productos p
 						left join (
 							select
+								a.id_asignacion,
 								a.producto_id,
-								a.cantidad_unidad
+								a.cantidad_unidad,
+								u.id_unidad,
+								u.unidad,
+								u.descripcion
 							from
 								inv_asignaciones a
 								left join inv_unidades u on u.id_unidad = a.unidad_id
 						) as tu 
 						on tu.producto_id = p.id_producto
-				
 						left join (
 							select
 								pr.producto_id,
@@ -151,14 +158,27 @@ $permiso_cambiar = in_array('cambiar', $permisos);
 								left join inv_precios pr on pr.asignacion_id = a.id_asignacion
 						) as tp 
 						on tp.producto_id = p.id_producto
+					where p.id_producto = $id_producto
 					order by p.id_producto")->fetch();
 				?>
 
-				<td class="text-nowrap text-middle">
-					<?= escape($producto['unidad']); ?>
+				<td class="text-nowrap text-middle" data-unidad="<?= $producto['id_producto']; ?>">
+					<?php foreach ($asignaciones as $nro => $unidad) { ?>
+						<?php if($unidad['cantidad_unidad'] > 1){?>
+							<?= escape($unidad['unidad'] .' Contiene '. $unidad['cantidad_unidad'] .' unidades'); ?>
+						<?php } else{ ?>
+							<?= escape($unidad['unidad']  .' (Unidad mínima)'); ?>
+						<?php } ?>	
+					<?php } ?>
 				</td>
 				<td class="text-nowrap text-middle text-right lead" data-precio="<?= $producto['id_producto']; ?>">
-					<?= escape($producto['precio_actual']); ?>
+					<?php foreach ($asignaciones as $nro => $precio) { ?>
+						<?php if($precio['cantidad_unidad'] > 1){?>
+							<?= escape($precio['precio']); ?>
+						<?php } else{ ?>
+							<?= escape($precio['precio']); ?>
+						<?php } ?>	
+					<?php } ?>
 				</td>
 
 
@@ -269,42 +289,55 @@ $permiso_cambiar = in_array('cambiar', $permisos);
 	<div class="modal-dialog">
 		<form id="form_unidad" class="modal-content loader-wrapper">
 			<div class="modal-header">
-				<h4 class="modal-title">Actualizar unidad</h4>
+				<h4 class="modal-title">Asignar nueva unidad</h4>
 			</div>
 			<div class="modal-body">
 				<div class="row">
-					<div class="col-sm-6">
-						<div class="form-group">
-							<label class="control-label">Código:</label>
-							<span id="codigo_unidad" class="form-control"></span>
-						</div>
+					<div class="col-sm-12">
+						<label class="text-middle text-right lead">Código de producto:</label>
+						<span id="codigo_unidad" class="text-middle text-right lead"></span>
 					</div>
-					<div class="col-sm-6">
+					<div class="col-sm-12">
 						<div class="form-group">
-							<label class="control-label">Unidades asignadas:</label>
-						</div>
-						<div class="form-check">
-							<input type="checkbox" class="form-check-input" id="actual_unidad" checked disabled>
-							<label class="form-check-label" for="actual_unidad"></label>
-						</div>
-					</div>
+							<label for="unidad">Nueva unidad:</label>
+							<select name="unidad" id="unidad" class="form-control text-uppercase" data-validation="letternumber" data-validation-allowing="-+./&() " data-validation-optional="true">
+								<option value="">Buscar</option>
+								<?php foreach ($unidades as $unidad) { ?>
 
-					<div class="col-sm-6">
-						<div class="form-group">
-							<label for="nuevo_unidad">Nueva unidad:</label>
-							<input type="text" value="" id="nuevo_unidad" class="form-control" autocomplete="off" data-validation="required number" data-validation-allowing="range[0;10000000],float">
+									<option value="<?= escape($unidad['unidad']) . '|' . escape($unidad['sigla']) . '|' . escape($unidad['descripcion']); ?>"><?=  escape($unidad['unidad']); ?></option>
+								
+								<?php } ?>
+							</select>
 						</div>
 					</div>
 					<div class="col-sm-6">
 						<div class="form-group">
-							<label for="nuevo_unidad">Sigla:</label>
-							<input type="text" value="" id="nuevo_unidad" class="form-control" autocomplete="off" data-validation="required number" data-validation-allowing="range[0;10000000],float">
+							<label for="nombre_unidad">Nombre de unidad:</label>
+							<input type="text" value="" name="nombre_unidad" id="nombre_unidad" class="form-control" autocomplete="off" data-validation="required letternumber" data-validation-allowing="-.">
+						</div>
+					</div>
+					<div class="col-sm-6">
+						<div class="form-group">
+							<label for="sigla">Sigla:</label>
+							<input type="text" value="" name="sigla" id="sigla" class="form-control" autocomplete="off" data-validation="required" data-validation-allowing="-.">
 						</div>
 					</div>
 					<div class="col-sm-12">
 						<div class="form-group">
-							<label for="nuevo_unidad">Descripción:</label>
-							<input type="text" value="" id="nuevo_unidad" class="form-control" autocomplete="off" data-validation="required number" data-validation-allowing="range[0;10000000],float">
+							<label for="descripcion">Descripción:</label>
+							<textarea name="descripcion" id="descripcion" class="form-control" autocomplete="off" data-validation="letternumber" data-validation-allowing="+-/.,:;#()\n " data-validation-optional="true"></textarea>
+						</div>
+					</div>
+					<div class="col-sm-6">
+						<div class="form-group">
+							<label for="cantidad_unidad">Cantidad de unidades:</label>
+							<input type="text" value="" id="cantidad_unidad" class="form-control" autocomplete="off" data-validation="required number" data-validation-allowing="range[0;10000000],float">
+						</div>
+					</div>
+					<div class="col-sm-6">
+						<div class="form-group">
+							<label for="precio_unidad">Precio:</label>
+							<input type="text" value="" id="precio_unidad" class="form-control" autocomplete="off" data-validation="required number" data-validation-allowing="range[0;10000000],float">
 						</div>
 					</div>
 				</div>
@@ -336,6 +369,7 @@ $permiso_cambiar = in_array('cambiar', $permisos);
 <script src="<?= js; ?>/jquery.form-validator.min.js"></script>
 <script src="<?= js; ?>/jquery.form-validator.es.js"></script>
 <script src="<?= js; ?>/bootstrap-notify.min.js"></script>
+<script src="<?= js; ?>/selectize.min.js"></script>
 <script>
 $(function () {
 	<?php if ($permiso_eliminar) { ?>
@@ -401,41 +435,91 @@ $(function () {
 	<?php } ?>
 	
 
+
 	var $modal_unidad = $('#modal_unidad');
 	var $form_unidad = $('#form_unidad');
 	var $loader_unidad = $('#loader_unidad');
 
+	// definicion de variables globales
+	var $unidad = $('#unidad');
+	var $nombre_unidad = $('#nombre_unidad');
+	var $sigla = $('#sigla');
+	var $descripcion = $('#descripcion');
+
+	// bloquea la accion por defecto del boton
 	$form_unidad.on('submit', function (e) {
 		e.preventDefault();
 	});
 
+	// limpia el formulario
 	$modal_unidad.on('hidden.bs.modal', function () {
 		$form_unidad.trigger('reset');
 	});
 
+	// abre el modal, enfoca en el primer input
 	$modal_unidad.on('shown.bs.modal', function () {
 		$modal_unidad.find('.form-control:first').focus();
 	});
 
+	// cierra el modal
 	$modal_unidad.find('[data-cancelar]').on('click', function () {
 		$modal_unidad.modal('hide');
 	});
 
+	// recupera el id_producto dentro el formulario
 	$('[data-asignar]').on('click', function (e) {
 		e.preventDefault();
 		var id_producto = $(this).attr('data-asignar');
 		var codigo = $.trim($('[data-codigo=' + id_producto + ']').text());
-		var unidad = $.trim($('[data-unidad=' + id_producto + ']').text());
-
-		$('#producto_unidad').val(id_producto);
 		$('#codigo_unidad').text(codigo);
-		$('#actual_unidad').text(unidad);
-		
 		$modal_unidad.modal({
 			backdrop: 'static'
 		});
 	});
 
+	// rellena el formulaario asignacion de unidades en caso de que exista y crea nueva instancia en caso de que no exista
+	$unidad.selectize({
+		persist: false,
+		createOnBlur: true,
+		create: true,
+		onInitialize: function () {
+			$unidad.css({
+				display: 'block',
+				left: '-10000px',
+				opacity: '0',
+				position: 'absolute',
+				top: '-10000px'
+			});
+		},
+		onChange: function () {
+			$unidad.trigger('blur');
+		},
+		onBlur: function () {
+			$unidad.trigger('blur');
+		}
+	}).on('change', function (e) {
+		var valor = $(this).val();
+		valor = valor.split('|');
+		$(this)[0].selectize.clear();
+		if (valor.length != 1) {
+			$nombre_unidad.prop('readonly', true);
+			$sigla.prop('readonly', true);
+			$descripcion.prop('readonly', true);
+
+			$nombre_unidad.val(valor[0]);
+			$sigla.val(valor[1]);
+			$descripcion.val(valor[2]);
+		} else {
+			$nombre_unidad.prop('readonly', false);
+			$sigla.prop('readonly', false);
+			$descripcion.prop('readonly', false);
+			
+			$nombre_unidad.val(valor[0]);
+			$sigla.val('').focus();
+			$descripcion.val('');
+
+		}
+	});
 
 
 
