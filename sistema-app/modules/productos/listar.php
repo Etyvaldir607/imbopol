@@ -23,9 +23,15 @@ $permiso_ver = in_array('ver', $permisos);
 $permiso_eliminar = in_array('eliminar', $permisos);
 $permiso_imprimir = in_array('imprimir', $permisos);
 $permiso_cambiar = in_array('cambiar', $permisos);
-
+$permiso_asignar = in_array('asignar_unidad', $permisos);
 ?>
 <?php require_once show_template('header-advanced'); ?>
+<style>
+
+span.block.text-left.text-success, span.block.text-left.text-danger {
+		display: block;
+}
+</style>
 <div class="panel-heading">
 	<h3 class="panel-title">
 		<span class="glyphicon glyphicon-option-vertical"></span>
@@ -134,47 +140,57 @@ $permiso_cambiar = in_array('cambiar', $permisos);
 					tp.id_precio,
 					tp.precio
 					from
-						inv_productos p
-						left join (
-							select
-								a.id_asignacion,
-								a.producto_id,
-								a.cantidad_unidad,
-								u.id_unidad,
-								u.unidad,
-								u.descripcion
-							from
-								inv_asignaciones a
-								left join inv_unidades u on u.id_unidad = a.unidad_id
-						) as tu 
-						on tu.producto_id = p.id_producto
-						left join (
-							select
-								pr.producto_id,
-								pr.id_precio,
-								pr.precio
-							from
-								inv_asignaciones a
-								left join inv_precios pr on pr.asignacion_id = a.id_asignacion
-						) as tp 
-						on tp.producto_id = p.id_producto
-					where p.id_producto = $id_producto
-					order by p.id_producto")->fetch();
+					inv_productos p
+					left join (
+						select
+						a.id_asignacion,
+						a.producto_id,
+						a.cantidad_unidad,
+						u.id_unidad,
+						u.unidad,
+						u.descripcion
+						from
+						inv_asignaciones a
+						left join inv_unidades u on u.id_unidad = a.unidad_id
+					
+					) as tu 
+					on tu.producto_id =p.id_producto
+					left join (
+						select
+						asignacion_id,
+						producto_id,
+						id_precio,
+						precio
+						from
+						inv_precios
+						group by 
+						asignacion_id
+					) as tp 
+					on tp.producto_id =p.id_producto and  tu.id_asignacion = tp.asignacion_id
+					where p.id_producto= $id_producto 
+					group by 
+					tu.id_asignacion")->fetch();
 				?>
 
-				<td class="text-nowrap text-middle" data-unidad="<?= $producto['id_producto']; ?>">
+				<td class="text-nowrap text-middle text-right text-md lead" data-unidad="<?= $producto['id_producto']; ?>">
+					<!-- obteniendo unidades asignadas -->	
 					<?php foreach ($asignaciones as $nro => $unidad) { ?>
 						<?php if($unidad['cantidad_unidad'] > 1){?>
-							<?= escape($unidad['unidad'] .' Contiene '. $unidad['cantidad_unidad'] .' unidades'); ?>
+							<span class="block text-left text-success" >
+								<?= escape($unidad['unidad'] .': '. $unidad['cantidad_unidad'] .' unidades'); ?>
+							</span>
 						<?php } else{ ?>
 							<?= escape($unidad['unidad']  .' (Unidad mínima)'); ?>
 						<?php } ?>	
 					<?php } ?>
 				</td>
-				<td class="text-nowrap text-middle text-right lead" data-precio="<?= $producto['id_producto']; ?>">
+				<td class="text-nowrap text-middle text-right text-md lead" data-precio="<?= $producto['id_producto']; ?>">
+					<!-- obteniendo precios asignados -->	
 					<?php foreach ($asignaciones as $nro => $precio) { ?>
 						<?php if($precio['cantidad_unidad'] > 1){?>
-							<?= escape($precio['precio']); ?>
+							<span class="block text-left text-success" >
+								<?= escape($precio['precio']); ?>
+							</span>
 						<?php } else{ ?>
 							<?= escape($precio['precio']); ?>
 						<?php } ?>	
@@ -284,7 +300,7 @@ $permiso_cambiar = in_array('cambiar', $permisos);
 
 
 <!-- Inicio modal precio-->
-<?php //if ($permiso_cambiar) { ?>
+<?php if ($permiso_asignar) { ?>
 <div id="modal_unidad" class="modal fade">
 	<div class="modal-dialog">
 		<form id="form_unidad" class="modal-content loader-wrapper">
@@ -296,6 +312,7 @@ $permiso_cambiar = in_array('cambiar', $permisos);
 					<div class="col-sm-12">
 						<label class="text-middle text-right lead">Código de producto:</label>
 						<span id="codigo_unidad" class="text-middle text-right lead"></span>
+						<span id="asignar-id" class="text-middle text-right lead hidden"></span>
 					</div>
 					<div class="col-sm-12">
 						<div class="form-group">
@@ -358,7 +375,7 @@ $permiso_cambiar = in_array('cambiar', $permisos);
 		</form>
 	</div>
 </div>
-<?php //} ?>
+<?php } ?>
 
 <script src="<?= js; ?>/jquery.dataTables.min.js"></script>
 <script src="<?= js; ?>/dataTables.bootstrap.min.js"></script>
@@ -475,6 +492,7 @@ $(function () {
 		e.preventDefault();
 		var id_producto = $(this).attr('data-asignar');
 		var codigo = $.trim($('[data-codigo=' + id_producto + ']').text());
+		$('#asignar-id').text(id_producto);
 		$('#codigo_unidad').text(codigo);
 		$modal_unidad.modal({
 			backdrop: 'static'
@@ -610,7 +628,7 @@ $(function () {
 
 function asignar_unidad() {
 	var $form_unidad = $('#form_unidad');
-
+	var id_producto = $form_unidad.find('#asignar-id').text();
 	var unidad = $form_unidad.find('#nombre_unidad').val();
 	var sigla = $form_unidad.find('#sigla').val();
 	var descripcion =$form_unidad.find('#descripcion').val();
@@ -623,6 +641,7 @@ function asignar_unidad() {
 		dataType: 'json',
 		url: '?/productos/asignar_unidad',
 		data: {
+			id_producto : id_producto,
 			unidad : unidad,
 			sigla : sigla,
 			descripcion : descripcion,
@@ -661,6 +680,9 @@ function asignar_unidad() {
 			$('#descripcion').prop('readonly', false);
 		});
 	});
+
 }
+
+
 </script>
 <?php require_once show_template('footer-advanced'); ?>
