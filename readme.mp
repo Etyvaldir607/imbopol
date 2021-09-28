@@ -109,3 +109,11 @@ ALTER TABLE `inv_asignaciones` ADD `fecha_asignacion` DATE NOT NULL AFTER `otro_
 
 #creacion de estructura para asignacion de unidades
 #creacion de consulta para asignacion de unidades
+
+
+
+#fecha: tareas asignasdas (28-09-2021)
+#modificacion de estructura para asignacion de unidades
+#agregando busqueda de unidades en el formulario
+#modificacion de lista de productos
+#modificacion de asignacion de unidades
