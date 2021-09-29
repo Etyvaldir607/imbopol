@@ -820,87 +820,10 @@ function desp(elemento) {
     $(elemento).next('tr').toggle();
 }
 
-/*function adicionar_producto(id_producto) {
-	var $ventas = $('#ventas tbody');
-	var $producto = $ventas.find('[data-producto=' + id_producto + ']');
-	var $cantidad = $producto.find('[data-cantidad]');
-	var numero = $ventas.find('[data-producto]').size() + 1;
-	var codigo = $.trim($('[data-codigo=' + id_producto + ']').text());
-	var nombre = $.trim($('[data-nombre=' + id_producto + ']').text());
-	var stock = $.trim($('[data-stock=' + id_producto + ']').text());
-	var valor = $.trim($('[data-valor=' + id_producto + ']').text());
-	var plantilla = '';
-	var cantidad;
 
-    var posicion = valor.indexOf(':');
-    var porciones = valor.split('*');
-
-	if ($producto.size()) {
-		cantidad = $.trim($cantidad.val());
-		cantidad = ($.isNumeric(cantidad)) ? parseInt(cantidad) : 0;
-		cantidad = (cantidad < 9999999) ? cantidad + 1 : cantidad;
-		$cantidad.val(cantidad).trigger('blur');
-	} else {
-		plantilla = '<tr class="active" data-producto="' + id_producto + '">' +
-						'<td class="text-nowrap text-middle"><b>' + numero + '</b></td>' +
-						'<td class="text-nowrap text-middle"><input type="text" value="' + id_producto + '" name="productos[]" class="translate" tabindex="-1" data-validation="required number" data-validation-error-msg="Debe ser número">' + codigo + '</td>' +
-						'<td class="text-nowrap text-middle"><input type="text" value=\'' + nombre + '\' name="nombres[]" class="form-control" data-validation="required"></td>' +
-						'<td class="text-middle"><input type="text" value="1" name="cantidades[]" class="form-control text-right" style="width: 100px;" maxlength="10" autocomplete="off" data-cantidad="" data-validation="required number" data-validation-allowing="range[1;' + stock + ']" data-validation-error-msg="Debe ser un número positivo entre 1 y ' + stock + '" onkeyup="calcular_importe(' + id_producto + ')"></td>';
-		if(porciones.length>2){
-            plantilla = plantilla+'<td><select name="unidad[]" id="unidad[]" data-xxx="true" class="form-control " >';
-            aparte = porciones[1].split(':');
-            for(var ic=1;ic<porciones.length;ic++){
-                parte = porciones[ic].split(':');
-                //console.log(parte);
-                plantilla = plantilla+'<option value="' +parte[0]+ '" data-yyy="' +parte[1]+ '" >' +parte[0]+ '</option>';
-            }
-            plantilla = plantilla+'</select></td>'+
-            '<td><input type="text" value="' + parseFloat(aparte[1]) + '" name="precios[]" class="form-control  text-right" autocomplete="off" data-precio="' + parseFloat(aparte[1]) + '"  data-validation-error-msg="Debe ser un número decimal positivo" onkeyup="calcular_importe(' + id_producto + ')"></td>';
-        }else{
-            parte = porciones[1].split(':');
-            plantilla = plantilla + '<td><input type="text" value="' + parte[0] + '" name="unidad[]" class="form-control  text-right" autocomplete="off" data-unidad="' + parte[0] + '" readonly data-validation-error-msg="Debe ser un número decimal positivo"></td>'+
-            '<td><input type="text" value="' + parseFloat(parte[1]) + '" name="precios[]" class="form-control  text-right" autocomplete="off" data-precio="' + parseFloat(parte[1]) + '"  data-validation-error-msg="Debe ser un número decimal positivo" onkeyup="calcular_importe(' + id_producto + ')"></td>';
-        }
-                        //'<td class="text-middle"><input type="text" value="' + valor + '" name="precios[]" class="form-control text-right" style="width: 100px;" autocomplete="off" data-precio="' + valor + '" data-validation="required number" data-validation-allowing="range[0.01;10000000.00],float" data-validation-error-msg="Debe ser un número decimal positivo" onkeyup="calcular_importe(' + id_producto + ')"></td>' +
-                        plantilla = plantilla +'<td class="text-middle"><input type="text" value="0" name="descuentos[]" class="form-control text-right" style="width: 100px;" maxlength="10" autocomplete="off" data-descuento="0" data-validation="required number" data-validation-allowing="float,range[-100.00;100.00],negative" data-validation-error-msg="Debe ser un número entre -100.00 y 100.00" onkeyup="descontar_precio(' + id_producto + ')"></td>' +
-						'<td class="text-nowrap text-middle text-right" data-importe="">0.00</td>' +
-						'<td class="text-nowrap text-middle text-center">' +
-							'<button type="button" class="btn btn-warning" tabindex="-1" onclick="eliminar_producto(' + id_producto + ')">Eliminar</button>' +
-						'</td>' +
-					'</tr>';
-
-		$ventas.append(plantilla);
-
-		$ventas.find('[data-cantidad], [data-precio], [data-descuento]').on('click', function () {
-			$(this).select();
-		});
-
-        $ventas.find('[data-xxx]').on('change', function () {
-            var v = $(this).find('option:selected').attr('data-yyy');
-            $(this).parent().parent().find('[data-precio]').val(parseFloat(v));
-            $(this).parent().parent().find('[data-precio]').attr(parseFloat(v));
-            calcular_importe(id_producto);
-        });
-
-		$ventas.find('[title]').tooltip({
-			container: 'body',
-			trigger: 'hover'
-		});
-
-		$.validate({
-			form: '#formulario',
-			modules: 'basic',
-			onSuccess: function () {
-				guardar_nota();
-			}
-		});
-	}
-
-	calcular_importe(id_producto);
-}*/
-	$('[data-vender]').on('click', function () {
-		adicionar_producto($.trim($(this).attr('data-vender')));
-	});
+$('[data-vender]').on('click', function () {
+	adicionar_producto($.trim($(this).attr('data-vender')));
+});
 
 function adicionar_item(fecha_ven, id_producto){
 	var $ventas = $('#ventas tbody');
