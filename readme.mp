@@ -117,3 +117,24 @@ ALTER TABLE `inv_asignaciones` ADD `fecha_asignacion` DATE NOT NULL AFTER `otro_
 #agregando busqueda de unidades en el formulario
 #modificacion de lista de productos
 #modificacion de asignacion de unidades
+
+#fecha: tareas asignadas (29-09-2021)
+#modificacion de estructura para modificacion de unidades
+#agregando modal para la edicion de unidad asignada
+#modificacion de lista de productos
+#modificacion de modificacion de unidades
+
+
+
+
+#fecha: tareas asignadas (29-09-2021) para el lunes ()
+    compra
+    venta
+
+    con cualquier fecha
+    con cualquier unidad
+
+    reporte de detalle
+    generar pdf
+
+    inventario - cualquiera
