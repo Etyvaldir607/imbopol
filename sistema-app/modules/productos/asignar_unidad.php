@@ -44,6 +44,7 @@ if (is_ajax() && is_post()) {
 			'cantidad_unidad' => $cantidad,
 			'otro_precio' => $precio,
 			'fecha_asignacion' => date('Y-m-d'),
+			'estado' => 'a'
 		);
 
 		// Guarda la informacion
