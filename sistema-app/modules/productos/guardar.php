@@ -81,6 +81,7 @@ if (is_ajax() && is_post()) {
 				'cantidad_unidad' => 1,
 				'otro_precio' => $precio_actual,
 				'fecha_asignacion' => date('Y-m-d'),
+				'estado' => 'a'
 			);
 
 			// Guarda la informacion
