@@ -27,9 +27,12 @@ $permiso_asignar = in_array('asignar_unidad', $permisos);
 ?>
 <?php require_once show_template('header-advanced'); ?>
 <style>
-
+.asignacion-style {
+	display: flex;
+	padding-right: 1rem;
+}
 span.block.text-left.text-success, span.block.text-left.text-danger {
-		display: block;
+	display: block;
 }
 </style>
 <div class="panel-heading">
@@ -172,19 +175,31 @@ span.block.text-left.text-success, span.block.text-left.text-danger {
 					tu.id_asignacion")->fetch();
 				?>
 
-				<td class="text-nowrap text-middle text-right text-md lead" data-unidad="<?= $producto['id_producto']; ?>">
+				<td class="text-nowrap text-middle text-right text-sm" data-unidad="<?= $producto['id_producto']; ?>">
 					<!-- obteniendo unidades asignadas -->	
 					<?php foreach ($asignaciones as $nro => $unidad) { ?>
 						<?php if($unidad['cantidad_unidad'] > 1){?>
-							<span class="block text-left text-success" >
-								<?= escape($unidad['unidad'] .': '. $unidad['cantidad_unidad'] .' unidades'); ?>
-							</span>
+							<div class="asignacion-style">
+								<div class="col-sm-9">
+									<span class="block text-left text-success" >
+										<?= escape($unidad['unidad'] .': '. $unidad['cantidad_unidad'] .' unidades'); ?>
+									</span>
+								</div>
+								<div class="col-sm-3 block">
+									<span class="block text-right text-success" >
+										<a href="#" data-toggle="tooltip" data-title="Editar asignacion" data-eliminar-asigancion="<?= $producto['id_asignacion']; ?>"><span class="glyphicon glyphicon-edit"></span></a>
+									</span>
+									<span class="block text-right text-success" >
+										<a href="#" data-toggle="tooltip" data-title="Eliminar asignacion" data-eliminar-asigancion="<?= $producto['id_asignacion']; ?>"><span class="glyphicon glyphicon-trash"></span></a>
+									</span>
+								</div>
+							</div>
 						<?php } else{ ?>
 							<?= escape($unidad['unidad']  .' (Unidad mínima)'); ?>
 						<?php } ?>	
 					<?php } ?>
 				</td>
-				<td class="text-nowrap text-middle text-right text-md lead" data-precio="<?= $producto['id_producto']; ?>">
+				<td class="text-nowrap text-middle text-right text-sm" data-precio="<?= $producto['id_producto']; ?>">
 					<!-- obteniendo precios asignados -->	
 					<?php foreach ($asignaciones as $nro => $precio) { ?>
 						<?php if($precio['cantidad_unidad'] > 1){?>
@@ -299,7 +314,7 @@ span.block.text-left.text-success, span.block.text-left.text-danger {
 <!-- Modal mostrar fin -->
 
 
-<!-- Inicio modal precio-->
+<!-- Inicio modal asignar unidad-->
 <?php if ($permiso_asignar) { ?>
 <div id="modal_unidad" class="modal fade">
 	<div class="modal-dialog">
@@ -376,6 +391,76 @@ span.block.text-left.text-success, span.block.text-left.text-danger {
 	</div>
 </div>
 <?php } ?>
+<!-- Fin modal asignar unidad-->
+
+<!-- Inicio modal asignar unidad-->
+<?php if ($permiso_asignar) { ?>
+<div id="modal_unidad_editar" class="modal fade">
+	<div class="modal-dialog">
+		<form id="form_unidad" class="modal-content loader-wrapper">
+			<div class="modal-header">
+				<h4 class="modal-title">Editar asignación unidad</h4>
+			</div>
+			<div class="modal-body">
+				<div class="row">
+					<div class="col-sm-12">
+						<label class="text-middle text-right lead">Código de producto:</label>
+						<span id="codigo_unidad" class="text-middle text-right lead"></span>
+						<span id="asignar-id" class="text-middle text-right lead hidden"></span>
+					</div>
+					<div class="col-sm-6">
+						<div class="form-group">
+							<label for="nombre_unidad">Nombre de unidad:</label>
+							<input type="text" value="" name="nombre_unidad" id="nombre_unidad" class="form-control" autocomplete="off" data-validation="required letternumber" data-validation-allowing="-.">
+						</div>
+					</div>
+					<div class="col-sm-6">
+						<div class="form-group">
+							<label for="sigla">Sigla:</label>
+							<input type="text" value="" name="sigla" id="sigla" class="form-control" autocomplete="off" data-validation="required" data-validation-allowing="-.">
+						</div>
+					</div>
+					<div class="col-sm-12">
+						<div class="form-group">
+							<label for="descripcion">Descripción:</label>
+							<textarea name="descripcion" id="descripcion" class="form-control" autocomplete="off" data-validation="letternumber" data-validation-allowing="+-/.,:;#()\n " data-validation-optional="true"></textarea>
+						</div>
+					</div>
+					<div class="col-sm-6">
+						<div class="form-group">
+							<label for="cantidad_unidad">Cantidad de unidades:</label>
+							<input type="text" value="" id="cantidad_unidad" class="form-control" autocomplete="off" data-validation="required number" data-validation-allowing="range[0;10000000],float">
+						</div>
+					</div>
+					<div class="col-sm-6">
+						<div class="form-group">
+							<label for="precio_unidad">Precio:</label>
+							<input type="text" value="" id="precio_unidad" class="form-control" autocomplete="off" data-validation="required number" data-validation-allowing="range[0;10000000],float">
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button type="submit" class="btn btn-primary">
+					<span class="glyphicon glyphicon-ok"></span>
+					<span>Guardar</span>
+				</button>
+				<button type="button" class="btn btn-default" data-cancelar="true">
+					<span class="glyphicon glyphicon-remove"></span>
+					<span>Cancelar</span>
+				</button>
+			</div>
+			<div id="loader_unidad" class="loader-wrapper-backdrop occult">
+				<span class="loader"></span>
+			</div>
+		</form>
+	</div>
+</div>
+<?php } ?>
+<!-- Fin modal asignar unidad-->
+
+
+
 
 <script src="<?= js; ?>/jquery.dataTables.min.js"></script>
 <script src="<?= js; ?>/dataTables.bootstrap.min.js"></script>
@@ -452,7 +537,7 @@ $(function () {
 	<?php } ?>
 	
 
-
+	// definicion de variables globales
 	var $modal_unidad = $('#modal_unidad');
 	var $form_unidad = $('#form_unidad');
 	var $loader_unidad = $('#loader_unidad');
@@ -499,6 +584,16 @@ $(function () {
 		});
 	});
 
+	// definicion de variables globales
+	var $modal_unidad = $('#modal_unidad');
+	var $form_unidad = $('#form_unidad');
+	var $loader_unidad = $('#loader_unidad');
+
+	var $unidad = $form_unidad.find('#unidad');
+	var $nombre_unidad = $form_unidad.find('#nombre_unidad');
+	var $sigla = $form_unidad.find('#sigla');
+	var $descripcion = $form_unidad.find('#descripcion');
+
 	// rellena el formulaario asignacion de unidades en caso de que exista y crea nueva instancia en caso de que no exista
 	$unidad.selectize({
 		persist: false,
@@ -543,7 +638,37 @@ $(function () {
 		}
 	});
 
+	// bloquea la accion por defecto del boton
+	$form_unidad.on('submit', function (e) {
+		e.preventDefault();
+	});
 
+	// limpia el formulario
+	$modal_unidad.on('hidden.bs.modal', function () {
+		$form_unidad.trigger('reset');
+	});
+
+	// abre el modal, enfoca en el primer input
+	$modal_unidad.on('shown.bs.modal', function () {
+		$modal_unidad.find('.form-control:first').focus();
+	});
+
+	// cierra el modal
+	$modal_unidad.find('[data-cancelar]').on('click', function () {
+		$modal_unidad.modal('hide');
+		$nombre_unidad.prop('readonly', false);
+		$sigla.prop('readonly', false);
+		$descripcion.prop('readonly', false);
+	});
+
+	// valida el fomulario de asignacion de unidades
+	$.validate({
+		form: '#form_unidad',
+		modules: 'basic',
+		onSuccess: function () {
+			asignar_unidad();
+		}
+	});
 
 
 	<?php if ($productos) : ?>
@@ -554,15 +679,6 @@ $(function () {
 		size: 8
 	});
 
-
-	// valida el fomulario de asignacion de unidades
-	$.validate({
-		form: '#form_unidad',
-		modules: 'basic',
-		onSuccess: function () {
-			asignar_unidad();
-		}
-	});
 
 	$.validate({
 		form: '#form_precio',
