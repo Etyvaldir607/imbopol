@@ -155,7 +155,7 @@ span.block.text-left.text-success, span.block.text-left.text-danger {
 						from
 						inv_asignaciones a
 						left join inv_unidades u on u.id_unidad = a.unidad_id
-					
+						where a.estado = 'a'
 					) as tu 
 					on tu.producto_id =p.id_producto
 					left join (
@@ -400,8 +400,6 @@ span.block.text-left.text-success, span.block.text-left.text-danger {
 			<div class="modal-body">
 				<div class="row">
 					<div class="col-sm-12">
-						<label class="text-middle text-right lead">Código de producto:</label>
-						<span id="codigo_unidad" class="text-middle text-right lead"></span>
 						<span id="asignar-id" class="text-middle text-right lead hidden"></span>
 					</div>
 					<div class="col-sm-6">
@@ -454,9 +452,6 @@ span.block.text-left.text-success, span.block.text-left.text-danger {
 </div>
 <?php } ?>
 <!-- Fin modal asignar unidad-->
-
-
-
 
 <script src="<?= js; ?>/jquery.dataTables.min.js"></script>
 <script src="<?= js; ?>/dataTables.bootstrap.min.js"></script>
@@ -533,240 +528,196 @@ $(function () {
 	<?php } ?>
 	
 	/** crear asignacion  */
-	// definicion de variables globales
-	var $modal_unidad = $('#modal_unidad');
-	var $form_unidad = $('#form_unidad');
-	var $loader_unidad = $('#loader_unidad');
+		// definicion de variables globales
+		var $modal_unidad = $('#modal_unidad');
+		var $form_unidad = $('#form_unidad');
+		var $loader_unidad = $('#loader_unidad');
 
-	// definicion de variables globales
-	var $unidad = $('#unidad');
-	var $nombre_unidad = $('#nombre_unidad');
-	var $sigla = $('#sigla');
-	var $descripcion = $('#descripcion');
-
-	// bloquea la accion por defecto del boton
-	$form_unidad.on('submit', function (e) {
-		e.preventDefault();
-	});
-
-	// limpia el formulario
-	$modal_unidad.on('hidden.bs.modal', function () {
-		$form_unidad.trigger('reset');
-	});
-
-	// abre el modal, enfoca en el primer input
-	$modal_unidad.on('shown.bs.modal', function () {
-		$modal_unidad.find('.form-control:first').focus();
-	});
-
-	// cierra el modal
-	$modal_unidad.find('[data-cancelar]').on('click', function () {
-		$modal_unidad.modal('hide');
-		$nombre_unidad.prop('readonly', false);
-		$sigla.prop('readonly', false);
-		$descripcion.prop('readonly', false);
-
-	});
-
-	// recupera el id_producto dentro el formulario
-	$('[data-asignar]').on('click', function (e) {
-		e.preventDefault();
-		var id_producto = $(this).attr('data-asignar');
-		var codigo = $.trim($('[data-codigo=' + id_producto + ']').text());
-		$('#asignar-id').text(id_producto);
-		$('#codigo_unidad').text(codigo);
-		$modal_unidad.modal({
-			backdrop: 'static'
-		});
-	});
-
-	// definicion de variables globales
-	var $modal_unidad = $('#modal_unidad');
-	var $form_unidad = $('#form_unidad');
-	var $loader_unidad = $('#loader_unidad');
-
-	var $unidad = $form_unidad.find('#unidad');
-	var $nombre_unidad = $form_unidad.find('#nombre_unidad');
-	var $sigla = $form_unidad.find('#sigla');
-	var $descripcion = $form_unidad.find('#descripcion');
-
-	// rellena el formulaario asignacion de unidades en caso de que exista y crea nueva instancia en caso de que no exista
-	$unidad.selectize({
-		persist: false,
-		createOnBlur: true,
-		create: true,
-		onInitialize: function () {
-			$unidad.css({
-				display: 'block',
-				left: '-10000px',
-				opacity: '0',
-				position: 'absolute',
-				top: '-10000px'
+		// recupera el id_producto dentro el formulario
+		$('[data-asignar]').on('click', function (e) {
+			e.preventDefault();
+			var id_producto = $(this).attr('data-asignar');
+			var codigo = $.trim($('[data-codigo=' + id_producto + ']').text());
+			$('#asignar-id').text(id_producto);
+			$('#codigo_unidad').text(codigo);
+			$modal_unidad.modal({
+				backdrop: 'static'
 			});
-		},
-		onChange: function () {
-			$unidad.trigger('blur');
-		},
-		onBlur: function () {
-			$unidad.trigger('blur');
-		}
-	}).on('change', function (e) {
-		var valor = $(this).val();
-		valor = valor.split('|');
-		$(this)[0].selectize.clear();
-		if (valor.length != 1) {
-			$nombre_unidad.prop('readonly', true);
-			$sigla.prop('readonly', true);
-			$descripcion.prop('readonly', true);
+		});
 
-			$nombre_unidad.val(valor[0]);
-			$sigla.val(valor[1]);
-			$descripcion.val(valor[2]);
-		} else {
-			$nombre_unidad.prop('readonly', false);
-			$sigla.prop('readonly', false);
-			$descripcion.prop('readonly', false);
-			
-			$nombre_unidad.val(valor[0]);
-			$sigla.val('').focus();
-			$descripcion.val('');
+		// rellena el formulaario asignacion de unidades en caso de que exista y crea nueva instancia en caso de que no exista
+		$form_unidad.find('#unidad').selectize({
+			persist: false,
+			createOnBlur: true,
+			create: true,
+			onInitialize: function () {
+				$form_unidad.find('#unidad').css({
+					display: 'block',
+					left: '-10000px',
+					opacity: '0',
+					position: 'absolute',
+					top: '-10000px'
+				});
+			},
+			onChange: function () {
+				$form_unidad.find('#unidad').trigger('blur');
+			},
+			onBlur: function () {
+				$form_unidad.find('#unidad').trigger('blur');
+			}
+		}).on('change', function (e) {
+			var valor = $(this).val();
+			valor = valor.split('|');
+			$(this)[0].selectize.clear();
+			if (valor.length != 1) {
+				$form_unidad.find('#nombre_unidad').prop('readonly', true);
+				$form_unidad.find('#sigla').prop('readonly', true);
+				$form_unidad.find('#descripcion').prop('readonly', true);
+				
+				$form_unidad.find('#nombre_unidad').val(valor[0]);
+				$form_unidad.find('#sigla').val(valor[1]);
+				$form_unidad.find('#descripcion').val(valor[2]);
+			} else {
+				$form_unidad.find('#nombre_unidad').prop('readonly', false);
+				$form_unidad.find('#sigla').prop('readonly', false);
+				$form_unidad.find('#descripcion').prop('readonly', false);
+				
+				$form_unidad.find('#nombre_unidad').val(valor[0]);
+				$form_unidad.find('#sigla').val('').focus();
+				$form_unidad.find('#descripcion').val('');
 
-		}
-	});
+			}
+		});
 
-	// bloquea la accion por defecto del boton
-	$form_unidad.on('submit', function (e) {
-		e.preventDefault();
-	});
+		// bloquea la accion por defecto del boton
+		$form_unidad.on('submit', function (e) {
+			e.preventDefault();
+		});
 
-	// limpia el formulario
-	$modal_unidad.on('hidden.bs.modal', function () {
-		$form_unidad.trigger('reset');
-	});
+		// limpia el formulario
+		$modal_unidad.on('hidden.bs.modal', function () {
+			$form_unidad.trigger('reset');
+		});
 
-	// abre el modal, enfoca en el primer input
-	$modal_unidad.on('shown.bs.modal', function () {
-		$modal_unidad.find('.form-control:first').focus();
-	});
+		// abre el modal, enfoca en el primer input
+		$modal_unidad.on('shown.bs.modal', function () {
+			$modal_unidad.find('.form-control:first').focus();
+		});
 
-	// cierra el modal
-	$modal_unidad.find('[data-cancelar]').on('click', function () {
-		$modal_unidad.modal('hide');
-		$nombre_unidad.prop('readonly', false);
-		$sigla.prop('readonly', false);
-		$descripcion.prop('readonly', false);
-	});
+		// cierra el modal
+		$modal_unidad.find('[data-cancelar]').on('click', function () {
+			$modal_unidad.modal('hide');
+			$form_unidad.find('#nombre_unidad').prop('readonly', false);
+			$form_unidad.find('#sigla').prop('readonly', false);
+			$form_unidad.find('#descripcion').prop('readonly', false);
+		});
 
-	// valida el fomulario de asignacion de unidades
-	$.validate({
-		form: '#form_unidad',
-		modules: 'basic',
-		onSuccess: function () {
-			asignar_unidad();
-		}
-	});
+		// valida el fomulario de asignacion de unidades
+		$.validate({
+			form: '#form_unidad',
+			modules: 'basic',
+			onSuccess: function () {
+				asignar_unidad();
+			}
+		});
 	/** crear asignacion  */
 
 
 	/** editar asignacion  */
-	// recupera el id_producto dentro el formulario
-	$('[data-editar-asignar]').on('click', function (e) {
-		e.preventDefault();
-		var id_producto = $(this).attr('data-editar-asignar');
-		var codigo = $(this).attr('data-codigo');
 
-		$('#asignar-id').text(id_producto);
-		$('#codigo_unidad').text(codigo);
-		$modal_editar_unidad.modal({
-			backdrop: 'static'
-		});
-	});
+		// definicion de variables globales
+		var $modal_editar_unidad = $('#modal_editar_unidad');
+		var $form_editar_unidad = $('#form_editar_unidad');
+		var $loader_editar_unidad = $('#loader_editar_unidad');
 
-	// definicion de variables globales
-	var $modal_editar_unidad = $('#modal_editar_unidad');
-	var $form_editar_unidad = $('#form_editar_unidad');
-	var $loader_editar_unidad = $('#loader_editar_unidad');
+		// recupera el id_producto dentro el formulario
+		$('[data-editar-asignar]').on('click', function (e) {
+			e.preventDefault();
+			var id_producto = $(this).attr('data-editar-asignar');
+			var codigo = $(this).attr('data-codigo');
 
-	var $unidad = $form_editar_unidad.find('#unidad');
-	var $nombre_unidad = $form_editar_unidad.find('#nombre_unidad');
-	var $sigla = $form_editar_unidad.find('#sigla');
-	var $descripcion = $form_editar_unidad.find('#descripcion');
-
-	// rellena el formulaario asignacion de unidades en caso de que exista y crea nueva instancia en caso de que no exista
-	$unidad.selectize({
-		persist: false,
-		createOnBlur: true,
-		create: true,
-		onInitialize: function () {
-			$unidad.css({
-				display: 'block',
-				left: '-10000px',
-				opacity: '0',
-				position: 'absolute',
-				top: '-10000px'
+			$('#asignar-id').text(id_producto);
+			$('#codigo_unidad').text(codigo);
+			$modal_editar_unidad.modal({
+				backdrop: 'static'
 			});
-		},
-		onChange: function () {
-			$unidad.trigger('blur');
-		},
-		onBlur: function () {
-			$unidad.trigger('blur');
-		}
-	}).on('change', function (e) {
-		var valor = $(this).val();
-		valor = valor.split('|');
-		$(this)[0].selectize.clear();
-		if (valor.length != 1) {
-			$nombre_unidad.prop('readonly', true);
-			$sigla.prop('readonly', true);
-			$descripcion.prop('readonly', true);
+		});
 
-			$nombre_unidad.val(valor[0]);
-			$sigla.val(valor[1]);
-			$descripcion.val(valor[2]);
-		} else {
-			$nombre_unidad.prop('readonly', false);
-			$sigla.prop('readonly', false);
-			$descripcion.prop('readonly', false);
-			
-			$nombre_unidad.val(valor[0]);
-			$sigla.val('').focus();
-			$descripcion.val('');
+		// rellena el formulaario asignacion de unidades en caso de que exista y crea nueva instancia en caso de que no exista
+		$form_editar_unidad.find('#unidad').selectize({
+			persist: false,
+			createOnBlur: true,
+			create: true,
+			onInitialize: function () {
+				$form_editar_unidad.find('#unidad').css({
+					display: 'block',
+					left: '-10000px',
+					opacity: '0',
+					position: 'absolute',
+					top: '-10000px'
+				});
+			},
+			onChange: function () {
+				$form_editar_unidad.find('#unidad').trigger('blur');
+			},
+			onBlur: function () {
+				$form_editar_unidad.find('#unidad').trigger('blur');
+			}
+		}).on('change', function (e) {
+			var valor = $(this).val();
+			valor = valor.split('|');
+			$(this)[0].selectize.clear();
+			if (valor.length != 1) {
+				$form_editar_unidad.find('#nombre_unidad').prop('readonly', true);
+				$form_editar_unidad.find('#sigla').prop('readonly', true);
+				$form_editar_unidad.find('#descripcion').prop('readonly', true);
 
-		}
-	});
+				$form_editar_unidad.find('#nombre_unidad').val(valor[0]);
+				$form_editar_unidad.find('#sigla').val(valor[1]);
+				$form_editar_unidad.find('#descripcion').val(valor[2]);
+			} else {
+				$form_editar_unidad.find('#nombre_unidad').prop('readonly', false);
+				$form_editar_unidad.find('#sigla').prop('readonly', false);
+				$form_editar_unidad.find('#descripcion').prop('readonly', false);
+				
+				$form_editar_unidad.find('#nombre_unidad').val(valor[0]);
+				$form_editar_unidad.find('#sigla').val('').focus();
+				$form_editar_unidad.find('#descripcion').val('');
 
-	// bloquea la accion por defecto del boton
-	$form_editar_unidad.on('submit', function (e) {
-		e.preventDefault();
-	});
+			}
+		});
 
-	// limpia el formulario
-	$modal_editar_unidad.on('hidden.bs.modal', function () {
-		$form_editar_unidad.trigger('reset');
-	});
+		// bloquea la accion por defecto del boton
+		$form_editar_unidad.on('submit', function (e) {
+			e.preventDefault();
+		});
 
-	// abre el modal, enfoca en el primer input
-	$modal_editar_unidad.on('shown.bs.modal', function () {
-		$modal_editar_unidad.find('.form-control:first').focus();
-	});
+		// limpia el formulario
+		$modal_editar_unidad.on('hidden.bs.modal', function () {
+			$form_editar_unidad.trigger('reset');
+		});
 
-	// cierra el modal
-	$modal_editar_unidad.find('[data-cancelar]').on('click', function () {
-		$modal_editar_unidad.modal('hide');
-		$nombre_unidad.prop('readonly', false);
-		$sigla.prop('readonly', false);
-		$descripcion.prop('readonly', false);
-	});
+		// abre el modal, enfoca en el primer input
+		$modal_editar_unidad.on('shown.bs.modal', function () {
+			$modal_editar_unidad.find('.form-control:first').focus();
+		});
 
-	// valida el fomulario de asignacion de unidades
-	$.validate({
-		form: '#form_editar_unidad',
-		modules: 'basic',
-		onSuccess: function () {
-			asignar_unidad();
-		}
-	});
+		// cierra el modal
+		$modal_editar_unidad.find('[data-cancelar]').on('click', function () {
+			$modal_editar_unidad.modal('hide');
+			$form_editar_unidad.find('#nombre_unidad').prop('readonly', false);
+			$form_editar_unidad.find('#sigla').prop('readonly', false);
+			$form_editar_unidad.find('#descripcion').prop('readonly', false);
+		});
+
+		// valida el fomulario de asignacion de unidades
+		$.validate({
+			form: '#form_editar_unidad',
+			modules: 'basic',
+			onSuccess: function () {
+				asignar_unidad();
+			}
+		});
 
 	/** editar asignacion  */
 
@@ -844,6 +795,8 @@ $(function () {
 });
 
 
+
+/** realiza la peticion ajax */
 function asignar_unidad() {
 	var $form_unidad = $('#form_unidad');
 	var id_producto = $form_unidad.find('#asignar-id').text();
@@ -892,15 +845,15 @@ function asignar_unidad() {
 	}).always(function (){
 		$('#loader_unidad').fadeOut(100, function () {
 			$('#modal_unidad').modal('hide');
-			var $unidad = $('#unidad');
-			$('#nombre_unidad').prop('readonly', false);
-			$('#sigla').prop('readonly', false);
-			$('#descripcion').prop('readonly', false);
+			$form_unidad.find('#nombre_unidad').prop('readonly', false);
+			$form_unidad.find('#sigla').prop('readonly', false);
+			$form_unidad.find('#descripcion').prop('readonly', false);
+			location.reload();
 		});
 	});
 
 }
-
+/** realiza la peticion ajax */
 
 </script>
 <?php require_once show_template('footer-advanced'); ?>
