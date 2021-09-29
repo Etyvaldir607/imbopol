@@ -138,6 +138,7 @@ span.block.text-left.text-success, span.block.text-left.text-danger {
 					tu.id_asignacion,
 					tu.id_unidad,
 					tu.unidad,
+					tu.sigla,
 					tu.descripcion,
 					tu.cantidad_unidad,
 					tp.id_precio,
@@ -151,6 +152,7 @@ span.block.text-left.text-success, span.block.text-left.text-danger {
 						a.cantidad_unidad,
 						u.id_unidad,
 						u.unidad,
+						u.sigla,
 						u.descripcion
 						from
 						inv_asignaciones a
@@ -186,8 +188,8 @@ span.block.text-left.text-success, span.block.text-left.text-danger {
 									</span>
 								</div>
 								<div class="col-sm-3 block">
-									<a href="#" data-toggle="tooltip" data-title="Editar asignacion" data-codigo="<?= $producto['codigo']; ?>" data-editar-asignar="<?= $producto['id_asignacion']; ?>"><span class="glyphicon glyphicon-edit"></span></a>
-									<a href="#" data-toggle="tooltip" data-title="Eliminar asignacion" data-eliminar-asignar="<?= $producto['id_asignacion']; ?>"><span class="glyphicon glyphicon-trash"></span></a>
+									<a href="#" data-toggle="tooltip" data-title="Editar asignacion" data-action-editar="<?= $unidad['id_producto'].'|'.$unidad['unidad'].'|'.$unidad['sigla'].'|'.$unidad['descripcion'].'|'.$unidad['cantidad_unidad'].'|'.$unidad['precio'].'|'; ?>" data-editar-asignar="<?= $producto['id_producto']; ?>"><span class="glyphicon glyphicon-edit"></span></a>
+									<a href="#" data-toggle="tooltip" data-title="Eliminar asignacion" data-eliminar-asignar="<?= $unidad['id_asignacion']; ?>"><span class="glyphicon glyphicon-trash"></span></a>
 								</div>
 							</div>
 						<?php } else{ ?>
@@ -389,11 +391,11 @@ span.block.text-left.text-success, span.block.text-left.text-danger {
 <?php } ?>
 <!-- Fin modal asignar unidad-->
 
-<!-- Inicio modal asignar unidad-->
+<!-- Inicio modal modificar asignacion unidad-->
 <?php if ($permiso_asignar) { ?>
 <div id="modal_editar_unidad" class="modal fade">
 	<div class="modal-dialog">
-		<form id="form_unidad" class="modal-content loader-wrapper">
+		<form id="form_editar_unidad" class="modal-content loader-wrapper">
 			<div class="modal-header">
 				<h4 class="modal-title">Editar asignación unidad</h4>
 			</div>
@@ -451,7 +453,7 @@ span.block.text-left.text-success, span.block.text-left.text-danger {
 	</div>
 </div>
 <?php } ?>
-<!-- Fin modal asignar unidad-->
+<!-- Fin modal modificar asignacion unidad-->
 
 <script src="<?= js; ?>/jquery.dataTables.min.js"></script>
 <script src="<?= js; ?>/dataTables.bootstrap.min.js"></script>
@@ -617,7 +619,7 @@ $(function () {
 			form: '#form_unidad',
 			modules: 'basic',
 			onSuccess: function () {
-				asignar_unidad();
+				asignar_unidad($form_unidad);
 			}
 		});
 	/** crear asignacion  */
@@ -634,10 +636,14 @@ $(function () {
 		$('[data-editar-asignar]').on('click', function (e) {
 			e.preventDefault();
 			var id_producto = $(this).attr('data-editar-asignar');
-			var codigo = $(this).attr('data-codigo');
+			$form_editar_unidad.find('#asignar-id').text(id_producto);
+			var asignacion = $(this).attr('data-action-editar').split('|');
+			$form_editar_unidad.find('#nombre_unidad').val(asignacion[1]).prop('readonly', true);
+			$form_editar_unidad.find('#sigla').val(asignacion[2]).prop('readonly', true);
+			$form_editar_unidad.find('#descripcion').val(asignacion[3]).prop('readonly', true);
+			$form_editar_unidad.find('#cantidad_unidad').val(asignacion[4]);
+			$form_editar_unidad.find('#precio_unidad').val(asignacion[5]);
 
-			$('#asignar-id').text(id_producto);
-			$('#codigo_unidad').text(codigo);
 			$modal_editar_unidad.modal({
 				backdrop: 'static'
 			});
@@ -715,7 +721,7 @@ $(function () {
 			form: '#form_editar_unidad',
 			modules: 'basic',
 			onSuccess: function () {
-				asignar_unidad();
+				asignar_unidad($form_editar_unidad);
 			}
 		});
 
@@ -797,8 +803,8 @@ $(function () {
 
 
 /** realiza la peticion ajax */
-function asignar_unidad() {
-	var $form_unidad = $('#form_unidad');
+function asignar_unidad(form) {
+	var $form_unidad = form;
 	var id_producto = $form_unidad.find('#asignar-id').text();
 	var unidad = $form_unidad.find('#nombre_unidad').val();
 	var sigla = $form_unidad.find('#sigla').val();
@@ -835,7 +841,9 @@ function asignar_unidad() {
 				type: 'danger'
 			});
 		}
+
 	}).fail(function () {
+
 		$('#loader').fadeOut(100);
 		$.notify({
 			message: 'Ocurrió un problema en el proceso, no se pudo realizar la asignacion, verifique si la se guardó parcialmente.'
@@ -843,6 +851,7 @@ function asignar_unidad() {
 			type: 'danger'
 		});
 	}).always(function (){
+
 		$('#loader_unidad').fadeOut(100, function () {
 			$('#modal_unidad').modal('hide');
 			$form_unidad.find('#nombre_unidad').prop('readonly', false);
