@@ -53,7 +53,7 @@ if ($id_almacen != 0) {
 					inv_ingresos_detalles d
 					left join inv_ingresos i on i.id_ingreso = d.ingreso_id
 				where
-					i.almacen_id = 8
+					i.almacen_id = $id_almacen
 				group by
 					d.producto_id,
 					d.fecha_vencimiento
@@ -68,7 +68,7 @@ if ($id_almacen != 0) {
 					inv_egresos_detalles d
 					left join inv_egresos e on e.id_egreso = d.egreso_id
 				where
-					e.almacen_id = 8
+					e.almacen_id = $id_almacen
 
 				group by
 					d.producto_id,
