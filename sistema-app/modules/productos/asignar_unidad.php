@@ -26,20 +26,15 @@ if (is_ajax() && is_post()) {
 		//obtiene la unidad
         $unidad = $db->select('*')->from('inv_unidades')->where(array('unidad' => $nombre_unidad, 'sigla' => $sigla))->fetch_first();
 
-		//obtinen la asignacion actual
-		/*
-		$id_asignacion_old = $db->query(
-			'CALL ObtenerUltimaAsignacion($id_producto, $unidad['.'id_unidad'.'], @numero);
-			SELECT @numero AS id_asigancion;
-		');
-		*/
-		// obtine la ultima asignacion de la unidad actual al producto
-		$id_asignacion = $db->select('id_asignacion')->from('inv_asignaciones')->where(array('producto_id' => $id_producto, 'unidad_id' => $unidad['id_unidad']))->fetch_first();
-		$id_asignacion_old = $id_asignacion['id_asignacion'];	
+		// obtiene la ultima asignacion de la unidad actual al producto
+		$asignacion = $db->select('*')->from('inv_asignaciones')->where(array('producto_id' => $id_producto, 'unidad_id' => $unidad['id_unidad']))->fetch_first();
+		$id_asignacion_old = $asignacion['id_asignacion'];	
 
-		$db->query("UPDATE inv_asignaciones SET estado='i' WHERE id_asignacion=$id_asignacion_old");
-	
-		if ($id_asignacion_old != null) {
+
+		// consulta si existe una asignacion
+		if ($id_asignacion_old == null) {
+
+			// consulta si existe la unidad
 			if(!$unidad){
 				// Instancia nueva unidad
 				$new = array(
@@ -89,6 +84,12 @@ if (is_ajax() && is_post()) {
 			echo json_encode($respuesta);
 		}else {
 
+			// consulta si existe la unidad
+			if($unidad){
+				$unidad_id = $unidad['id_unidad'];
+				$db->where('id_asignacion', $id_asignacion_old)->update('inv_asignaciones', array('estado' => 'i'));
+			}
+
 
 			// Instancia la asignacion
 			$asignacion= array(
@@ -116,24 +117,12 @@ if (is_ajax() && is_post()) {
 			// Guarda la informacion
 			$id_precio = $db->insert('inv_precios', $precio);
 
-
-
-
 			// Instancia la variable de notificacion
 			$respuesta = array(
 				'alert' => 'danger',
-				'id'=>$asignacion_old,
-				'idp' => $id_producto,
-				'np' => $nombre_unidad,
-				'isp' => $sigla,
-				'uni'=>$unidad,
-				'iddp' => $descripcion ,
-				'cdp' => $cantidad,
-				'cdp' => $precio,
 				'title' => 'Asignación modificada!',
 				'message' => 'La modificacion se realizo correctamente.'
 			);
-	
 			// Envia respuesta
 			echo json_encode($respuesta);
 		}
