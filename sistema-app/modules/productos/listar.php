@@ -189,11 +189,17 @@ span.block.text-left.text-success, span.block.text-left.text-danger {
 								</div>
 								<div class="col-sm-3 block">
 									<a href="#" data-toggle="tooltip" data-title="Editar asignacion" data-action-editar="<?= $unidad['id_producto'].'|'.$unidad['unidad'].'|'.$unidad['sigla'].'|'.$unidad['descripcion'].'|'.$unidad['cantidad_unidad'].'|'.$unidad['precio'].'|'; ?>" data-editar-asignar="<?= $producto['id_producto']; ?>"><span class="glyphicon glyphicon-edit"></span></a>
-									<a href="#" data-toggle="tooltip" data-title="Eliminar asignacion" data-eliminar-asignar="<?= $unidad['id_asignacion']; ?>"><span class="glyphicon glyphicon-trash"></span></a>
+									<a href="#" data-toggle="tooltip" data-title="Eliminar asignacion" data-eliminar-asignar="<?= $unidad['id_asignacion']?>"><span class="glyphicon glyphicon-trash"></span></a>
 								</div>
 							</div>
 						<?php } else{ ?>
-							<?= escape($unidad['unidad']  .' (Unidad mínima)'); ?>
+							<div class="asignacion-style">
+								<div class="col-sm-9">
+									<span class="block text-left text-success" >
+										<?= escape($unidad['unidad']); ?>
+									</span>
+								</div>
+							</div>
 						<?php } ?>	
 					<?php } ?>
 				</td>
@@ -205,12 +211,12 @@ span.block.text-left.text-success, span.block.text-left.text-danger {
 								<?= escape($precio['precio']); ?>
 							</span>
 						<?php } else{ ?>
-							<?= escape($precio['precio']); ?>
+							<span class="block text-left text-success" >
+								<?= escape($precio['precio']); ?>
+							</span>
 						<?php } ?>	
 					<?php } ?>
 				</td>
-
-
 				<td class="text-middle"><?= str_replace("\n", "<br>", escape($producto['ubicacion'])); ?></td>
 				<?php if ($permiso_ver || $permiso_editar || $permiso_eliminar || $permiso_cambiar) { ?>
 				<td class="text-nowrap text-middle">
@@ -333,9 +339,7 @@ span.block.text-left.text-success, span.block.text-left.text-danger {
 							<select name="unidad" id="unidad" class="form-control text-uppercase" data-validation="letternumber" data-validation-allowing="-+./&() " data-validation-optional="true">
 								<option value="">Buscar</option>
 								<?php foreach ($unidades as $unidad) { ?>
-
 									<option value="<?= escape($unidad['unidad']) . '|' . escape($unidad['sigla']) . '|' . escape($unidad['descripcion']); ?>"><?=  escape($unidad['unidad']); ?></option>
-								
 								<?php } ?>
 							</select>
 						</div>
@@ -729,6 +733,61 @@ $(function () {
 
 
 
+	/** eliminar asignacion  */
+	$('[data-eliminar-asignar]').click(function(e){
+		e.preventDefault();
+		var el = this;
+
+		// recupera el id de la asignacion
+		var id_asignacion = $(this).attr('data-eliminar-asignar');
+		console.log(id_asignacion)
+		// ventana de comfirmacion
+		bootbox.confirm("Está seguro que desea eliminar el producto?", function(result) {
+			console.log(result)
+			if(result){
+				// envia la peticion
+				$.ajax({
+				type: 'POST',
+				dataType: 'json',
+				url: '?/productos/asignar_eliminar',
+				data: { id_asignacion: id_asignacion }
+
+				}).done(function (asignacion) {
+					console.log(asignacion)
+
+					if (asignacion) {
+						$.notify({
+							message: 'La asignacion ha sido eliminada satisfactoriamente.'
+						}, {
+							type: 'success'
+						});
+					} else {
+						$('#loader').fadeOut(100);
+						$.notify({
+							message: 'Ocurrió un problema en el proceso, se tienen compras registradas.'
+						}, {
+							type: 'danger'
+						});
+					}
+
+				}).fail(function () {
+
+					$('#loader').fadeOut(100);
+					$.notify({
+						message: 'Ocurrió un problema en el proceso, no se pudo realizar la operacion.'
+					}, {
+						type: 'danger'
+					});
+
+				}).always(function (){
+					location.reload();
+				});
+			}
+
+		});
+
+	});
+	/** eliminar asignacion  */
 
 	<?php if ($productos) : ?>
 	var table = $('#table').DataFilter({
