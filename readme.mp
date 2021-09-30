@@ -138,3 +138,13 @@ ALTER TABLE `inv_asignaciones` ADD `fecha_asignacion` DATE NOT NULL AFTER `otro_
     generar pdf
 
     inventario - cualquiera
+
+#fecha: tareas asignadas (30-09-2021)
+#modificacion consulta para edicion logica de unidad
+#crear estructura para funcion eliminar
+#crear funcion para realizar peticion ajax para eliminar asignacion
+#crear funcion para eliminar asignacion y precio asignado
+#crear estructura para compra por tipo de unidad
+
+#modificacion de lista de productos
+#modificacion de modificacion de unidades
