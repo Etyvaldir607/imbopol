@@ -274,7 +274,76 @@ $permiso_listar = in_array('listar', $permisos);
 									<td class="text-nowrap"><?= escape($producto['categoria']); ?></td>
 									<td class="text-nowrap text-right"><?= escape($producto['cantidad_ingresos'] - $producto['cantidad_egresos']); ?></td>
 									<?php if ($rol_id == '1' ) { ?>
-										<td class="text-nowrap text-right"><?= escape($producto['precio_actual']); ?></td>
+
+										<!--obtiene las asignaciones de unidad por producto, con sus respectivos precios -->
+										<?php 
+											$id_producto = ($producto) ? $producto['id_producto'] : 0;
+											$asignaciones = $db->query("select
+											p.id_producto,
+											tu.id_asignacion,
+											tu.id_unidad,
+											tu.unidad,
+											tu.sigla,
+											tu.descripcion,
+											tu.cantidad_unidad,
+											tp.id_precio,
+											tp.precio
+											from
+											inv_productos p
+											left join (
+												select
+												a.id_asignacion,
+												a.producto_id,
+												a.cantidad_unidad,
+												u.id_unidad,
+												u.unidad,
+												u.sigla,
+												u.descripcion
+												from
+												inv_asignaciones a
+												left join inv_unidades u on u.id_unidad = a.unidad_id
+												where a.estado = 'a'
+											) as tu 
+											on tu.producto_id =p.id_producto
+											left join (
+												select
+												asignacion_id,
+												producto_id,
+												id_precio,
+												precio
+												from
+												inv_precios
+												group by 
+												asignacion_id
+											) as tp 
+											on tp.producto_id =p.id_producto and  tu.id_asignacion = tp.asignacion_id
+											where p.id_producto= $id_producto 
+											group by 
+											tu.id_asignacion")->fetch();
+										?>
+
+										<td class="text-nowrap text-middle text-right text-sm" data-unidad="<?= $producto['id_producto']; ?>">
+											<!-- obteniendo unidades asignadas -->	
+											<?php foreach ($asignaciones as $nro => $unidad) { ?>
+												<?php if($unidad['cantidad_unidad'] > 1){?>
+													<div class="asignacion-style">
+														<div class="col-sm-9">
+															<span class="block text-left text-success" >
+																<?= escape($unidad['unidad'] .': '. $unidad['cantidad_unidad'] .' unidades'.' - '.'costo'. $unidad['precio']); ?>
+															</span>
+														</div>
+													</div>
+												<?php } else{ ?>
+													<div class="asignacion-style">
+														<div class="col-sm-9">
+															<span class="block text-left text-success" >
+																<?= escape($unidad['unidad'].' - '.'costo'. $unidad['precio']); ?>
+															</span>
+														</div>
+													</div>
+												<?php } ?>	
+											<?php } ?>
+										</td>
 									<?php }elseif ($rol_id == '2') {?>
 										<td class="text-nowrap text-right"><?= escape($producto['precio_actual']); ?></td>
 									<?php	}elseif ($rol_id == '3') {?>
