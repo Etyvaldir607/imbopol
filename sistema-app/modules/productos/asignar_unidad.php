@@ -4,7 +4,7 @@
  * SimplePHP - Simple Framework PHP
  * 
  * @package  SimplePHP
- * @author   Wilfredo Nina <wilnicho@hotmail.com>
+ * @author  Erick Valdir Machicado Calle
  */
 
 // Verifica si es una peticion post
