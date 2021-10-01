@@ -31,93 +31,93 @@ $id_almacen = ($almacen) ? $almacen['id_almacen'] : 0;
 if ($id_almacen != 0) {
 	// Obtiene los productos
 	$productos = $db->query("
-	select
-		pf.id_producto,
-		pf.color,
-		pf.descripcion,
-		pf.imagen,
-		pf.codigo,
-		pf.nombre,
-		pf.nombre_factura,
-		pf.cantidad_minima,
-		pf.precio_actual,
-		tf.producto_id,
-		tf.id_unidad,
-		tf.unidad,
-		tf.sigla,
-		ifnull(tf.cantidad_ingresos, 0) as cantidad_ingresos,
-		ifnull(tf.cantidad_egresos, 0) as cantidad_egresos,
-		tf.fecha_vencimiento,
-		ifnull(tf.cantidad_ingresos, 0) - ifnull(tf.cantidad_egresos , 0) as stock,
-		c.categoria
-	from
-		inv_productos pf
-	left join(
-	SELECT
-	p.id_producto,
-	ti.producto_id,
-	p.nombre,
-	ti.id_unidad,
-	ti.unidad_id,
-	ti.unidad,
-	ti.sigla,
-	ifnull(ti.cantidad_ingresos, 0) as cantidad_ingresos,
-	ifnull(te.cantidad_egresos, 0) as cantidad_egresos,
-	ti.fecha_vencimiento AS fecha_vencimiento,
-	ifnull(ifnull(ti.cantidad_ingresos, 0) - ifnull(te.cantidad_egresos , 0), 0) as stock
-	FROM inv_unidades u
-	LEFT JOIN inv_asignaciones a ON a.unidad_id = u.id_unidad
-	LEFT JOIN inv_productos p ON p.id_producto = a.producto_id
-			left join (
-				select
-					d.producto_id,
-					d.fecha_vencimiento,
-					sum(d.cantidad * a.cantidad_unidad) as cantidad_ingresos,
-					d.unidad_id,
-					u.id_unidad,
-					u.unidad,
-					u.sigla
-				from
-					inv_ingresos_detalles d
-					LEFT JOIN inv_asignaciones a ON a.unidad_id =  d.unidad_id
-					left join inv_unidades u on u.id_unidad = d.unidad_id
-					left join inv_ingresos i on i.id_ingreso = d.ingreso_id
-					
-				where
-					i.almacen_id = $id_almacen
-				group by
-					d.producto_id,
-					d.fecha_vencimiento
-			) as 
-			ti on ti.producto_id = p.id_producto
-			left join (
-				select
-					d.producto_id,
-					d.fecha_vencimiento,
-					sum(d.cantidad * a.cantidad_unidad) as cantidad_egresos,
-					d.unidad_id,
-					u.id_unidad,
-					u.unidad,
-					u.sigla
-				from
-					inv_egresos_detalles d
-					LEFT JOIN inv_asignaciones a ON a.unidad_id =  d.unidad_id
-					left join inv_unidades u on u.id_unidad =d.unidad_id
-					left join inv_egresos e on e.id_egreso = d.egreso_id
-				where
-					e.almacen_id = $id_almacen
-				group by
-					d.producto_id,
-					d.fecha_vencimiento
-			) as te 
-			on te.producto_id = p.id_producto AND ti.fecha_vencimiento = te.fecha_vencimiento
-			where ifnull(ifnull(ti.cantidad_ingresos, 0) - ifnull(te.cantidad_egresos , 0), 0) >= 1
-		order by ti.fecha_vencimiento asc
-	) as tf on tf.id_producto = pf.id_producto AND tf.id_unidad = tf.unidad_id
-	left join inv_categorias c on c.id_categoria = pf.categoria_id
-	where  fecha_vencimiento IS NOT NULL AND tf.unidad_id =1
-	GROUP BY pf.id_producto
-	ORDER BY pf.id_producto
+		select
+			pf.id_producto,
+			pf.color,
+			pf.descripcion,
+			pf.imagen,
+			pf.codigo,
+			pf.nombre,
+			pf.nombre_factura,
+			pf.cantidad_minima,
+			pf.precio_actual,
+			tf.producto_id,
+			tf.id_unidad,
+			tf.unidad,
+			tf.sigla,
+			ifnull(tf.cantidad_ingresos, 0) as cantidad_ingresos,
+			ifnull(tf.cantidad_egresos, 0) as cantidad_egresos,
+			tf.fecha_vencimiento,
+			ifnull(tf.cantidad_ingresos, 0) - ifnull(tf.cantidad_egresos , 0) as stock,
+			c.categoria
+		from
+			inv_productos pf
+		left join(
+		SELECT
+		p.id_producto,
+		ti.producto_id,
+		p.nombre,
+		ti.id_unidad,
+		ti.unidad_id,
+		ti.unidad,
+		ti.sigla,
+		ifnull(ti.cantidad_ingresos, 0) as cantidad_ingresos,
+		ifnull(te.cantidad_egresos, 0) as cantidad_egresos,
+		ti.fecha_vencimiento AS fecha_vencimiento,
+		ifnull(ifnull(ti.cantidad_ingresos, 0) - ifnull(te.cantidad_egresos , 0), 0) as stock
+		FROM inv_unidades u
+		LEFT JOIN inv_asignaciones a ON a.unidad_id = u.id_unidad
+		LEFT JOIN inv_productos p ON p.id_producto = a.producto_id
+				left join (
+					select
+						d.producto_id,
+						d.fecha_vencimiento,
+						sum(d.cantidad * a.cantidad_unidad) as cantidad_ingresos,
+						d.unidad_id,
+						u.id_unidad,
+						u.unidad,
+						u.sigla
+					from
+						inv_ingresos_detalles d
+						LEFT JOIN inv_asignaciones a ON a.unidad_id =  d.unidad_id
+						left join inv_unidades u on u.id_unidad = d.unidad_id
+						left join inv_ingresos i on i.id_ingreso = d.ingreso_id
+						
+					where
+						i.almacen_id = $id_almacen
+					group by
+						d.producto_id,
+						d.fecha_vencimiento
+				) as 
+				ti on ti.producto_id = p.id_producto
+				left join (
+					select
+						d.producto_id,
+						d.fecha_vencimiento,
+						sum(d.cantidad * a.cantidad_unidad) as cantidad_egresos,
+						d.unidad_id,
+						u.id_unidad,
+						u.unidad,
+						u.sigla
+					from
+						inv_egresos_detalles d
+						LEFT JOIN inv_asignaciones a ON a.unidad_id =  d.unidad_id
+						left join inv_unidades u on u.id_unidad =d.unidad_id
+						left join inv_egresos e on e.id_egreso = d.egreso_id
+					where
+						e.almacen_id = $id_almacen
+					group by
+						d.producto_id,
+						d.fecha_vencimiento
+				) as te 
+				on te.producto_id = p.id_producto AND ti.fecha_vencimiento = te.fecha_vencimiento
+				where ifnull(ifnull(ti.cantidad_ingresos, 0) - ifnull(te.cantidad_egresos , 0), 0) >= 1
+			order by ti.fecha_vencimiento asc
+		) as tf on tf.id_producto = pf.id_producto AND tf.id_unidad = tf.unidad_id
+		left join inv_categorias c on c.id_categoria = pf.categoria_id
+		where  fecha_vencimiento IS NOT NULL AND tf.unidad_id =1
+		GROUP BY pf.id_producto
+		ORDER BY pf.id_producto
 	")->fetch();
 } else {
 	$productos = null;
@@ -276,6 +276,7 @@ $permiso_listar = in_array('listar', $permisos);
 										<th class="text-nowrap">Nombre</th>
 										<th class="text-nowrap">Color</th>
 										<th class="text-nowrap">Fecha de vencimiento</th>
+										<th class="text-nowrap">Unidad</th>
 										<th class="text-nowrap">Cantidad</th>
 										<th class="text-nowrap">Costo</th>
 										<th class="text-nowrap">Importe</th>
@@ -284,7 +285,7 @@ $permiso_listar = in_array('listar', $permisos);
 								</thead>
 								<tfoot>
 									<tr class="active">
-										<th class="text-nowrap text-right" colspan="6">Importe total <?= escape($moneda); ?></th>
+										<th class="text-nowrap text-right" colspan="7">Importe total <?= escape($moneda); ?></th>
 										<th class="text-nowrap text-right" data-subtotal="">0.00</th>
 										<th class="text-nowrap text-center"><span class="glyphicon glyphicon-trash"></span></th>
 									</tr>
@@ -369,6 +370,7 @@ $permiso_listar = in_array('listar', $permisos);
 											$asignaciones = $db->query("select
 											p.id_producto,
 											tu.id_asignacion,
+											tu.asignacion,
 											tu.id_unidad,
 											tu.unidad,
 											tu.sigla,
@@ -383,6 +385,7 @@ $permiso_listar = in_array('listar', $permisos);
 												a.id_asignacion,
 												a.producto_id,
 												a.cantidad_unidad,
+												a.asignacion,
 												u.id_unidad,
 												u.unidad,
 												u.sigla,
@@ -410,14 +413,14 @@ $permiso_listar = in_array('listar', $permisos);
 											tu.id_asignacion")->fetch();
 										?>
 
-										<td class="text-nowrap text-middle text-right text-sm" data-unidad="<?= $producto['id_producto']; ?>">
+										<td class="text-nowrap text-middle text-right text-sm" data-unidad="<?= $producto['id_producto']; ?>" data-unidades="<?= $asignaciones;?>">
 											<!-- obteniendo unidades asignadas -->	
 											<?php foreach ($asignaciones as $nro => $unidad) { ?>
-												<?php if($unidad['cantidad_unidad'] > 1){?>
+												<?php if($unidad['asignacion'] != 'principal'){?>
 													<div class="asignacion-style">
 														<div class="col-sm-9">
-															<span class="block text-left text-success" >
-																<?= escape($unidad['unidad'] .':'); ?>
+															<span data-unidad_id="<?= $unidad['id_unidad']; ?>" class="block text-left text-success" >
+																<?= escape($unidad['unidad']); ?>
 															</span>
 															<span class="block text-left text-success" >
 																<?= escape($unidad['precio']);?>
@@ -427,8 +430,8 @@ $permiso_listar = in_array('listar', $permisos);
 												<?php } else{ ?>
 													<div class="asignacion-style">
 														<div class="col-sm-9">
-															<span class="block text-left text-success" >
-																<?= escape($unidad['unidad'] .':');?>
+															<span data-unidad_id="<?= $unidad['id_unidad']; ?>" class="block text-left text-success" >
+																<?= escape($unidad['unidad']);?>
 															</span>
 															<span class="block text-left text-success" >
 																<?= escape($unidad['precio']);?>
@@ -576,7 +579,6 @@ function adicionar_fecha(id_producto){
 	var $producto = $('[data-producto=' + id_producto + ']');
 	var $inicial_fecha = $producto.find('[data-fecha]');
 	var $fecha = $producto.find('#fecha-'+id_producto );
-	
 
 	var formato = $('[data-formato]').attr('data-formato');
 	var mascara = $('[data-mascara]').attr('data-mascara');
@@ -593,16 +595,34 @@ function adicionar_fecha(id_producto){
 }
 
 function adicionar_producto(id_producto) {
+
+
+
+
 	var $producto = $('[data-producto=' + id_producto + ']');
 	var $cantidad = $producto.find('[data-cantidad]');
 	var $compras = $('#compras tbody');
 	var codigo = $.trim($('[data-codigo=' + id_producto + ']').text());
 	var nombre = $.trim($('[data-nombre=' + id_producto + ']').text());
 	var color = $.trim($('[data-color=' + id_producto + ']').text());
+
+
+	var data = {};
+    var unidades =$('[data-unidad=' + id_producto + ']').map(function(){
+        data[$(this).data('id_unidad')] = $(this).html();
+    }).get();
+
+	console.log(unidades)
+	for (let i = 0; i < unidades.length; i++) {
+		const element = unidades[i];
+		console.log( unidades[i])
+	}
+
+
 	var plantilla = '';
 	var cantidad;
 	//console.log(nombre,color);
-	if ($producto.size()) {
+	if ($producto.size()) 	{
 		cantidad = $.trim($cantidad.val());
 		cantidad = ($.isNumeric(cantidad)) ? parseInt(cantidad) : 0;
 		cantidad = (cantidad < 9999999) ? cantidad + 1: cantidad;
@@ -612,7 +632,7 @@ function adicionar_producto(id_producto) {
 			plantilla = '<tr class="active" data-producto="' + id_producto + '">' +
 			'<td class="text-nowrap"><input type="text" value="' + id_producto + '" name="productos[]" class="translate" tabindex="-1" data-validation="required number" data-validation-error-msg="Debe ser número">' + codigo + '</td>' +
 			'<td><input type="hidden" value="' + nombre + '" name="nprod[]">' + nombre + '</td>' + '<td>' + color + '</td>' +
-			'<td><input type="text" name="fechas[]" value="<?= ($fecha_inicial != $gestion_base) ? date_decode($fecha_inicial, $_institution['formato']) : ''; ?>" id="fecha-' + id_producto + '" class="form-control input-xs text-right" autocomplete="off" data-fecha="" data-validation="date" data-validation-format="<?= $formato_textual; ?>" data-validation-optional="true" onclick="adicionar_fecha(' + id_producto + ')"></td>'+
+			'<td><input type="text" name="fechas[]" value="<?= ($fecha_inicial != $gestion_base) ? date_decode($fecha_inicial, $_institution['formato']) : now(); ?>" id="fecha-' + id_producto + '" class="form-control input-xs text-right" autocomplete="off" data-fecha="" data-validation="date" data-validation-format="<?= $formato_textual; ?>" data-validation-optional="true" onclick="adicionar_fecha(' + id_producto + ')"></td>'+
 			'<td><input type="text" value="1" name="cantidades[]" class="form-control input-xs text-right" maxlength="7" autocomplete="off" data-cantidad="" data-validation="required number" data-validation-error-msg="Debe ser número entero positivo" onkeyup="calcular_importe(' + id_producto + ')"></td>' +
 			'<td style="display: none;"><input type="text" value="0.00" name="costos[]" class="form-control input-xs text-right" autocomplete="off" data-costo="" data-validation="required number" data-validation-allowing="range[0.01;1000000.00],float" data-validation-error-msg="Debe ser número decimal positivo" onkeyup="calcular_importe(' + id_producto + ')" onblur="redondear_importe(' + id_producto + ')"></td>' +
 			'<td style="display: none;" class="text-nowrap text-right" data-importe="">0.00</td>' +
@@ -625,7 +645,7 @@ function adicionar_producto(id_producto) {
 				plantilla = '<tr class="active" data-producto="' + id_producto + '">' +
 				'<td class="text-nowrap"><input type="text" value="' + id_producto + '" name="productos[]" class="translate" tabindex="-1" data-validation="required number" data-validation-error-msg="Debe ser número">' + codigo + '</td>' +
 				'<td><input type="hidden" value="' + nombre + '" name="nprod[]">' + nombre + '</td>' + '<td>' + color + '</td>' +
-				'<td><input type="text" name="fechas[]"  value="<?= ($fecha_inicial != $gestion_base) ? date_decode($fecha_inicial, $_institution['formato']) : ''; ?>" id="fecha-' + id_producto + '"  class="form-control input-xs text-right" autocomplete="off" data-fecha="" data-validation="date" data-validation-format="<?= $formato_textual; ?>" data-validation-optional="true" onclick="adicionar_fecha(' + id_producto + ')"> </td>'+
+				'<td><input type="text" name="fechas[]"  value="<?= ($fecha_inicial != $gestion_base) ? date_decode($fecha_inicial, $_institution['formato']) : now(); ?>" id="fecha-' + id_producto + '"  class="form-control input-xs text-right" autocomplete="off" data-fecha="" data-validation="date" data-validation-format="<?= $formato_textual; ?>" data-validation-optional="true" onclick="adicionar_fecha(' + id_producto + ')"> </td>'+
 				'<td><input type="text" value="1" name="cantidades[]" class="form-control input-xs text-right" maxlength="7" autocomplete="off" data-cantidad="" data-validation="required number" data-validation-error-msg="Debe ser número entero positivo" onkeyup="calcular_importe(' + id_producto + ')"></td>' +
 				'<td><input type="text" value="0.00" name="costos[]" class="form-control input-xs text-right" autocomplete="off" data-costo="" data-validation="required number" data-validation-allowing="range[0.01;1000000.00],float" data-validation-error-msg="Debe ser número decimal positivo" onkeyup="calcular_importe(' + id_producto + ')" onblur="redondear_importe(' + id_producto + ')"></td>' +
 				'<td class="text-nowrap text-right" data-importe="">0.00</td>' +
@@ -740,6 +760,8 @@ function guardar_nota() {
 		$('#formulario :reset').trigger('click');
 	});
 }
+
+
 function imprimir_nota(nota) {
 	var servidor = $.trim($('[data-servidor]').attr('data-servidor'));
 //console.log(servidor);
@@ -781,5 +803,6 @@ $.ajax({
 	$('#form_buscar_0').trigger('submit');
 });
 }
+
 </script>
 <?php require_once show_template('footer-empty'); ?>
