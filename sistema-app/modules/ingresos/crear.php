@@ -30,7 +30,95 @@ $id_almacen = ($almacen) ? $almacen['id_almacen'] : 0;
 // Verifica si existe el almacen
 if ($id_almacen != 0) {
 	// Obtiene los productos
-	$productos = $db->query("select p.id_producto, p.codigo, p.nombre_factura, p.descripcion, p.color, p.nombre_factura, p.cantidad_minima, p.precio_actual, ifnull(e.cantidad_ingresos, 0) as cantidad_ingresos, ifnull(s.cantidad_egresos, 0) as cantidad_egresos, u.unidad, u.sigla, c.categoria from inv_productos p left join (select d.producto_id, sum(d.cantidad) as cantidad_ingresos from inv_ingresos_detalles d left join inv_ingresos i on i.id_ingreso = d.ingreso_id where i.almacen_id = $id_almacen group by d.producto_id ) as e on e.producto_id = p.id_producto left join (select d.producto_id, sum(d.cantidad) as cantidad_egresos from inv_egresos_detalles d left join inv_egresos e on e.id_egreso = d.egreso_id where e.almacen_id = $id_almacen group by d.producto_id ) as s on s.producto_id = p.id_producto left join inv_unidades u on u.id_unidad = p.unidad_id left join inv_categorias c on c.id_categoria = p.categoria_id")->fetch();
+	$productos = $db->query("
+	select
+		pf.id_producto,
+		pf.color,
+		pf.descripcion,
+		pf.imagen,
+		pf.codigo,
+		pf.nombre,
+		pf.nombre_factura,
+		pf.cantidad_minima,
+		pf.precio_actual,
+		tf.producto_id,
+		tf.id_unidad,
+		tf.unidad,
+		tf.sigla,
+		ifnull(tf.cantidad_ingresos, 0) as cantidad_ingresos,
+		ifnull(tf.cantidad_egresos, 0) as cantidad_egresos,
+		tf.fecha_vencimiento,
+		ifnull(tf.cantidad_ingresos, 0) - ifnull(tf.cantidad_egresos , 0) as stock,
+		c.categoria
+	from
+		inv_productos pf
+	left join(
+	SELECT
+	p.id_producto,
+	ti.producto_id,
+	p.nombre,
+	ti.id_unidad,
+	ti.unidad_id,
+	ti.unidad,
+	ti.sigla,
+	ifnull(ti.cantidad_ingresos, 0) as cantidad_ingresos,
+	ifnull(te.cantidad_egresos, 0) as cantidad_egresos,
+	ti.fecha_vencimiento AS fecha_vencimiento,
+	ifnull(ifnull(ti.cantidad_ingresos, 0) - ifnull(te.cantidad_egresos , 0), 0) as stock
+	FROM inv_unidades u
+	LEFT JOIN inv_asignaciones a ON a.unidad_id = u.id_unidad
+	LEFT JOIN inv_productos p ON p.id_producto = a.producto_id
+			left join (
+				select
+					d.producto_id,
+					d.fecha_vencimiento,
+					sum(d.cantidad * a.cantidad_unidad) as cantidad_ingresos,
+					d.unidad_id,
+					u.id_unidad,
+					u.unidad,
+					u.sigla
+				from
+					inv_ingresos_detalles d
+					LEFT JOIN inv_asignaciones a ON a.unidad_id =  d.unidad_id
+					left join inv_unidades u on u.id_unidad = d.unidad_id
+					left join inv_ingresos i on i.id_ingreso = d.ingreso_id
+					
+				where
+					i.almacen_id = $id_almacen
+				group by
+					d.producto_id,
+					d.fecha_vencimiento
+			) as 
+			ti on ti.producto_id = p.id_producto
+			left join (
+				select
+					d.producto_id,
+					d.fecha_vencimiento,
+					sum(d.cantidad * a.cantidad_unidad) as cantidad_egresos,
+					d.unidad_id,
+					u.id_unidad,
+					u.unidad,
+					u.sigla
+				from
+					inv_egresos_detalles d
+					LEFT JOIN inv_asignaciones a ON a.unidad_id =  d.unidad_id
+					left join inv_unidades u on u.id_unidad =d.unidad_id
+					left join inv_egresos e on e.id_egreso = d.egreso_id
+				where
+					e.almacen_id = $id_almacen
+				group by
+					d.producto_id,
+					d.fecha_vencimiento
+			) as te 
+			on te.producto_id = p.id_producto AND ti.fecha_vencimiento = te.fecha_vencimiento
+			where ifnull(ifnull(ti.cantidad_ingresos, 0) - ifnull(te.cantidad_egresos , 0), 0) >= 1
+		order by ti.fecha_vencimiento asc
+	) as tf on tf.id_producto = pf.id_producto AND tf.id_unidad = tf.unidad_id
+	left join inv_categorias c on c.id_categoria = pf.categoria_id
+	where  fecha_vencimiento IS NOT NULL AND tf.unidad_id =1
+	GROUP BY pf.id_producto
+	ORDER BY pf.id_producto
+	")->fetch();
 } else {
 	$productos = null;
 }
@@ -329,7 +417,10 @@ $permiso_listar = in_array('listar', $permisos);
 													<div class="asignacion-style">
 														<div class="col-sm-9">
 															<span class="block text-left text-success" >
-																<?= escape($unidad['unidad'] .': '. $unidad['cantidad_unidad'] .' unidades'.' - '.'costo'. $unidad['precio']); ?>
+																<?= escape($unidad['unidad'] .':'); ?>
+															</span>
+															<span class="block text-left text-success" >
+																<?= escape($unidad['precio']);?>
 															</span>
 														</div>
 													</div>
@@ -337,7 +428,10 @@ $permiso_listar = in_array('listar', $permisos);
 													<div class="asignacion-style">
 														<div class="col-sm-9">
 															<span class="block text-left text-success" >
-																<?= escape($unidad['unidad'].' - '.'costo'. $unidad['precio']); ?>
+																<?= escape($unidad['unidad'] .':');?>
+															</span>
+															<span class="block text-left text-success" >
+																<?= escape($unidad['precio']);?>
 															</span>
 														</div>
 													</div>
@@ -350,7 +444,7 @@ $permiso_listar = in_array('listar', $permisos);
 										<td style="display: none;" class="text-nowrap text-right"><?= escape($producto['precio_actual']); ?></td>
 									<?php	}elseif ($rol_id == '4') {?>
 										<td style="display: none;" class="text-nowrap text-right"><?= escape($producto['precio_actual']); ?></td>
-									<?php	}?>
+									<?php	 }?>
 
 									<td class="text-nowrap">
 										<button type="button" class="btn btn-xs btn-primary" data-comprar="<?= $producto['id_producto']; ?>" data-toggle="tooltip" data-title="Comprar"><span class="glyphicon glyphicon-share-alt"></span></button>
