@@ -1,7 +1,7 @@
 <?php
 
 // Obtiene los clientes
-$clientes = $db->select('cliente, nit, direccion, telefono, count(cliente) as nro_visitas')
+$clientes = $db->select('id_cliente, cliente, nit, direccion, telefono, count(cliente) as nro_visitas')
 ->from('inv_clientes')
 ->group_by('cliente, nit, direccion, telefono')
 ->order_by('cliente asc, nit, direccion, telefono asc')
@@ -82,10 +82,10 @@ $moneda = ($moneda) ? '(' . $moneda['sigla'] . ')' : '';
                 <?php if ($permiso_modificar || $permiso_eliminar) : ?>
 				<td class="text-nowrap">
                     <?php if ($permiso_modificar) : ?>
-                        <a href="?/clientes/editar/<?= $cliente['id_cliente']; ?>" data-toggle="tooltip" data-title="Modificar cliente"><span class="glyphicon glyphicon-edit"></span></a>
+                        <a href="?/clientes/editar/<?=escape( $cliente['id_cliente']); ?>" data-toggle="tooltip" data-title="Modificar cliente"><span class="glyphicon glyphicon-edit"></span></a>
                     <?php endif ?>
                     <?php if ($permiso_eliminar) : ?>
-                        <a href="?/clientes/eliminar/<?= $cliente['id_cliente']; ?>" data-toggle="tooltip" data-title="Eliminar cliente" data-eliminar="true"><span class="glyphicon glyphicon-trash"></span></a>
+                        <a href="?/clientes/eliminar/<?php escape($cliente['id_cliente']); ?>" data-toggle="tooltip" data-title="Eliminar cliente" data-eliminar="true"><span class="glyphicon glyphicon-trash"></span></a>
                     <?php endif ?>
 				</td>
                 <?php endif ?>
