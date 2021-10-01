@@ -1,7 +1,7 @@
 <?php
 
 // Obtiene los proveedores
-$proveedores = $db->select('proveedor, nit, direccion, telefono, count(proveedor) as nro_visitas')
+$proveedores = $db->select('id_proveedor, proveedor, nit, direccion, telefono, count(proveedor) as nro_visitas')
 ->from('inv_proveedores')
 ->group_by('proveedor, nit, direccion, telefono')
 ->order_by('proveedor asc, nit, direccion, telefono asc')
