@@ -413,7 +413,7 @@ $permiso_listar = in_array('listar', $permisos);
 											tu.id_asignacion")->fetch();
 										?>
 
-										<td class="text-nowrap text-middle text-right text-sm" data-valor="<?= $producto['id_producto']; ?>" data-unidades="<?php echo htmlspecialchars(json_encode($asignaciones), ENT_QUOTES, 'UTF-8') ?>">
+										<td class="text-nowrap text-middle text-right text-sm" data-contador="0" data-limit="<?= count($asignaciones); ?>" data-valor="<?= $producto['id_producto']; ?>" data-unidades="<?php echo htmlspecialchars(json_encode($asignaciones), ENT_QUOTES, 'UTF-8') ?>">
 											<!-- obteniendo unidades asignadas -->	
 											<?php foreach ($asignaciones as $nro => $unidad) { ?>
 												<?php if($unidad['asignacion'] != 'principal'){?>
@@ -612,23 +612,19 @@ function adicionar_producto(id_producto) {
 	var nombre = $.trim($('[data-nombre=' + id_producto + ']').text());
 	// recupera el color de producto
 	var color = $.trim($('[data-color=' + id_producto + ']').text());
-	
-
+	// recupera un contador para cada producto
+	var contador = parseInt($('[data-valor=' + id_producto + ']')[0].dataset.contador);
+	var limit = parseInt($('[data-valor=' + id_producto + ']')[0].dataset.limit);
 
     var valor =$.trim($('[data-valor=' + id_producto + ']').text());
 	var posicion = valor.indexOf(':');
     var porciones = valor.split('*');
-
+	console.log(limit)
 
 	var plantilla = '';
 	var cantidad;
 	//console.log(nombre,color);
-	if ($producto.size()) 	{
-		cantidad = $.trim($cantidad.val());
-		cantidad = ($.isNumeric(cantidad)) ? parseInt(cantidad) : 0;
-		cantidad = (cantidad < 9999999) ? cantidad + 1: cantidad;
-		$cantidad.val(cantidad).trigger('blur');
-	} else {
+	if (contador < limit ) {
 		if ("<?= $rol_id >= 3;?>") {
 			plantilla = '<tr class="active" data-producto="' + id_producto + '" data-position="'+numero+'">'+
 			'<td class="text-nowrap"><input type="text" value="' + id_producto + '" name="productos[]" class="translate" tabindex="-1" data-validation="required number" data-validation-error-msg="Debe ser número">' + codigo + '</td>' +
@@ -693,6 +689,11 @@ function adicionar_producto(id_producto) {
 		}
 		//console.log(plantilla);
 		$compras.append(plantilla);
+
+
+		contador = contador + 1;
+		
+		$('[data-valor=' + id_producto + ']').attr("data-contador",   + contador );
 		$compras.find('[data-cantidad], [data-precio]').on('click', function () {
 			$(this).select();
 		});
@@ -770,6 +771,19 @@ function adicionar_producto_unidad(numero, id_producto){
 	calcular_importe(numero, id_producto);
 }
 
+// eliminar item generado por unidad
+function eliminar_producto_unidad(numero, id_producto) {
+	// definiendo base de la tabla
+	var $compras = $('#compras tbody');
+	// elimina item de la posicion "numero"
+	$compras.find('[data-producto=' + id_producto + '][data-position='+numero+ ']').remove();
+	// recupera un contador para cada producto
+	var contador = parseInt($('[data-fecha=' + id_producto + ']')[0].dataset.contador);
+	$('[data-fecha=' + id_producto + ']').attr("data-contador",   + contador - 1 );
+	renumerar_productos();
+    calcular_total();
+}
+
 
 function calcular_total() {
 	var $compras = $('#compras tbody');
@@ -787,7 +801,7 @@ function calcular_total() {
 }
 function guardar_nota() {
 	var data = $('#formulario').serialize();
-	//console.log(data);
+	console.log(data);
 	$('#loader').fadeIn(100);
 	$.ajax({
 		type: 'POST',
