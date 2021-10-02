@@ -758,7 +758,17 @@ function calcular_importe(numero, id_producto) {
 	calcular_total();
 }
 
-
+// adiciona item por unidad
+function adicionar_producto_unidad(numero, id_producto){
+	var $compras = $('#compras tbody');
+	var $producto = $compras.find('[data-producto=' + id_producto + '][data-position='+numero+ ']');
+	var $cantidad = $producto.find('[data-cantidad]');
+	cantidad = $.trim($cantidad.val());
+	cantidad = ($.isNumeric(cantidad)) ? parseInt(cantidad) : 0;
+	cantidad = (cantidad < 9999999) ? cantidad + 1: cantidad;
+	$cantidad.val(cantidad).trigger('blur');
+	calcular_importe(numero, id_producto);
+}
 
 
 function calcular_total() {
