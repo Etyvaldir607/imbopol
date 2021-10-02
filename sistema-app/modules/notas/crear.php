@@ -406,7 +406,7 @@ span.block.text-right.text-success, span.block.text-right.text-danger {
 							<th class="text-nowrap">Código</th>
 							<th class="text-nowrap">Nombre</th>
                             <th class="text-nowrap">Descripción</th>
-							<th class="text-nowrap">Fecha de vencimiento</th>
+							<th class="text-nowrap">Fecha ven.</th>
                             <th class="text-nowrap">Tipo</th>
 							<th class="text-nowrap">Stock</th>
 							<th class="text-nowrap">Precio</th>
@@ -470,10 +470,14 @@ span.block.text-right.text-success, span.block.text-right.text-danger {
 								</td>
 
 								
-								<td class="text-right" data-valor="<?= $producto['id_producto']; ?>">
-									*<?= escape($producto['unidad'].': '); ?><b><?= escape($producto['precio_actual']); ?></b>
+								<td class="text-right block" data-valor="<?= $producto['id_producto']; ?>">
+									<span class="block text-right text-success" >
+										*<?= escape($producto['unidad'].': '); ?><b><?= escape($producto['precio_actual']); ?>
+									</span>
 									<?php foreach($otro_precio as $otro){ ?>
-										<br/>*<?= escape($otro['unidad'].': '); ?><b><?= escape($otro['otro_precio']); ?></b>
+										<span class="block text-right text-success" >
+										*<?= escape($otro['unidad'].': '); ?><b><?= escape($otro['otro_precio']); ?>
+										</span>
 									<?php } ?>
 								</td>
 
@@ -521,66 +525,6 @@ span.block.text-right.text-success, span.block.text-right.text-danger {
 <h2 class="btn-warning position-left-bottom display-table btn-circle margin-all display-table" data-toggle="tooltip" data-title="Esto es una nota de entrega" data-placement="right">
 	<span class="glyphicon glyphicon-star display-cell"></span>
 </h2>
-
-
-
-
-
-
-
-
-
-
-<!-- Plantillas filtrar inicio -->
-<!-- <div id="tabla_filtrar" class="hidden">
-	<div class="table-responsive">
-		<table class="table table-bordered table-condensed table-striped table-hover">
-			<thead>
-				<tr class="active">
-					<th class="text-nowrap text-middle text-center">Imagen</th>
-					<th class="text-nowrap text-middle text-center">Código</th>
-					<th class="text-nowrap text-middle text-center">Producto</th>
-					<th class="text-nowrap text-middle text-center">Color</th>					
-					<th class="text-nowrap text-middle text-center">Tipo</th>
-					<th class="text-nowrap text-middle text-center">Stock</th>
-					<th class="text-nowrap text-middle text-center" width="18%">Precio</th>
-					<th class="text-nowrap text-middle text-center">Acciones</th>
-				</tr>
-			</thead>
-			<tbody></tbody>
-		</table>
-	</div>
-</div>
-<table class="hidden">
-	<tbody id="fila_filtrar" data-negativo="<?= imgs; ?>/" data-positivo="<?= files; ?>/productos/">
-    <tr onclick="desp(this)">
-			<td class="text-nowrap text-middle text-center">
-				<img src="" class="img-rounded cursor-pointer" data-toggle="modal" data-target="#modal_mostrar" data-modal-size="modal-md" data-modal-title="Imagen" width="75" height="75">
-			</td>
-			<td class="text-nowrap text-middle" data-codigo="" ></td>
-			<td id="desap_2" class="text-middle">
-				<em></em>
-				<span class="hidden" data-nombre=""></span>
-			</td>
-			<td class="text-nowrap text-middle desap_2"></td>
-			<td class="text-nowrap text-middle text-right" data-stock="" ></td>
-			<td class=" text-middle text-right" data-valor=""></td>
-			<td class="text-nowrap text-middle text-center" >
-				<button type="button" class="btn btn-warning" data-vender="" onclick="vender(this)" data-title="Vender"><span class="glyphicon glyphicon-shopping-cart"></span></button>
-				<button type="button" class="btn btn-default" data-actualizar="" onclick="actualizar(this)"><span class="glyphicon glyphicon-refresh"></span></button>
-			</td>
-		</tr>
-        <tr>
-            <td colspan="6" class="text-nowrap text-middle text-center width-none" data-desc="">
-                <em2></em2>
-            </td>
-        </tr>
-	</tbody>
-</table>
-<div id="mensaje_filtrar" class="hidden">
-	<div class="alert alert-danger">No se encontraron resultados</div>
-</div> -->
-<!-- Plantillas filtrar fin -->
 
 <!-- Modal mostrar inicio -->
 <div id="modal_mostrar" class="modal fade" tabindex="-1">
@@ -936,7 +880,7 @@ function adicionar_producto(id_producto) {
         $ventas.find('[data-xxx]').on('change', function () {
             var v = $(this).find('option:selected').attr('data-yyy');
             $(this).parent().parent().find('[data-precio]').val(parseFloat(v));
-            $(this).parent().parent().find('[data-precio]').attr(parseFloat(v));
+            // $(this).parent().parent().find('[data-precio]').attr(parseFloat(v));
             calcular_importe(id_producto);
         });
 
