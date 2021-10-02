@@ -125,7 +125,7 @@ ALTER TABLE `inv_asignaciones` ADD `fecha_asignacion` DATE NOT NULL AFTER `otro_
 #modificacion de modificacion de unidades
 
 
-#fecha: tareas asignadas (29-09-2021)
+#fecha: tareas asignadas (02-01-2021)
 #modificacion compra por tipo de unidades
 #agregando funcion para agregar por tipo de unidad en compras
 #modificacion calcular importe por tipo de unidad en compras
