@@ -43,16 +43,17 @@ left join(
     from
         inv_productos p
 
-        left join (
+        left JOIN (
             select
                 d.producto_id,
                 d.fecha_vencimiento,
-                sum(d.cantidad) as cantidad_ingresos
+                sum(d.cantidad * a.cantidad_unidad) as cantidad_ingresos
             from
                 inv_ingresos_detalles d
+				left join inv_asignaciones a on a.unidad_id = d.unidad_id and a.producto_id = d.producto_id and a.estado='a'     
                 left join inv_ingresos i on i.id_ingreso = d.ingreso_id
             where
-                i.almacen_id = $id_almacen
+                i.almacen_id = 8 and a.estado='a'
             group by
                 d.producto_id,
                 d.fecha_vencimiento
@@ -62,20 +63,20 @@ left join(
             select
                 d.producto_id,
                 d.fecha_vencimiento,
-                sum(d.cantidad) as cantidad_egresos
+                sum(d.cantidad * a.cantidad_unidad) as cantidad_egresos
             from
                 inv_egresos_detalles d
+			    left join inv_asignaciones a on a.unidad_id = d.unidad_id and a.producto_id = d.producto_id and a.estado='a'  
                 left join inv_egresos e on e.id_egreso = d.egreso_id
             where
-                e.almacen_id = $id_almacen
-
+                e.almacen_id = 8
             group by
                 d.producto_id,
                 d.fecha_vencimiento
-        ) as te 
-        on te.producto_id = p.id_producto and ti.fecha_vencimiento = te.fecha_vencimiento
+        ) as 
+		  te on te.producto_id = p.id_producto and ti.fecha_vencimiento = te.fecha_vencimiento
     where ifnull(ifnull(ti.cantidad_ingresos, 0) - ifnull(te.cantidad_egresos , 0), 0) >= 1
-	order by ti.fecha_vencimiento asc
+	order by ti.fecha_vencimiento 
 ) as tf on tf.id_producto = pf.id_producto
     left join inv_unidades u on u.id_unidad = pf.unidad_id
     left join inv_categorias c on c.id_categoria = pf.categoria_id
@@ -519,7 +520,7 @@ span.block.text-right.text-success, span.block.text-right.text-danger {
 											tu.id_asignacion")->fetch();
 										?>
 
-										<td class="text-nowrap text-middle text-right text-sm" data-valor="<?= $producto['id_producto']; ?>" >
+										<td class="text-nowrap text-middle text-right text-sm" data-limit="<?= count($asignaciones); ?>" data-valor="<?= $producto['id_producto']; ?>" >
 											<!-- obteniendo unidades asignadas -->	
 											<?php foreach ($asignaciones as $nro => $unidad) { ?>
 												<?php if($unidad['asignacion'] != 'principal'){?>
@@ -845,7 +846,6 @@ function adicionar_producto(id_producto) {
 	var $ventas = $('#ventas tbody');
 	// busca el dom venta - producto
 	var $producto = $ventas.find('[data-producto=' + id_producto + ']');
-	console.log($producto.val())
 	// busca el dom venta - producto - cantidad
 	var $cantidad = $producto.find('[data-cantidad]');
 	// define un contador anonimo
@@ -862,6 +862,7 @@ function adicionar_producto(id_producto) {
 	var stocks =$('[data-stock=' + id_producto + ']')[0].dataset.valStock.split(',');
 	// recupera un contador para cada producto
 	var contador = parseInt($('[data-fecha=' + id_producto + ']')[0].dataset.contador);
+	var limit = parseInt($('[data-valor=' + id_producto + ']')[0].dataset.limit);
 	
 	var posicion_stock = contador;
 
@@ -873,7 +874,7 @@ function adicionar_producto(id_producto) {
 	var plantilla = '';
 	var cantidad;
 
-	if (contador < fechas.length) {
+	if (contador < fechas.length || contador < limit) {
 		// incrementa cantidad
 		console.log(contador);
 		plantilla =
@@ -1094,6 +1095,7 @@ function calcular_total() {
 
 function guardar_nota() {
 	var data = $('#formulario').serialize();
+	$('#loader').fadeIn(100);
 	$.ajax({
 		type: 'POST',
 		dataType: 'json',
@@ -1124,6 +1126,7 @@ function guardar_nota() {
 		});
 	}).always(function (){
 		$('#formulario :reset').trigger('click');
+		window.location.reload();
 	});
 }
 
@@ -1138,7 +1141,7 @@ function imprimir_nota(nota) {
 	}).done(function (respuesta) {
 		console.log(respuesta);
 		$('#loader').fadeOut(100);
-/*		switch (respuesta.estado) {
+	/*	switch (respuesta.estado) {
 			case 's':
 				window.location.reload();
 				break;
@@ -1167,6 +1170,7 @@ function imprimir_nota(nota) {
 	}).always(function () {
 		$('#formulario').trigger('reset');
 		$('#form_buscar_0').trigger('submit');
+		window.location.reload();
 	});
 }
 
