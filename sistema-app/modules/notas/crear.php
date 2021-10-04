@@ -813,7 +813,6 @@ function adicionar_producto(id_producto) {
 	var cantidad;
 
 	if (contador < fechas.length) {
-		console.log(fechas, stocks);
 		// incrementa cantidad
 		console.log(contador);
 		plantilla =
@@ -1034,9 +1033,6 @@ function calcular_total() {
 
 function guardar_nota() {
 	var data = $('#formulario').serialize();
-	//console.log(data);
-	//$('#loader').fadeIn(100);
-
 	$.ajax({
 		type: 'POST',
 		dataType: 'json',
