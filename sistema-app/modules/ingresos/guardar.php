@@ -8,9 +8,9 @@
  */
 
 // Verifica si es una peticion post
-if (is_post()) {
+if (is_ajax() &&  is_post()) {
 	// Verifica la existencia de los datos enviados
-	if (isset($_POST['almacen_id']) && isset($_POST['nombre_proveedor']) && isset($_POST['descripcion']) && isset($_POST['nro_registros']) && isset($_POST['monto_total']) && isset($_POST['productos']) && isset($_POST['cantidades']) && isset($_POST['costos'])) {
+	if (isset($_POST['almacen_id']) && isset($_POST['nombre_proveedor']) && isset($_POST['descripcion']) && isset($_POST['nro_registros']) && isset($_POST['monto_total']) && isset($_POST['productos']) && isset($_POST['cantidades']) && isset($_POST['costos']) && isset($_POST['unidad'])) {
 		// Obtiene los datos del producto
         require_once libraries . '/numbertoletter-class/NumberToLetterConverter.php';
         $almacen_id = trim($_POST['almacen_id']);
@@ -21,6 +21,7 @@ if (is_post()) {
 		$nro_registros = trim($_POST['nro_registros']);
 		$monto_total = trim($_POST['monto_total']);
 		$productos = (isset($_POST['productos'])) ? $_POST['productos']: array();
+        $unidad = (isset($_POST['unidad'])) ? $_POST['unidad']: array();
 		$cantidades = (isset($_POST['cantidades'])) ? $_POST['cantidades']: array();
 		$costos = (isset($_POST['costos'])) ? $_POST['costos']: array();
         $fechas = (isset($_POST['fechas'])) ? $_POST['fechas']: array();
@@ -59,13 +60,18 @@ if (is_post()) {
 		$ingreso_id = $db->insert('inv_ingresos', $ingreso);
         $subtotales = array();
 		foreach ($productos as $nro => $elemento) {
+
+            // recupera unidades
+			$id_unidad = $db->select('id_unidad')->from('inv_unidades')->where('unidad',$unidad[$nro])->fetch_first()['id_unidad'];
+
 			// Forma el detalle
 			$detalle = array(
 				'cantidad' => (isset($cantidades[$nro])) ? $cantidades[$nro]: 0,
 				'costo' => (isset($costos[$nro])) ? $costos[$nro]: 0,
                 'fecha_vencimiento'=>(isset($fechas[$nro])) ? $fechas[$nro]: null,
 				'producto_id' => $productos[$nro],
-				'ingreso_id' => $ingreso_id
+				'ingreso_id' => $ingreso_id,
+                'unidad_id'=>$id_unidad
 			);
             $subtotales[$nro] = number_format($costos[$nro] * $cantidades[$nro], 2, '.', '');
             $product[$nro] = $productos[$nro];
@@ -91,6 +97,7 @@ if (is_post()) {
 
         // Instancia la respuesta
         $respuesta = array(
+            'unidad'=>$unidad[0],
             'papel_ancho' => 10,
             'papel_alto' => 25,
             'papel_limite' => 576,
