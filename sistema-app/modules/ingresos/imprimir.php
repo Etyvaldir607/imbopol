@@ -38,9 +38,10 @@ if ($id_ingreso == 0) {
 	}
 
 	// Obtiene los detalles
-	$detalles = $db->select('d.*, p.codigo, p.nombre')
+	$detalles = $db->select('d.*, p.codigo, p.nombre, u.unidad')
 				   ->from('inv_ingresos_detalles d')
 				   ->join('inv_productos p', 'd.producto_id = p.id_producto', 'left')
+				   ->join('inv_unidades u', 'd.unidad_id= u.id_unidad', 'left')
 				   ->where('d.ingreso_id', $id_ingreso)
 				   ->order_by('id_detalle asc')
 				   ->fetch();
@@ -223,6 +224,8 @@ EOD;
 		$body .= '<td class="left-right">' . ($nro + 1) . '</td>';
 		$body .= '<td class="left-right">' . escape($detalle['codigo']) . '</td>';
 		$body .= '<td class="left-right">' . escape($detalle['nombre']) . '</td>';
+		$body .= '<td class="left-right">' . escape($detalle['fecha_vencimiento']) . '</td>';
+		$body .= '<td class="left-right">' . escape($detalle['unidad']) . '</td>';
 		$body .= '<td class="left-right" align="right">' . $cantidad . '</td>';
 		$body .= '<td class="left-right" align="right">' . $costo . '</td>';
 		$body .= '<td class="left-right" align="right">' . number_format($importe, 2, '.', '') . '</td>';
@@ -294,14 +297,16 @@ EOD;
 		<tr>
 			<th width="6%" class="all">#</th>
 			<th width="14%" class="all">Código</th>
-			<th width="44%" class="all">Nombre</th>
+			<th width="22%" class="all">Nombre</th>
+			<th width="11%" class="all">Fecha vencimiento</th>
+			<th width="11%" class="all">Tipo de unidad</th>
 			<th width="12%" class="all">Cantidad</th>
 			<th width="12%" class="all">Costo $valor_moneda</th>
 			<th width="12%" class="all">Importe $valor_moneda</th>
 		</tr>
 		$body
 		<tr>
-			<th class="all" align="right" colspan="5">Importe total $valor_moneda</th>
+			<th class="all" align="right" colspan="7">Importe total $valor_moneda</th>
 			<th class="all" align="right">$valor_total</th>
 		</tr>
 	</table>
