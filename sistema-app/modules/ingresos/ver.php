@@ -134,7 +134,7 @@ $permiso_suprimir = in_array('suprimir', $permisos);
 							</tbody>
 							<tfoot>
 								<tr class="active">
-									<th class="text-nowrap text-right" colspan="5">Importe total <?= escape($moneda); ?></th>
+									<th class="text-nowrap text-right" colspan="7">Importe total <?= escape($moneda); ?></th>
 									<th class="text-nowrap text-right"><?= number_format($total, 2, '.', ''); ?></th>
 									<?php if ($permiso_suprimir) { ?>
 									<th class="text-nowrap">Opciones</th>
