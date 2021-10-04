@@ -19,9 +19,10 @@ if (!$ingreso) {
 }
 
 // Obtiene los detalles
-$detalles = $db->select('d.*, p.codigo, p.nombre')
+$detalles = $db->select('d.*, p.codigo, p.nombre, u.unidad')
 			   ->from('inv_ingresos_detalles d')
 			   ->join('inv_productos p', 'd.producto_id = p.id_producto', 'left')
+			   ->join('inv_unidades u', 'd.unidad_id= u.id_unidad', 'left')
 			   ->where('d.ingreso_id', $id_ingreso)
 			   ->order_by('id_detalle asc')
 			   ->fetch();
@@ -97,8 +98,10 @@ $permiso_suprimir = in_array('suprimir', $permisos);
 									<th class="text-nowrap">#</th>
 									<th class="text-nowrap">Código</th>
 									<th class="text-nowrap">Nombre</th>
+									<th class="text-nowrap">Fecha de vencimiento</th>
+									<th class="text-nowrap">Tipo de unidad</th>
 									<th class="text-nowrap">Cantidad</th>
-									<th class="text-nowrap">Costo <?= escape($moneda); ?></th>
+									<th class="text-nowrap">Costo<?= escape($moneda); ?></th>
 									<th class="text-nowrap">Importe <?= escape($moneda); ?></th>
 									<?php if ($permiso_suprimir) { ?>
 									<th class="text-nowrap">Opciones</th>
@@ -116,6 +119,8 @@ $permiso_suprimir = in_array('suprimir', $permisos);
 									<th class="text-nowrap"><?= $nro + 1; ?></th>
 									<td class="text-nowrap"><?= escape($detalle['codigo']); ?></td>
 									<td class="text-nowrap"><?= escape($detalle['nombre']); ?></td>
+									<td class="text-nowrap"><?= escape($detalle['fecha_vencimiento']); ?></td>
+									<td class="text-nowrap"><?= escape($detalle['unidad']); ?></td>
 									<td class="text-nowrap text-right"><?= $cantidad; ?></td>
 									<td class="text-nowrap text-right"><?= $costo; ?></td>
 									<td class="text-nowrap text-right"><?= number_format($importe, 2, '.', ''); ?></td>
