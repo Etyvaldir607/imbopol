@@ -470,16 +470,77 @@ span.block.text-right.text-success, span.block.text-right.text-danger {
 								</td>
 
 								
-								<td class="text-right block" data-valor="<?= $producto['id_producto']; ?>">
-									<span class="block text-right text-success" >
-										*<?= escape($producto['unidad'].': '); ?><b><?= escape($producto['precio_actual']); ?>
-									</span>
-									<?php foreach($otro_precio as $otro){ ?>
-										<span class="block text-right text-success" >
-										*<?= escape($otro['unidad'].': '); ?><b><?= escape($otro['otro_precio']); ?>
-										</span>
-									<?php } ?>
-								</td>
+										<!--obtiene las asignaciones de unidad por producto, con sus respectivos costos -->
+										<?php 
+											$id_producto = ($producto) ? $producto['id_producto'] : 0;
+											$asignaciones = $db->query("select
+											p.id_producto,
+											tu.id_asignacion,
+											tu.asignacion,
+											tu.id_unidad,
+											tu.unidad,
+											tu.sigla,
+											tu.descripcion,
+											tu.cantidad_unidad,
+											tp.id_precio,
+											tp.precio
+											from
+											inv_productos p
+											left join (
+												select
+												a.id_asignacion,
+												a.producto_id,
+												a.cantidad_unidad,
+												a.asignacion,
+												u.id_unidad,
+												u.unidad,
+												u.sigla,
+												u.descripcion
+												from
+												inv_asignaciones a
+												left join inv_unidades u on u.id_unidad = a.unidad_id
+												where a.estado = 'a'
+											) as tu 
+											on tu.producto_id =p.id_producto
+											left join (
+												select
+												asignacion_id,
+												producto_id,
+												id_precio,
+												precio
+												from
+												inv_precios
+												group by 
+												asignacion_id
+											) as tp 
+											on tp.producto_id =p.id_producto and  tu.id_asignacion = tp.asignacion_id
+											where p.id_producto= $id_producto 
+											group by 
+											tu.id_asignacion")->fetch();
+										?>
+
+										<td class="text-nowrap text-middle text-right text-sm" data-valor="<?= $producto['id_producto']; ?>" >
+											<!-- obteniendo unidades asignadas -->	
+											<?php foreach ($asignaciones as $nro => $unidad) { ?>
+												<?php if($unidad['asignacion'] != 'principal'){?>
+													<div class="asignacion-style">
+														<div class="col-sm-9">
+															<span class="block text-right text-success" >
+																-<?= escape($unidad['unidad'].': '); ?><b><?= escape($unidad['precio']); ?>
+															</span>
+														</div>
+													</div>
+												<?php } else{ ?>
+													<div class="asignacion-style">
+														<div class="col-sm-9">
+															<span class="block text-right text-success" >
+																-<?= escape($unidad['unidad'].': '); ?><b><?= escape($unidad['precio']); ?>
+															</span>
+														</div>
+													</div>
+												<?php } ?>
+											<?php } ?>
+										</td>
 
 								<td class="text-nowrap">
 									<button type="button" class="btn btn-xs btn-primary" data-vender="<?= $producto['id_producto']; ?>" data-toggle="tooltip" data-title="Vender"><span class="glyphicon glyphicon-shopping-cart"></span></button>
@@ -807,7 +868,7 @@ function adicionar_producto(id_producto) {
     var valor = $.trim($('[data-valor=' + id_producto + ']').text());
 	//console.log(valor)
     var posicion = valor.indexOf(':');
-    var porciones = valor.split('*');
+    var porciones = valor.split('-');
 
 	var plantilla = '';
 	var cantidad;
