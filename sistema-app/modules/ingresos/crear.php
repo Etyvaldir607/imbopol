@@ -364,7 +364,7 @@ $permiso_listar = in_array('listar', $permisos);
 									<td class="text-nowrap text-right"><?= escape($producto['cantidad_ingresos'] - $producto['cantidad_egresos']); ?></td>
 									<?php if ($rol_id == '1' ) { ?>
 
-										<!--obtiene las asignaciones de unidad por producto, con sus respectivos precios -->
+										<!--obtiene las asignaciones de unidad por producto, con sus respectivos costos -->
 										<?php 
 											$id_producto = ($producto) ? $producto['id_producto'] : 0;
 											$asignaciones = $db->query("select
@@ -419,22 +419,16 @@ $permiso_listar = in_array('listar', $permisos);
 												<?php if($unidad['asignacion'] != 'principal'){?>
 													<div class="asignacion-style">
 														<div class="col-sm-9">
-															<span data-unidad_id="<?= $unidad['id_unidad']; ?>" data-unidad_value="<?= $unidad['unidad']; ?>" class="block text-left text-success" >
-																*<?= escape($unidad['unidad']); ?>
-															</span>
-															<span data-unidad_precio="<?= $unidad['precio']; ?>" class="block text-left text-success" >
-																:<?= escape($unidad['precio']);?>
+															<span class="block text-right text-success" >
+																-<?= escape($unidad['unidad'].': '); ?><b><?= escape($unidad['precio']); ?>
 															</span>
 														</div>
 													</div>
 												<?php } else{ ?>
 													<div class="asignacion-style">
 														<div class="col-sm-9">
-															<span data-unidad_id="<?= $unidad['id_unidad']; ?>" class="block text-left text-success" >
-																*<?= escape($unidad['unidad']);?>
-															</span>
-															<span data-unidad_precio="<?= $unidad['precio']; ?>" class="block text-left text-success" >
-																:<?= escape($unidad['precio']);?>
+															<span class="block text-right text-success" >
+																-<?= escape($unidad['unidad'].': '); ?><b><?= escape($unidad['precio']); ?>
 															</span>
 														</div>
 													</div>
@@ -489,9 +483,10 @@ $(function () {
 		form: '#formulario',
 		modules: 'basic',
 		onSuccess: function () {
-			guardar_nota();
+			guardar_compra();
 		}
 	});
+
 	$formulario.on('submit', function (e) {
 		e.preventDefault();
 	});
@@ -599,9 +594,9 @@ function adicionar_fecha(id_producto){
 function adicionar_producto(id_producto) {
 	// definiendo base de la tabla
 	var $compras = $('#compras tbody');
-	// busca el dom venta - producto
+	// busca el dom compra - producto
 	var $producto = $compras.find('[data-producto=' + id_producto + ']');
-	// busca el dom venta - producto - cantidad
+	// busca el dom compra - producto - cantidad
 	var $cantidad = $producto.find('[data-cantidad]');
 
 	// define un contador anonimo
@@ -618,7 +613,7 @@ function adicionar_producto(id_producto) {
 
     var valor =$.trim($('[data-valor=' + id_producto + ']').text());
 	var posicion = valor.indexOf(':');
-    var porciones = valor.split('*');
+    var porciones = valor.split('-');
 	console.log(limit)
 
 	var plantilla = '';
@@ -640,12 +635,12 @@ function adicionar_producto(id_producto) {
 					plantilla = plantilla+'<option value="' +parte[0]+ '" data-yyy="' +parte[1]+ '" >' +parte[0]+ '</option>';
 				}
 				plantilla = plantilla+'</select></td>'+
-				'<td><input type="text" value="' + parseFloat(aparte[1]) + '" name="precios[]" class="form-control input-xs text-right" autocomplete="off" data-precio="' + parseFloat(aparte[1]) + '"  data-validation-error-msg="Debe ser un número decimal positivo" onkeyup="calcular_importe('+numero +',' + id_producto + ')"></td>';
+				'<td><input type="text" value="' + parseFloat(aparte[1]) + '" name="costos[]" class="form-control input-xs text-right" autocomplete="off" data-precio="' + parseFloat(aparte[1]) + '"  data-validation-error-msg="Debe ser un número decimal positivo" onkeyup="calcular_importe('+numero +',' + id_producto + ')"></td>';
 			}
 			else{
 				parte = porciones[1].split(':');
 				plantilla = plantilla + '<td><input type="text" value="' + parte[0] + '" name="unidad[]" class="form-control input-xs text-right" autocomplete="off" data-unidad="' + parte[0] + '" readonly data-validation-error-msg="Debe ser un número decimal positivo"></td>'+
-										'<td><input type="text" value="' + parseFloat(parte[1]) + '" name="precios[]" class="form-control input-xs text-right" autocomplete="off" data-precio="' + parseFloat(parte[1]) + '"  data-validation-error-msg="Debe ser un número decimal positivo" onkeyup="calcular_importe('+numero +',' + id_producto + ')"></td>';
+										'<td><input type="text" value="' + parseFloat(parte[1]) + '" name="costos[]" class="form-control input-xs text-right" autocomplete="off" data-precio="' + parseFloat(parte[1]) + '"  data-validation-error-msg="Debe ser un número decimal positivo" onkeyup="calcular_importe('+numero +',' + id_producto + ')"></td>';
 			}
 			plantilla = plantilla + 
 			'<td><input type="text" value="1" name="cantidades[]" class="form-control input-xs text-right" maxlength="7" autocomplete="off" data-cantidad="" data-validation="required number" data-validation-error-msg="Debe ser número entero positivo" onkeyup="calcular_importe('+numero +',' + id_producto + ')"></td>' +
@@ -667,16 +662,16 @@ function adicionar_producto(id_producto) {
 					aparte = porciones[1].split(':');
 					for(var ic=1;ic<porciones.length;ic++){
 							parte = porciones[ic].split(':');
-						//console.log(parte);
-						plantilla = plantilla+'<option value="' +parte[0]+ '" data-yyy="' +parte[1]+ '" >' +parte[0]+ '</option>';
+						plantilla = plantilla+'<option value="' + parte[0] + '" data-yyy="' +parte[1]+ '" >' +parte[0]+ '</option>';
+						console.log(parte[0],parte[1] )
 					}
 					plantilla = plantilla+'</select></td>'+
-					'<td><input type="text" value="' + parseFloat(aparte[1]) + '" name="precios[]" class="form-control input-xs text-right" autocomplete="off" data-precio="' + parseFloat(aparte[1]) + '"  data-validation-error-msg="Debe ser un número decimal positivo" onkeyup="calcular_importe('+numero +',' + id_producto + ')"></td>';
+					'<td><input type="text" value="' + parseFloat(aparte[1]) + '" name="costos[]" class="form-control input-xs text-right" autocomplete="off" data-precio="' + parseFloat(aparte[1]) + '"  data-validation-error-msg="Debe ser un número decimal positivo" onkeyup="calcular_importe('+numero +',' + id_producto + ')"></td>';
 				}
 				else{
 					parte = porciones[1].split(':');
 					plantilla = plantilla + '<td><input type="text" value="' + parte[0] + '" name="unidad[]" class="form-control input-xs text-right" autocomplete="off" data-unidad="' + parte[0] + '" readonly data-validation-error-msg="Debe ser un número decimal positivo"></td>'+
-											'<td><input type="text" value="' + parseFloat(parte[1]) + '" name="precios[]" class="form-control input-xs text-right" autocomplete="off" data-precio="' + parseFloat(parte[1]) + '"  data-validation-error-msg="Debe ser un número decimal positivo" onkeyup="calcular_importe('+numero +',' + id_producto + ')"></td>';
+											'<td><input type="text" value="' + parseFloat(parte[1]) + '" name="costos[]" class="form-control input-xs text-right" autocomplete="off" data-precio="' + parseFloat(parte[1]) + '"  data-validation-error-msg="Debe ser un número decimal positivo" onkeyup="calcular_importe('+numero +',' + id_producto + ')"></td>';
 				}
 				plantilla = plantilla + 
 				'<td><input type="text" value="1" name="cantidades[]" class="form-control input-xs text-right" maxlength="7" autocomplete="off" data-cantidad="" data-validation="required number" data-validation-error-msg="Debe ser número entero positivo" onkeyup="calcular_importe('+numero +',' + id_producto + ')"></td>' +'<td class="text-nowrap text-right" data-importe="">0.00</td>' +
@@ -711,11 +706,13 @@ function adicionar_producto(id_producto) {
 			container: 'body',
 			trigger: 'hover'
 		});
+
+		// validar datos
 		$.validate({
 			form: '#formulario',
 			modules: 'basic',
 			onSuccess: function () {
-				guardar_nota();
+				guardar_compra();
 			}
 		});
 	}
@@ -778,12 +775,20 @@ function eliminar_producto_unidad(numero, id_producto) {
 	// elimina item de la posicion "numero"
 	$compras.find('[data-producto=' + id_producto + '][data-position='+numero+ ']').remove();
 	// recupera un contador para cada producto
-	var contador = parseInt($('[data-fecha=' + id_producto + ']')[0].dataset.contador);
-	$('[data-fecha=' + id_producto + ']').attr("data-contador",   + contador - 1 );
+	var contador = parseInt($('[data-valor=' + id_producto + ']')[0].dataset.contador);
+	$('[data-valor=' + id_producto + ']').attr("data-contador",   + contador - 1 );
 	renumerar_productos();
     calcular_total();
 }
 
+function renumerar_productos() {
+	var $compras = $('#compras tbody');
+	var $productos = $compras.find('[data-producto]');
+	$productos.each(function (i) {
+		$(this).find('td:first').text(i + 1);
+	});
+	console.log($productos)
+}
 
 function calcular_total() {
 	var $compras = $('#compras tbody');
@@ -799,7 +804,7 @@ function calcular_total() {
 	$('[data-compras]:first').val($importes.size()).trigger('blur');
 	$('[data-total]:first').val(total.toFixed(2)).trigger('blur');
 }
-function guardar_nota() {
+function guardar_compra() {
 	var data = $('#formulario').serialize();
 	console.log(data);
 	$('#loader').fadeIn(100);
@@ -808,20 +813,20 @@ function guardar_nota() {
 		dataType: 'json',
 		url: '?/ingresos/guardar',
 		data: data
-	}).done(function (venta) {
-		//console.log(venta);
-		if (venta) {
+	}).done(function (compra) {
+		console.log(compra);
+		if (compra) {
 			$.notify({
-				message: 'La nota de entrega fue realizada satisfactoriamente.'
+				message: 'La compra fue realizada satisfactoriamente.'
 			}, {
 				type: 'success'
 			});
-			//imprimir_nota(venta);
+			//imprimir_nota(compra);
 			$('#loader').fadeOut(100);
 		} else {
 			$('#loader').fadeOut(100);
 			$.notify({
-				message: 'Ocurrió un problema en el proceso, no se puedo guardar los datos de la nota de entrega, verifique si la se guardó parcialmente.'
+				message: 'Ocurrió un problema en el proceso, no se puedo guardar los datos de la compra de entrega, verifique si la se guardó parcialmente.'
 			}, {
 				type: 'danger'
 			});
@@ -829,7 +834,7 @@ function guardar_nota() {
 	}).fail(function () {
 		$('#loader').fadeOut(100);
 		$.notify({
-			message: 'Ocurrió un problema en el proceso, no se puedo guardar los datos de la nota de entrega, verifique si la se guardó parcialmente2.'
+			message: 'Ocurrió un problema en el proceso, no se puedo guardar los datos de la compra de entrega, verifique si la se guardó parcialmente2.'
 		}, {
 			type: 'danger'
 		});
@@ -839,14 +844,14 @@ function guardar_nota() {
 }
 
 
-function imprimir_nota(nota) {
+function imprimir_nota(compra) {
 	var servidor = $.trim($('[data-servidor]').attr('data-servidor'));
 //console.log(servidor);
 $.ajax({
 	type: 'POST',
 	dataType: 'json',
 	url: servidor,
-	data: nota
+	data: compra
 }).done(function (respuesta) {
 	$('#loader').fadeOut(100);
 	switch (respuesta.estado) {
@@ -878,6 +883,7 @@ $.ajax({
 }).always(function () {
 	$('#formulario').trigger('reset');
 	$('#form_buscar_0').trigger('submit');
+	location.reload();
 });
 }
 
