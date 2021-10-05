@@ -53,7 +53,7 @@ left join(
 				left join inv_asignaciones a on a.unidad_id = d.unidad_id and a.producto_id = d.producto_id and a.estado='a'     
                 left join inv_ingresos i on i.id_ingreso = d.ingreso_id
             where
-                i.almacen_id = 8 and a.estado='a'
+                i.almacen_id = $id_almacen
             group by
                 d.producto_id,
                 d.fecha_vencimiento
@@ -69,7 +69,7 @@ left join(
 			    left join inv_asignaciones a on a.unidad_id = d.unidad_id and a.producto_id = d.producto_id and a.estado='a'  
                 left join inv_egresos e on e.id_egreso = d.egreso_id
             where
-                e.almacen_id = 8
+                e.almacen_id = $id_almacen
             group by
                 d.producto_id,
                 d.fecha_vencimiento
@@ -82,8 +82,7 @@ left join(
     left join inv_categorias c on c.id_categoria = pf.categoria_id
 where  fecha_vencimiento IS NOT NULL
 group by pf.id_producto")->fetch();
-	//
-	//$productos = $db->query("select p.id_producto,p.color, p.descripcion, p.imagen, p.codigo, p.nombre, p.nombre_factura, p.cantidad_minima, p.precio_actual, p.unidad_id, ifnull(e.cantidad_ingresos, 0) as cantidad_ingresos, ifnull(s.cantidad_egresos, 0) as cantidad_egresos, u.unidad, u.sigla, c.categoria from inv_productos p left join (select d.producto_id, sum(d.cantidad) as cantidad_ingresos from inv_ingresos_detalles d left join inv_ingresos i on i.id_ingreso = d.ingreso_id where i.almacen_id = $id_almacen group by d.producto_id ) as e on e.producto_id = p.id_producto left join (select d.producto_id, sum(d.cantidad) as cantidad_egresos from inv_egresos_detalles d left join inv_egresos e on e.id_egreso = d.egreso_id where e.almacen_id = $id_almacen group by d.producto_id ) as s on s.producto_id = p.id_producto left join inv_unidades u on u.id_unidad = p.unidad_id left join inv_categorias c on c.id_categoria = p.categoria_id")->fetch();
+
 } else {
 	$productos = null;
 }
@@ -964,12 +963,17 @@ function adicionar_producto(id_producto) {
 	// sincronizar_fechas(contador);
 }
 
+
+var mySelect = $('#mySelect');
+var selectedText = mySelect.find(':selected').text();
+
+
 // actualizar el stock por fecha de vencimiento
 function actualizar_stock(numero, id_producto){
 	// definiendo base de la tabla
 	var $ventas = $('#ventas tbody');
 	// recupera fecha seleccionada
-	var fecha_seleccionada =  $ventas.find('[data-producto=' + id_producto + ']').find('#fecha' + numero + '  :selected').val();
+	var fecha_seleccionada =  $ventas.find('[data-producto=' + id_producto + ']').find('#fecha' + numero + ' :selected').val();
 	// busca el dom venta - producto
 	var $producto = $ventas.find('[data-producto=' + id_producto + '][data-position='+numero+ ']');
 	// recupera un array de fechas de vencimiento
