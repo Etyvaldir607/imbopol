@@ -555,7 +555,6 @@ function adicionar_fecha(numero, id_producto){
 	var $inicial_fecha = $producto.find('[data-fecha]');
 	// var $fecha = $producto.find('#fecha-'+id_producto );
 
-	var formato = $('[data-fecha]').attr('data-fecha');
 	var formato = $('[data-formato]').attr('data-formato');
 	var mascara = $('[data-mascara]').attr('data-mascara');
 	var gestion = $('[data-gestion]').attr('data-gestion');
@@ -762,7 +761,7 @@ function calcular_total() {
 function guardar_compra() {
 	var data = $('#formulario').serialize();
 	console.log(data)
-	$('#loader').fadeIn(100);
+	//$('#loader').fadeIn(100);
 	$.ajax({
 		type: 'POST',
 		dataType: 'json',
@@ -772,37 +771,38 @@ function guardar_compra() {
 		console.log(compra);
 
 		if (compra) {
+			//$('#loader').fadeOut(100);
 			$.notify({
 				message: 'La compra fue realizada satisfactoriamente.'
 			}, {
 				type: 'success'
 			});
-			//imprimir_nota(compra);
-			$('#loader').fadeOut(100);
-		} else {
-			$('#loader').fadeOut(100);
-			$.notify({
-				message: 'Ocurrió un problema en el proceso, no se puedo guardar los datos de la compra de entrega, verifique si la se guardó parcialmente.'
-			}, {
-				type: 'danger'
-			});
+			//generar_pdf_compra(compra['id_ingreso']);
+			//$('#loader').fadeOut(100);
 		}
 	}).fail(function () {
+		/*
 		$('#loader').fadeOut(100);
 		$.notify({
 			message: 'Ocurrió un problema en el proceso, no se puedo guardar los datos de la compra de entrega, verifique si la se guardó parcialmente2.'
 		}, {
 			type: 'danger'
 		});
-		
+		*/
 	}).always(function () {
-		$('#formulario :reset').trigger('click');
-		window.location.reload();
+		//$('#formulario :reset').trigger('click');
+		// window.location.reload();
 	});
 }
 
+/**  inicia la peticion para guardar compra */
+function generar_pdf_compra(id) {
+	$id_ingreso = parseInt(id);
+	redirect('?/ingresos/imprimir/'. $id_ingreso);
+}
+
 /**  inicia la peticion para imprimir la compra */
-function imprimir_nota(compra) {
+function imprimir_compra(compra) {
 	var servidor = $.trim($('[data-servidor]').attr('data-servidor'));
 	//console.log(servidor);
 	$.ajax({
