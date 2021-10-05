@@ -97,7 +97,7 @@ if (is_ajax() &&  is_post()) {
 
         // Instancia la respuesta
         $respuesta = array(
-            'unidad'=>$unidad[0],
+            'id_ingreso'=>$ingreso_id,
             'papel_ancho' => 10,
             'papel_alto' => 25,
             'papel_limite' => 576,
@@ -130,7 +130,7 @@ if (is_ajax() &&  is_post()) {
 
 
         // Envia respuesta
-            echo json_encode($respuesta);
+        echo json_encode($respuesta);
 	} else {
 		// Error 401
         echo 'error';
