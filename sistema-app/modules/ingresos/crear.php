@@ -14,8 +14,7 @@ $fecha_inicial = (isset($params[0])) ? $params[0] : $gestion_base;
 $fecha_inicial = (is_date($fecha_inicial)) ? $fecha_inicial : $gestion_base;
 $fecha_inicial = date_encode($fecha_inicial);
 
-//var_dump($_SESSION);
-//echo "<br><br>";
+// obtiene permisos des sesion por rol
 foreach ($_SESSION as $key) {
 	if($key['rol_id'] == '2' || $key['rol_id'] == '1')
 		$rol_id =$key['rol_id'];
@@ -23,7 +22,7 @@ foreach ($_SESSION as $key) {
 		$rol_id =$key['rol_id'];
 	}
 }
-//echo $rol_id;
+
 // Obtiene el almacen principal
 $almacen = $db->from('inv_almacenes')->where('principal', 'S')->fetch_first();
 $id_almacen = ($almacen) ? $almacen['id_almacen'] : 0;
@@ -236,6 +235,7 @@ $permiso_listar = in_array('listar', $permisos);
 							<table id="compras" class="table table-bordered table-condensed table-striped table-hover table-xl margin-none table-responsive-md">
 								<thead>
 									<tr class="active">
+										<th class="text-nowrap">Nº</th>
 										<th class="text-nowrap">Código</th>
 										<th class="text-nowrap">Nombre</th>
 										<th class="text-nowrap">Color</th>
@@ -249,7 +249,7 @@ $permiso_listar = in_array('listar', $permisos);
 								</thead>
 								<tfoot>
 									<tr class="active">
-										<th class="text-nowrap text-right" colspan="7">Importe total <?= escape($moneda); ?></th>
+										<th class="text-nowrap text-right" colspan="8">Importe total <?= escape($moneda); ?></th>
 										<th class="text-nowrap text-right" data-subtotal="">0.00</th>
 										<th class="text-nowrap text-center"><span class="glyphicon glyphicon-trash"></span></th>
 									</tr>
@@ -580,72 +580,41 @@ function adicionar_producto(id_producto) {
     var porciones = valor.split('-');
 	console.log(limit)
 
+
 	var plantilla = '';
 	var cantidad;
 	//console.log(nombre,color);
 	if (contador < limit ) {
-		if ("<?= $rol_id >= 3;?>") {
-			plantilla = '<tr class="active" data-producto="' + id_producto + '" data-position="'+numero+'">'+
-			'<td class="text-nowrap"><input type="text" value="' + id_producto + '" name="productos[]" class="translate" tabindex="-1" data-validation="required number" data-validation-error-msg="Debe ser número">' + codigo + '</td>' +
-			'<td><input type="hidden" value="' + nombre + '" name="nprod[]">' + nombre + '</td>' + '<td>' + color + '</td>' +
-			'<td><input type="text" name="fechas[]" value="<?= ($fecha_inicial != $gestion_base) ? date_decode($fecha_inicial, $_institution['formato']) : now(); ?>" id="fecha-' + id_producto + '" class="form-control input-xs text-right" autocomplete="off" data-fecha="" data-validation="date" data-validation-format="<?= $formato_textual; ?>" data-validation-optional="true" onclick="adicionar_fecha(' + id_producto + ')"></td>';
-			
-			if(porciones.length>2){
-				plantilla = plantilla+'<td><select name="unidad[]" id="unidad" data-xxx="true" class="form-control input-xs" >';
-				aparte = porciones[1].split(':');
-				for(var ic=1;ic<porciones.length;ic++){
-						parte = porciones[ic].split(':');
-					//console.log(parte);
-					plantilla = plantilla+'<option value="' +parte[0]+ '" data-yyy="' +parte[1]+ '" >' +parte[0]+ '</option>';
-				}
-				plantilla = plantilla+'</select></td>'+
-				'<td><input type="text" value="' + parseFloat(aparte[1]) + '" name="costos[]" class="form-control input-xs text-right" autocomplete="off" data-precio="' + parseFloat(aparte[1]) + '"  data-validation-error-msg="Debe ser un número decimal positivo" onkeyup="calcular_importe('+numero +',' + id_producto + ')"></td>';
+		/** seccion activa para bucle */
+		plantilla = '<tr class="active" data-producto="' + id_producto + '" data-position="'+numero+'">'+
+		'<td class="text-nowrap">' + numero + '</td>' +
+		'<td class="text-nowrap"><input type="text" value="' + id_producto + '" name="productos[]" class="translate" tabindex="-1" data-validation="required number" data-validation-error-msg="Debe ser número">' + codigo + '</td>' +
+		'<td><input type="hidden" value="' + nombre + '" name="nprod[]">' + nombre + '</td>' + '<td>' + color + '</td>' +
+		'<td><input type="text" name="fechas[]"  value="<?= ($fecha_inicial != $gestion_base) ? date_decode($fecha_inicial, $_institution['formato']) : now(); ?>" id="fecha-' + id_producto + '"  class="form-control input-xs text-right" autocomplete="off" data-fecha="" data-validation="date" data-validation-format="<?= $formato_textual; ?>" data-validation-optional="true" onclick="adicionar_fecha(' + id_producto + ')"> </td>';
+		
+		if(porciones.length>2){
+			plantilla = plantilla+'<td><select name="unidad[]" id="unidad" data-xxx="true" class="form-control input-xs" >';
+			aparte = porciones[1].split(':');
+			for(var ic=1;ic<porciones.length;ic++){
+					parte = porciones[ic].split(':');
+				plantilla = plantilla+'<option value="' + parte[0] + '" data-yyy="' +parte[1]+ '" >' +parte[0]+ '</option>';
+				console.log(parte[0],parte[1] )
 			}
-			else{
-				parte = porciones[1].split(':');
-				plantilla = plantilla + '<td><input type="text" value="' + parte[0] + '" name="unidad[]" class="form-control input-xs text-right" autocomplete="off" data-unidad="' + parte[0] + '" readonly data-validation-error-msg="Debe ser un número decimal positivo"></td>'+
-										'<td><input type="text" value="' + parseFloat(parte[1]) + '" name="costos[]" class="form-control input-xs text-right" autocomplete="off" data-precio="' + parseFloat(parte[1]) + '"  data-validation-error-msg="Debe ser un número decimal positivo" onkeyup="calcular_importe('+numero +',' + id_producto + ')"></td>';
-			}
-			plantilla = plantilla + 
-			'<td><input type="text" value="1" name="cantidades[]" class="form-control input-xs text-right" maxlength="7" autocomplete="off" data-cantidad="" data-validation="required number" data-validation-error-msg="Debe ser número entero positivo" onkeyup="calcular_importe('+numero +',' + id_producto + ')"></td>' +
-			'<td style="display: none;" class="text-nowrap text-right" data-importe="">0.00</td>' +
-				'<td class="text-nowrap text-center">' +
-					'<button type="button" class="btn btn-xs btn-primary" data-toggle="tooltip"  data-title="Item por fecha"  title=""  onclick="adicionar_producto_unidad('+numero +','+ id_producto+')"><span class="glyphicon glyphicon-plus"></span></button>'+
-					'<button type="button" class="btn btn-xs btn-danger" data-toggle="tooltip" data-title="Eliminar producto" tabindex="-1" onclick="eliminar_producto_unidad('+numero +', ' + id_producto + ')"><span class="glyphicon glyphicon-remove"></span></button>'+
-				'</td>' +
-			'</tr>';
-		}else{
-			if ("<?= $rol_id <= 2;?> " ) {
-				plantilla = '<tr class="active" data-producto="' + id_producto + '" data-position="'+numero+'">'+
-				'<td class="text-nowrap"><input type="text" value="' + id_producto + '" name="productos[]" class="translate" tabindex="-1" data-validation="required number" data-validation-error-msg="Debe ser número">' + codigo + '</td>' +
-				'<td><input type="hidden" value="' + nombre + '" name="nprod[]">' + nombre + '</td>' + '<td>' + color + '</td>' +
-				'<td><input type="text" name="fechas[]"  value="<?= ($fecha_inicial != $gestion_base) ? date_decode($fecha_inicial, $_institution['formato']) : now(); ?>" id="fecha-' + id_producto + '"  class="form-control input-xs text-right" autocomplete="off" data-fecha="" data-validation="date" data-validation-format="<?= $formato_textual; ?>" data-validation-optional="true" onclick="adicionar_fecha(' + id_producto + ')"> </td>';
-				
-				if(porciones.length>2){
-					plantilla = plantilla+'<td><select name="unidad[]" id="unidad" data-xxx="true" class="form-control input-xs" >';
-					aparte = porciones[1].split(':');
-					for(var ic=1;ic<porciones.length;ic++){
-							parte = porciones[ic].split(':');
-						plantilla = plantilla+'<option value="' + parte[0] + '" data-yyy="' +parte[1]+ '" >' +parte[0]+ '</option>';
-						console.log(parte[0],parte[1] )
-					}
-					plantilla = plantilla+'</select></td>'+
-					'<td><input type="text" value="' + parseFloat(aparte[1]) + '" name="costos[]" class="form-control input-xs text-right" autocomplete="off" data-precio="' + parseFloat(aparte[1]) + '"  data-validation-error-msg="Debe ser un número decimal positivo" onkeyup="calcular_importe('+numero +',' + id_producto + ')"></td>';
-				}
-				else{
-					parte = porciones[1].split(':');
-					plantilla = plantilla + '<td><input type="text" value="' + parte[0] + '" name="unidad[]" class="form-control input-xs text-right" autocomplete="off" data-unidad="' + parte[0] + '" readonly data-validation-error-msg="Debe ser un número decimal positivo"></td>'+
-											'<td><input type="text" value="' + parseFloat(parte[1]) + '" name="costos[]" class="form-control input-xs text-right" autocomplete="off" data-precio="' + parseFloat(parte[1]) + '"  data-validation-error-msg="Debe ser un número decimal positivo" onkeyup="calcular_importe('+numero +',' + id_producto + ')"></td>';
-				}
-				plantilla = plantilla + 
-				'<td><input type="text" value="1" name="cantidades[]" class="form-control input-xs text-right" maxlength="7" autocomplete="off" data-cantidad="" data-validation="required number" data-validation-error-msg="Debe ser número entero positivo" onkeyup="calcular_importe('+numero +',' + id_producto + ')"></td>' +'<td class="text-nowrap text-right" data-importe="">0.00</td>' +
-					'<td class="text-nowrap text-center">' +
-						'<button type="button" class="btn btn-xs btn-primary" data-toggle="tooltip"  data-title="Item por fecha"  title=""  onclick="adicionar_producto_unidad('+numero +','+ id_producto+')"><span class="glyphicon glyphicon-plus"></span></button>'+
-						'<button type="button" class="btn btn-xs btn-danger" data-toggle="tooltip" data-title="Eliminar producto" tabindex="-1" onclick="eliminar_producto_unidad('+numero +', ' + id_producto + ')"><span class="glyphicon glyphicon-remove"></span></button>'+
-					'</td>' +
-				'</tr>';
-			}
+			plantilla = plantilla+'</select></td>'+
+			'<td><input type="text" value="' + parseFloat(aparte[1]) + '" name="costos[]" class="form-control input-xs text-right" autocomplete="off" data-precio="' + parseFloat(aparte[1]) + '"  data-validation-error-msg="Debe ser un número decimal positivo" onkeyup="calcular_importe('+numero +',' + id_producto + ')"></td>';
 		}
+		else{
+			parte = porciones[1].split(':');
+			plantilla = plantilla + '<td><input type="text" value="' + parte[0] + '" name="unidad[]" class="form-control input-xs text-right" autocomplete="off" data-unidad="' + parte[0] + '" readonly data-validation-error-msg="Debe ser un número decimal positivo"></td>'+
+									'<td><input type="text" value="' + parseFloat(parte[1]) + '" name="costos[]" class="form-control input-xs text-right" autocomplete="off" data-precio="' + parseFloat(parte[1]) + '"  data-validation-error-msg="Debe ser un número decimal positivo" onkeyup="calcular_importe('+numero +',' + id_producto + ')"></td>';
+		}
+		plantilla = plantilla + 
+		'<td><input type="text" value="1" name="cantidades[]" class="form-control input-xs text-right" maxlength="7" autocomplete="off" data-cantidad="" data-validation="required number" data-validation-error-msg="Debe ser número entero positivo" onkeyup="calcular_importe('+numero +',' + id_producto + ')"></td>' +'<td class="text-nowrap text-right" data-importe="">0.00</td>' +
+			'<td class="text-nowrap text-center">' +
+				'<button type="button" class="btn btn-xs btn-primary" data-toggle="tooltip"  data-title="Item por fecha"  title=""  onclick="adicionar_producto_unidad('+numero +','+ id_producto+')"><span class="glyphicon glyphicon-plus"></span></button>'+
+				'<button type="button" class="btn btn-xs btn-danger" data-toggle="tooltip" data-title="Eliminar producto" tabindex="-1" onclick="eliminar_producto_unidad('+numero +', ' + id_producto + ')"><span class="glyphicon glyphicon-remove"></span></button>'+
+			'</td>' +
+		'</tr>';
 		//console.log(plantilla);
 		$compras.append(plantilla);
 
@@ -680,6 +649,7 @@ function adicionar_producto(id_producto) {
 			}
 		});
 	}
+	
 	calcular_importe(numero, id_producto);
 	adicionar_fecha(id_producto);
 }
@@ -751,7 +721,6 @@ function renumerar_productos() {
 	$productos.each(function (i) {
 		$(this).find('td:first').text(i + 1);
 	});
-	console.log($productos)
 }
 
 function calcular_total() {
@@ -770,6 +739,7 @@ function calcular_total() {
 }
 function guardar_compra() {
 	var data = $('#formulario').serialize();
+	console.log(data)
 	$('#loader').fadeIn(100);
 	$.ajax({
 		type: 'POST',
@@ -778,6 +748,7 @@ function guardar_compra() {
 		data: data
 	}).done(function (compra) {
 		console.log(compra);
+
 		if (compra) {
 			$.notify({
 				message: 'La compra fue realizada satisfactoriamente.'
@@ -801,6 +772,7 @@ function guardar_compra() {
 		}, {
 			type: 'danger'
 		});
+		
 	}).always(function () {
 		$('#formulario :reset').trigger('click');
 		window.location.reload();
