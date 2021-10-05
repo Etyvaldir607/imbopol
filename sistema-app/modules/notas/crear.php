@@ -1070,7 +1070,7 @@ function eliminar_producto(id_producto) {
 
 function renumerar_productos() {
 	var $ventas = $('#ventas tbody');
-	var $productos = $ventas.find('[data-producto]');
+	var $productos = $ventas.find('[data-producto][data-position]');
 	$productos.each(function (i) {
 		$(this).find('td:first').text(i + 1);
 	});
