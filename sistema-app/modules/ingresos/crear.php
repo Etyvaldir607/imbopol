@@ -550,11 +550,12 @@ $(function () {
 
 
 /**  inicia date picker para cada celda */
-function adicionar_fecha(id_producto){
-	var $producto = $('[data-producto=' + id_producto + ']');
+function adicionar_fecha(numero, id_producto){
+	var $producto = $('[data-producto=' + id_producto + '][data-position='+numero+ ']');
 	var $inicial_fecha = $producto.find('[data-fecha]');
-	var $fecha = $producto.find('#fecha-'+id_producto );
+	// var $fecha = $producto.find('#fecha-'+id_producto );
 
+	var formato = $('[data-fecha]').attr('data-fecha');
 	var formato = $('[data-formato]').attr('data-formato');
 	var mascara = $('[data-mascara]').attr('data-mascara');
 	var gestion = $('[data-gestion]').attr('data-gestion');
@@ -606,7 +607,7 @@ function adicionar_producto(id_producto) {
 		'<td class="text-nowrap">' + numero + '</td>' +
 		'<td class="text-nowrap"><input type="text" value="' + id_producto + '" name="productos[]" class="translate" tabindex="-1" data-validation="required number" data-validation-error-msg="Debe ser número">' + codigo + '</td>' +
 		'<td><input type="hidden" value="' + nombre + '" name="nprod[]">' + nombre + '</td>' + '<td>' + color + '</td>' +
-		'<td><input type="text" name="fechas[]"  value="<?= ($fecha_inicial != $gestion_base) ? date_decode($fecha_inicial, $_institution['formato']) : now(); ?>" id="fecha-' + id_producto + '"  class="form-control input-xs text-right" autocomplete="off" data-fecha="" data-validation="date" data-validation-format="<?= $formato_textual; ?>" data-validation-optional="true" onclick="adicionar_fecha(' + id_producto + ')"> </td>';
+		'<td><input type="text" name="fechas[]"  value="<?= ($fecha_inicial != $gestion_base) ? date_decode($fecha_inicial, $_institution['formato']) : now(); ?>" id="fecha-' + id_producto + '"  class="form-control input-xs text-right" autocomplete="off" data-fecha="<?= now(); ?>" data-validation="date" data-validation-format="<?= $formato_textual; ?>" data-validation-optional="true" onclick="adicionar_fecha('+numero +',' + id_producto + ')"> </td>';
 		
 		if(porciones.length>2){
 			plantilla = plantilla+'<td><select name="unidad[]" id="unidad" data-xxx="true" class="form-control input-xs" >';
@@ -633,8 +634,6 @@ function adicionar_producto(id_producto) {
 		'</tr>';
 		//console.log(plantilla);
 		$compras.append(plantilla);
-
-
 		contador = contador + 1;
 		
 		$('[data-valor=' + id_producto + ']').attr("data-contador",   + contador );
@@ -667,7 +666,7 @@ function adicionar_producto(id_producto) {
 	}
 	
 	calcular_importe(numero, id_producto);
-	adicionar_fecha(id_producto);
+	adicionar_fecha(numero, id_producto);
 }
 
 /** funcion eliminar producto (no utilizada) */
