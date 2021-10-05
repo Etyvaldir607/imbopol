@@ -31,55 +31,104 @@ if ($id_almacen != 0) {
 	// Obtiene los productos
 	$productos = $db->query("
 	select
-    p.id_producto,
-    p.codigo,
-    p.nombre_factura,
-    p.descripcion,
-    p.color,
-    p.nombre_factura,
-    p.cantidad_minima,
-    p.precio_actual,
-    ifnull(e.cantidad_ingresos, 0) as cantidad_ingresos,
-    ifnull(s.cantidad_egresos, 0) as cantidad_egresos,
-	e.id_unidad,
-	e.unidad,
-	e.sigla,
-    c.categoria
-from
-    inv_productos p
-    left join (
-        select
-            d.producto_id,
-            sum(d.cantidad * a.cantidad_unidad) as cantidad_ingresos,
-            u.id_unidad,
-				u.unidad,
-				u.sigla
-        from
-            inv_ingresos_detalles d
-			left join inv_asignaciones a on a.unidad_id = d.unidad_id and a.producto_id = d.producto_id and a.estado='a'  
-			left join inv_unidades u on u.id_unidad = d.unidad_id
-            left join inv_ingresos i on i.id_ingreso = d.ingreso_id
-        where
-            i.almacen_id = $id_almacen
-        group by
-            d.producto_id
-    ) as e on e.producto_id = p.id_producto
-    left join (
-        select
-            d.producto_id,
-            sum(d.cantidad * a.cantidad_unidad) as cantidad_egresos
-        from
-            inv_egresos_detalles d
-			left join inv_asignaciones a on a.unidad_id = d.unidad_id and a.producto_id = d.producto_id and a.estado='a'  
-				left join inv_unidades u on u.id_unidad = d.unidad_id
-            left join inv_egresos e on e.id_egreso = d.egreso_id
-        where
-            e.almacen_id = $id_almacen
-        group by
-            d.producto_id
-    ) as s on s.producto_id = p.id_producto
-    left join inv_categorias c on c.id_categoria = p.categoria_id
-	group by
+	p.id_producto,
+	p.codigo,
+	p.nombre_factura,
+	p.descripcion,
+	p.color,
+	p.nombre_factura,
+	p.cantidad_minima,
+	p.precio_actual,
+
+	tu.cantidad_unidad,
+	tp.id_precio,
+	tp.precio,
+		
+	ifnull(ti.cantidad_ingresos, 0) AS cantidad_ingresos,
+	ifnull(te.cantidad_egresos, 0) AS cantidad_egresos,
+	ifnull(ifnull(ti.cantidad_ingresos, 0) - ifnull(te.cantidad_egresos , 0), 0) as stock,
+	c.categoria,
+	GROUP_CONCAT(
+	ifnull(tu.id_asignacion, 0)
+	) AS id_asignacion,
+	GROUP_CONCAT(
+		ifnull(tu.asignacion, 0)
+		) AS asignacion,
+	GROUP_CONCAT(
+	ifnull(tu.id_unidad, 0)
+	) AS id_unidad,
+	GROUP_CONCAT(
+	ifnull(tu.unidad, 0)
+	) AS unidad,
+	GROUP_CONCAT(
+	ifnull(tu.cantidad_unidad, 0)
+	) AS cantidad_unidad,
+	GROUP_CONCAT(
+	ifnull(tp.id_precio, 0)
+	) AS id_precio,
+	GROUP_CONCAT(
+	ifnull(tp.precio, 0)            
+	) AS precio
+		from
+		inv_productos p
+		left join (
+			select
+			a.id_asignacion,
+			a.producto_id,
+			a.cantidad_unidad,
+			a.asignacion,
+			u.id_unidad,
+			u.unidad,
+			u.sigla,
+			u.descripcion
+			from
+			inv_asignaciones a
+			left join inv_unidades u on u.id_unidad = a.unidad_id
+			where a.estado = 'a'
+		) as tu 
+		on tu.producto_id =p.id_producto
+		left join (
+			select
+			asignacion_id,
+			producto_id,
+			id_precio,
+			precio
+			from
+			inv_precios
+			group by 
+			asignacion_id
+		) as tp 
+		on tp.producto_id =p.id_producto AND tu.id_asignacion = tp.asignacion_id
+		left join (
+			select
+				d.producto_id,
+				sum(d.cantidad * a.cantidad_unidad) as cantidad_ingresos
+			from
+				inv_ingresos_detalles d
+				left join inv_ingresos i on i.id_ingreso = d.ingreso_id
+				left join inv_asignaciones a ON d.unidad_id = a.unidad_id  and a.producto_id = d.producto_id and a.estado='a'           
+			where
+				i.almacen_id = 8
+			group by
+				d.producto_id
+		) as 
+		ti on ti.producto_id = p.id_producto
+		left join (
+			select
+				d.producto_id,
+				sum(d.cantidad * a.cantidad_unidad) as cantidad_egresos
+			from
+				inv_egresos_detalles d
+				left join inv_egresos e on e.id_egreso = d.egreso_id
+				left join inv_asignaciones a ON d.unidad_id = a.unidad_id and a.producto_id = d.producto_id and a.estado='a' 
+			where
+				e.almacen_id = 8 
+			group by
+				d.producto_id
+		) as
+		te on te.producto_id = p.id_producto
+		left join inv_categorias c on c.id_categoria = p.categoria_id
+	GROUP BY 
 	p.id_producto
 	")->fetch();
 } else {
@@ -377,22 +426,34 @@ $permiso_listar = in_array('listar', $permisos);
 											tu.id_asignacion")->fetch();
 										?>
 
+										<?php 
+											// obteniendo unidades
+											$unidades  = explode(',', $producto['unidad']);
+											// obteniendo asignaciones
+											$asignaciones  = explode(',', $producto['asignacion']);
+											// obteniendo precios
+											$precios  = explode(',', $producto['precio']);
+										?>
+
 										<td class="text-nowrap text-middle text-right text-sm" data-contador="0" data-limit="<?= count($asignaciones); ?>" data-valor="<?= $producto['id_producto']; ?>" data-unidades="<?php echo htmlspecialchars(json_encode($asignaciones), ENT_QUOTES, 'UTF-8') ?>">
-											<!-- obteniendo unidades asignadas -->	
-											<?php foreach ($asignaciones as $nro => $unidad) { ?>
-												<?php if($unidad['asignacion'] != 'principal'){?>
+											<!-- obteniendo unidades asignadas -->
+
+
+											<?php for ($x = 0; $x <= count($asignaciones) - 1; $x++) {?>
+												<!-- obteniendo fechas de productos por fecha de vencimiento -->	
+												<?php if($asignaciones[$x] != 'principal'){ ?>
 													<div class="asignacion-style">
 														<div class="col-sm-9">
 															<span class="block text-right text-success" >
-																-<?= escape($unidad['unidad'].': '); ?><b><?= escape($unidad['precio']); ?>
+																-<?= escape($unidades[$x].': '); ?><b><?= escape($precios[$x]); ?>
 															</span>
 														</div>
 													</div>
-												<?php } else{ ?>
+												<?php } else { ?>
 													<div class="asignacion-style">
 														<div class="col-sm-9">
 															<span class="block text-right text-success" >
-																-<?= escape($unidad['unidad'].': '); ?><b><?= escape($unidad['precio']); ?>
+																-<?= escape($unidades[$x].': '); ?><b><?= escape($precios[$x]); ?>
 															</span>
 														</div>
 													</div>
@@ -408,7 +469,7 @@ $permiso_listar = in_array('listar', $permisos);
 									<?php	 }?>
 
 									<td class="text-nowrap">
-										<button type="button" class="btn btn-xs btn-primary" data-comprar="<?= $producto['id_producto']; ?>" data-toggle="tooltip" data-title="Comprar"><span class="glyphicon glyphicon-share-alt"></span></button>
+										<button type="button" class="btn btn-xs btn-primary" data-comprar="<?= $producto['id_producto']; ?>" onclick="prueba('<?= $producto['id_producto']; ?>')" data-toggle="tooltip" data-title="Comprar"><span class="glyphicon glyphicon-share-alt"></span></button>
 									</td>
 								</tr>
 							<?php } ?>
