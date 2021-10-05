@@ -768,37 +768,36 @@ function guardar_compra() {
 		url: '?/ingresos/guardar',
 		data: data
 	}).done(function (compra) {
-		console.log(compra);
-
+		// console.log(compra);
 		if (compra) {
-			//$('#loader').fadeOut(100);
 			$.notify({
 				message: 'La compra fue realizada satisfactoriamente.'
 			}, {
 				type: 'success'
-			});
-			//generar_pdf_compra(compra['id_ingreso']);
-			//$('#loader').fadeOut(100);
+			}); 
+			$('#loader').fadeOut(100);
+			generar_pdf_compra(compra['id_ingreso']);
 		}
 	}).fail(function () {
-		/*
 		$('#loader').fadeOut(100);
 		$.notify({
 			message: 'Ocurrió un problema en el proceso, no se puedo guardar los datos de la compra de entrega, verifique si la se guardó parcialmente2.'
 		}, {
 			type: 'danger'
 		});
-		*/
+		
 	}).always(function () {
-		//$('#formulario :reset').trigger('click');
-		// window.location.reload();
+		$('#formulario :reset').trigger('click');
+		window.location.reload();
 	});
 }
 
-/**  inicia la peticion para guardar compra */
+/**  inicia la peticion para generar pdf de la compra */
 function generar_pdf_compra(id) {
 	$id_ingreso = parseInt(id);
-	redirect('?/ingresos/imprimir/'. $id_ingreso);
+	url = '?/ingresos/imprimir/' + $id_ingreso;
+	console.log(url)
+	window.open('?/ingresos/imprimir/' + $id_ingreso,'_blank');
 }
 
 /**  inicia la peticion para imprimir la compra */
