@@ -162,3 +162,9 @@ ALTER TABLE `inv_asignaciones` ADD `fecha_asignacion` DATE NOT NULL AFTER `otro_
 #crear funcion para realizarventa  peticion ajax para eliminar asignacion
 #crear funcion para eliminar asignacion y precio asignado de venta
 #crear estructura para compra por tipo de unidad de venta
+
+
+#fecha: tareas asignadas (05-10-2021)
+control de cantidades modificado en crear compra
+control de cantidades modificado en crear venta por nota
+generar reporte pdf por compra
