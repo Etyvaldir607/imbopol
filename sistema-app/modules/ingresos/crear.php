@@ -438,48 +438,22 @@ $permiso_listar = in_array('listar', $permisos);
 <script src="<?= js; ?>/bootstrap-datetimepicker.min.js"></script>
 <script>
 	var rol_id= "<?= $rol_id;?>";
-//console.log(rol_id);
+
+// funcion general para la busqueda y modales
 $(function () {
+	// definicion de variables globales
 	var $formulario = $('#formulario');
 	var blup = new buzz.sound('<?= media; ?>/blup.mp3');
-	
-	$.validate({
-		form: '#formulario',
-		modules: 'basic',
-		onSuccess: function () {
-			guardar_compra();
-		}
-	});
 
-	$formulario.on('submit', function (e) {
-		e.preventDefault();
-	});
-	var $modal_mostrar = $('#modal_mostrar'), $loader_mostrar = $('#loader_mostrar'), size, title, image;
-	$modal_mostrar.on('hidden.bs.modal', function () {
-		$loader_mostrar.show();
-		$modal_mostrar.find('.modal-dialog').attr('class', 'modal-dialog');
-		$modal_mostrar.find('.modal-title').text('');
-	}).on('show.bs.modal', function (e) {
-		size = $(e.relatedTarget).attr('data-modal-size');
-		title = $(e.relatedTarget).attr('data-modal-title');
-		image = $(e.relatedTarget).attr('src');
-		size = (size) ? 'modal-dialog ' + size : 'modal-dialog';
-		title = (title) ? title : 'Imagen';
-		$modal_mostrar.find('.modal-dialog').attr('class', size);
-		$modal_mostrar.find('.modal-title').text(title);
-		$modal_mostrar.find('[data-modal-image]').attr('src', image);
-	}).on('shown.bs.modal', function () {
-		$loader_mostrar.hide();
-	});
-	$('[data-comprar]').on('click', function () {
-		adicionar_producto($.trim($(this).attr('data-comprar')));
-	});
+	// inicia el datatable para el filtrado
 	$('#productos').dataTable({
 		info: false,
 		lengthMenu: [[25, 50, 100, 500, -1], [25, 50, 100, 500, 'Todos']],
 		order: []
 	});
 	$('#productos_wrapper .dataTables_paginate').parent().attr('class', 'col-sm-12 text-right');
+
+	// inicia el selector de proveedor
 	$('#proveedor').selectize({
 		persist: false,
 		createOnBlur: true,
@@ -500,6 +474,8 @@ $(function () {
 			$('#proveedor').trigger('blur');
 		}
 	});
+
+	// inicia el selector de proveedor
 	$('#almacen').selectize({
 		persist: false,
 		onInitialize: function () {
@@ -518,22 +494,62 @@ $(function () {
 			$('#almacen').trigger('blur');
 		}
 	});
+
+	// valida los datos del formulario
+	$.validate({
+		form: '#formulario',
+		modules: 'basic',
+		onSuccess: function () {
+			guardar_compra();
+		}
+	});
+
+	// deshabilita el evento que lleva por defecto
+	$formulario.on('submit', function (e) {
+		e.preventDefault();
+	});
+
+	var $modal_mostrar = $('#modal_mostrar'), $loader_mostrar = $('#loader_mostrar'), size, title, image;
+	$modal_mostrar.on('hidden.bs.modal', function () {
+		$loader_mostrar.show();
+		$modal_mostrar.find('.modal-dialog').attr('class', 'modal-dialog');
+		$modal_mostrar.find('.modal-title').text('');
+	}).on('show.bs.modal', function (e) {
+		size = $(e.relatedTarget).attr('data-modal-size');
+		title = $(e.relatedTarget).attr('data-modal-title');
+		image = $(e.relatedTarget).attr('src');
+		size = (size) ? 'modal-dialog ' + size : 'modal-dialog';
+		title = (title) ? title : 'Imagen';
+		$modal_mostrar.find('.modal-dialog').attr('class', size);
+		$modal_mostrar.find('.modal-title').text(title);
+		$modal_mostrar.find('[data-modal-image]').attr('src', image);
+	}).on('shown.bs.modal', function () {
+		$loader_mostrar.hide();
+	});
+
+	// envia toda la tabla y el formulaario de compra 
+	$('[data-comprar]').on('click', function () {
+		adicionar_producto($.trim($(this).attr('data-comprar')));
+	});
+
+	// vacia toda la tabla y el formulaario de la compra
+	$('#formulario').on('reset', function () {
+		$('#compras tbody').find('[data-importe]').text('0.00');
+		$('#compras tbody').empty();
+		calcular_total();
+	});
+	// dispara el evento click
+	$('#formulario :reset').trigger('click');
+
+	// escucha el evento reset y limpia los select option
 	$(':reset').on('click', function () {
 		$('#proveedor')[0].selectize.clear();
 		$('#almacen')[0].selectize.clear();
 	});
-	$.validate({
-		modules: 'basic'
-	});
-	$('#formulario').on('reset', function () {
-	//$('#compras tbody').find('[data-importe]').text('0.00');
-		$('#compras tbody').empty();
-			calcular_total();
-		});
-		$('#formulario :reset').trigger('click');
-	});
+});
 
-// inicia date picker para cada celda
+
+/**  inicia date picker para cada celda */
 function adicionar_fecha(id_producto){
 	var $producto = $('[data-producto=' + id_producto + ']');
 	var $inicial_fecha = $producto.find('[data-fecha]');
@@ -601,12 +617,12 @@ function adicionar_producto(id_producto) {
 				console.log(parte[0],parte[1] )
 			}
 			plantilla = plantilla+'</select></td>'+
-			'<td><input type="text" value="' + parseFloat(aparte[1]) + '" name="costos[]" class="form-control input-xs text-right" autocomplete="off" data-precio="' + parseFloat(aparte[1]) + '"  data-validation-error-msg="Debe ser un número decimal positivo" onkeyup="calcular_importe('+numero +',' + id_producto + ')"></td>';
+			'<td><input type="text" value="' + parseFloat(aparte[1]) + '" name="costos[]" class="form-control input-xs text-right" autocomplete="off" data-costo="' + parseFloat(aparte[1]) + '"  data-validation-error-msg="Debe ser un número decimal positivo" onkeyup="calcular_importe('+numero +',' + id_producto + ')"></td>';
 		}
 		else{
 			parte = porciones[1].split(':');
 			plantilla = plantilla + '<td><input type="text" value="' + parte[0] + '" name="unidad[]" class="form-control input-xs text-right" autocomplete="off" data-unidad="' + parte[0] + '" readonly data-validation-error-msg="Debe ser un número decimal positivo"></td>'+
-									'<td><input type="text" value="' + parseFloat(parte[1]) + '" name="costos[]" class="form-control input-xs text-right" autocomplete="off" data-precio="' + parseFloat(parte[1]) + '"  data-validation-error-msg="Debe ser un número decimal positivo" onkeyup="calcular_importe('+numero +',' + id_producto + ')"></td>';
+									'<td><input type="text" value="' + parseFloat(parte[1]) + '" name="costos[]" class="form-control input-xs text-right" autocomplete="off" data-costo="' + parseFloat(parte[1]) + '"  data-validation-error-msg="Debe ser un número decimal positivo" onkeyup="calcular_importe('+numero +',' + id_producto + ')"></td>';
 		}
 		plantilla = plantilla + 
 		'<td><input type="text" value="1" name="cantidades[]" class="form-control input-xs text-right" maxlength="7" autocomplete="off" data-cantidad="" data-validation="required number" data-validation-error-msg="Debe ser número entero positivo" onkeyup="calcular_importe('+numero +',' + id_producto + ')"></td>' +'<td class="text-nowrap text-right" data-importe="">0.00</td>' +
@@ -622,15 +638,15 @@ function adicionar_producto(id_producto) {
 		contador = contador + 1;
 		
 		$('[data-valor=' + id_producto + ']').attr("data-contador",   + contador );
-		$compras.find('[data-cantidad], [data-precio]').on('click', function () {
+		$compras.find('[data-cantidad], [data-costo]').on('click', function () {
 			$(this).select();
 		});
 
 		//obtendra el precio inicial por cada producto
 		$compras.find('[data-xxx]').on('change', function () {
             var v = $(this).find('option:selected').attr('data-yyy');
-            $(this).parent().parent().find('[data-precio]').val(parseFloat(v));
-            //$(this).parent().parent().find('[data-precio]').attr('value' ,parseFloat(v));
+            $(this).parent().parent().find('[data-costo]').val(parseFloat(v));
+            //$(this).parent().parent().find('[data-costo]').attr('value' ,parseFloat(v));
             calcular_importe(numero, id_producto);
         });
 
@@ -654,6 +670,7 @@ function adicionar_producto(id_producto) {
 	adicionar_fecha(id_producto);
 }
 
+/** funcion eliminar producto (no utilizada) */
 function eliminar_producto(id_producto) {
 	bootbox.confirm('Está seguro que desea eliminar el producto?', function (result) {
 		if(result){
@@ -662,6 +679,8 @@ function eliminar_producto(id_producto) {
 		}
 	});
 }
+
+/** funcion redondear el costo de compra (no utilizada) */
 function redondear_importe(id_producto) {
 	var $producto = $('[data-producto=' + id_producto + ']');
 	var $costo = $producto.find('[data-costo]');
@@ -672,11 +691,11 @@ function redondear_importe(id_producto) {
 	calcular_importe(id_producto);
 }
 
-// calcula el importe de cada item de producto
+/** calcula el importe de cada item de producto */
 function calcular_importe(numero, id_producto) {
 	var $producto = $('[data-producto=' + id_producto + '][data-position='+numero+ ']');
 	var $cantidad = $producto.find('[data-cantidad]');
-	var $precio = $producto.find('[data-precio]');
+	var $precio = $producto.find('[data-costo]');
 	var $importe = $producto.find('[data-importe]');
 	var cantidad, precio, importe;
 
@@ -690,7 +709,7 @@ function calcular_importe(numero, id_producto) {
 	calcular_total();
 }
 
-// adiciona item por unidad
+/** adiciona item por unidad */
 function adicionar_producto_unidad(numero, id_producto){
 	var $compras = $('#compras tbody');
 	var $producto = $compras.find('[data-producto=' + id_producto + '][data-position='+numero+ ']');
@@ -702,7 +721,7 @@ function adicionar_producto_unidad(numero, id_producto){
 	calcular_importe(numero, id_producto);
 }
 
-// eliminar item generado por unidad
+/** eliminar item generado por unidad */
 function eliminar_producto_unidad(numero, id_producto) {
 	// definiendo base de la tabla
 	var $compras = $('#compras tbody');
@@ -715,6 +734,7 @@ function eliminar_producto_unidad(numero, id_producto) {
     calcular_total();
 }
 
+/**  reinicia la cantidad de registros actuales */
 function renumerar_productos() {
 	var $compras = $('#compras tbody');
 	var $productos = $compras.find('[data-producto]');
@@ -723,6 +743,7 @@ function renumerar_productos() {
 	});
 }
 
+/**  obtiene el costo total de la compra */
 function calcular_total() {
 	var $compras = $('#compras tbody');
 	var $total = $('[data-subtotal]:first');
@@ -737,6 +758,8 @@ function calcular_total() {
 	$('[data-compras]:first').val($importes.size()).trigger('blur');
 	$('[data-total]:first').val(total.toFixed(2)).trigger('blur');
 }
+
+/**  inicia la peticion para guardar compra */
 function guardar_compra() {
 	var data = $('#formulario').serialize();
 	console.log(data)
@@ -779,48 +802,48 @@ function guardar_compra() {
 	});
 }
 
-
+/**  inicia la peticion para imprimir la compra */
 function imprimir_nota(compra) {
 	var servidor = $.trim($('[data-servidor]').attr('data-servidor'));
-//console.log(servidor);
-$.ajax({
-	type: 'POST',
-	dataType: 'json',
-	url: servidor,
-	data: compra
-}).done(function (respuesta) {
-	$('#loader').fadeOut(100);
-	switch (respuesta.estado) {
-		case 's':
-		window.location.reload();
-		break;
-		case 'p':
+	//console.log(servidor);
+	$.ajax({
+		type: 'POST',
+		dataType: 'json',
+		url: servidor,
+		data: compra
+	}).done(function (respuesta) {
+		$('#loader').fadeOut(100);
+		switch (respuesta.estado) {
+			case 's':
+			window.location.reload();
+			break;
+			case 'p':
+			$.notify({
+				message: 'La impresora no responde, asegurese de que este conectada y registrada en el sistema, una vez solucionado el problema vuelva a intentarlo nuevamente.'
+			}, {
+				type: 'danger'
+			});
+			break;
+			default:
+			$.notify({
+				message: 'Ocurrió un problema durante el proceso, no se envió los datos para la impresión de la factura.'
+			}, {
+				type: 'danger'
+			});
+			break;
+		}
+	}).fail(function () {
+		$('#loader').fadeOut(100);
 		$.notify({
-			message: 'La impresora no responde, asegurese de que este conectada y registrada en el sistema, una vez solucionado el problema vuelva a intentarlo nuevamente.'
+			message: 'Ocurrió un problema durante el proceso, reinicie la terminal para dar solución al problema y si el problema persiste contactese con el con los desarrolladores.'
 		}, {
 			type: 'danger'
 		});
-		break;
-		default:
-		$.notify({
-			message: 'Ocurrió un problema durante el proceso, no se envió los datos para la impresión de la factura.'
-		}, {
-			type: 'danger'
-		});
-		break;
-	}
-}).fail(function () {
-	$('#loader').fadeOut(100);
-	$.notify({
-		message: 'Ocurrió un problema durante el proceso, reinicie la terminal para dar solución al problema y si el problema persiste contactese con el con los desarrolladores.'
-	}, {
-		type: 'danger'
+	}).always(function () {
+		$('#formulario').trigger('reset');
+		$('#form_buscar_0').trigger('submit');
+		location.reload();
 	});
-}).always(function () {
-	$('#formulario').trigger('reset');
-	$('#form_buscar_0').trigger('submit');
-	location.reload();
-});
 }
 
 </script>
