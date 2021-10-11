@@ -630,7 +630,6 @@ function adicionar_producto(id_producto) {
 	var $ventas = $('#ventas tbody');
 	// busca el dom venta - producto
 	var $producto = $ventas.find('[data-producto=' + id_producto + ']');
-	console.log($producto.val())
 	// busca el dom venta - producto - cantidad
 	var $cantidad = $producto.find('[data-cantidad]');
 	// define un contador anonimo
