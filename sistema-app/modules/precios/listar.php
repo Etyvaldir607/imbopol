@@ -99,7 +99,14 @@ $permiso_quitar = true;
 		</tfoot>
 		<tbody>
 			<?php foreach ($productos as $nro => $producto) {
-                $ids_asignaciones = $db->select('*')->from('inv_asignaciones a')->join('inv_unidades b','a.unidad_id = b.id_unidad' )->where('a.producto_id',$producto['id_producto'])->fetch();
+					$id_producto = $producto['id_producto'];
+					$ids_asignaciones = $db->query("SELECT u.id_unidad, u.unidad, u.sigla, a.cantidad_unidad, a.otro_precio, p.precio
+					FROM inv_unidades u
+					left JOIN inv_asignaciones a on a.unidad_id = u.id_unidad and a.estado='a'
+					LEFT JOIN inv_precios p ON p.asignacion_id = a.id_asignacion
+					WHERE a.producto_id = $id_producto
+					ORDER BY u.id_unidad
+					")->fetch();
                 ?>
 			<tr>
 				<th class="text-nowrap"><?= $nro + 1; ?></th>
