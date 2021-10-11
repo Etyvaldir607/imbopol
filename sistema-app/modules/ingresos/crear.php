@@ -541,27 +541,6 @@ $(function () {
 });
 
 
-/**  inicia date picker para cada celda */
-function adicionar_fecha(numero, id_producto){
-	var $producto = $('[data-producto=' + id_producto + '][data-position='+numero+ ']');
-	var $inicial_fecha = $producto.find('[data-fecha]');
-	// var $fecha = $producto.find('#fecha-'+id_producto );
-
-	var formato = $('[data-formato]').attr('data-formato');
-	var mascara = $('[data-mascara]').attr('data-mascara');
-	var gestion = $('[data-gestion]').attr('data-gestion');
-
-	$inicial_fecha.datetimepicker({
-		format: formato
-	});
-
-	$inicial_fecha.on('click', function (e) {
-		$inicial_fecha.val(e.date);
-		$fecha.data('DateTimePicker').minDate('now');
-	});
-}
-
-
 /** funcion adicionar producto */
 function adicionar_producto(id_producto) {
 	// definiendo base de la tabla
@@ -620,11 +599,11 @@ function adicionar_producto(id_producto) {
 					plantilla = plantilla +
 				'</select>'+
 			'</td>';
-			plantilla = plantilla+ '<td><input type="text" value="' + parseFloat(precios[0]) + '" name="precios[]" class="form-control input-xs text-right" autocomplete="off" data-costo="' + parseFloat(precios[0]) + '"  data-validation-error-msg="Debe ser un número decimal positivo" onkeyup="calcular_importe('+numero +',' + id_producto + ')"></td>';
+			plantilla = plantilla+ '<td><input type="text" value="' + parseFloat(precios[0]) + '" name="costos[]" class="form-control input-xs text-right" autocomplete="off" data-costo="' + parseFloat(precios[0]) + '"  data-validation-error-msg="Debe ser un número decimal positivo" onkeyup="calcular_importe('+numero +',' + id_producto + ')"></td>';
 		}
 		else{
 			plantilla = plantilla + '<td><input type="text" value="' + unidades[0] + '" name="unidad[]" class="form-control input-xs text-right" autocomplete="off" data-unidad="' + unidades[0] + '" readonly data-validation-error-msg="Debe ser un número decimal positivo"></td>'+
-									'<td><input type="text" value="' + parseFloat(precios[0]) + '" name="precios[]" class="form-control input-xs text-right" autocomplete="off" data-costo="' + parseFloat(precios[0])+ '"  data-validation-error-msg="Debe ser un número decimal positivo" onkeyup="calcular_importe('+numero +',' + id_producto + ')"></td>';
+									'<td><input type="text" value="' + parseFloat(precios[0]) + '" name="costos[]" class="form-control input-xs text-right" autocomplete="off" data-costo="' + parseFloat(precios[0])+ '"  data-validation-error-msg="Debe ser un número decimal positivo" onkeyup="calcular_importe('+numero +',' + id_producto + ')"></td>';
 		}
 
 
@@ -653,6 +632,21 @@ function adicionar_producto(id_producto) {
         });
 
 
+		// inicializa fecha para cada item de producto
+		var $producto = $('[data-producto=' + id_producto + '][data-position='+numero+ ']');
+		var $inicial_fecha = $producto.find('[data-fecha]');
+		var $fecha = $producto.find('#fecha-'+id_producto );
+		var formato = $('[data-formato]').attr('data-formato');
+		var mascara = $('[data-mascara]').attr('data-mascara');
+		$inicial_fecha.datetimepicker({
+			format: formato
+		});
+		$inicial_fecha.on('click', function (e) {
+			$inicial_fecha.val(e.date);
+			$fecha.data('DateTimePicker').minDate('now');
+		});
+
+
 		$compras.find('[title]').tooltip({
 			container: 'body',
 			trigger: 'hover'
@@ -669,7 +663,6 @@ function adicionar_producto(id_producto) {
 	}
 	
 	calcular_importe(numero, id_producto);
-	adicionar_fecha(numero, id_producto);
 }
 
 /** funcion eliminar producto (no utilizada) */
