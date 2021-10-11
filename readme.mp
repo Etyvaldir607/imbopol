@@ -175,3 +175,21 @@ control de cantidades modificado en crear compra mediante fecha y asignacion
 control de cantidades modificado en crear venta por nota mediante fecha y asignacion
 generar reporte por nota de venta
 generar reporte pdf por nota de venta
+
+#fecha: tareas asignadas (11-10-2021)
+control de cantidades modificado en crear venta electronica mediante fecha y asignacion
+generar reporte electronica de venta
+generar reporte pdf electronica de venta
+
+control de cantidades modificado en crear venta proforma mediante fecha y asignacion
+generar reporte proforma de venta
+generar reporte pdf proforma de venta
+
+control de cantidades modificado en crear venta manual mediante fecha y asignacion
+generar reporte manual de venta
+generar reporte pdf manual de venta
+
+modificacion de lista de precios
+modificacion en existencias
+modificacion en stock de productos
+modificacion en inventario
