@@ -69,7 +69,7 @@ class MYPDF extends TCPDF {
 		$this->Cell(0, 5, NOMBRE, 0, true, 'R', false, '', 0, false, 'T', 'M');
 		$this->Cell(0, 5, PROPIETARIO, 0, true, 'R', false, '', 0, false, 'T', 'M');
 		$this->Cell(0, 5, FECHA, 'B', true, 'R', false, '', 0, false, 'T', 'M');
-		$imagen = (IMAGEN != '') ? INSTITUCION . '/' . IMAGEN : imgs . '/empty.jpg' ;
+		$imagen = (IMAGEN != '') ? institucion . '/' . IMAGEN : imgs . '/empty.jpg' ;
 		$this->Image($imagen, PDF_MARGIN_LEFT, 5, '', 14, 'JPG', '', 'T', false, 300, '', false, false, 0, false, false, false);
 	}
 	
@@ -87,8 +87,8 @@ class MYPDF extends TCPDF {
 $pdf = new MYPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
 
 // Asigna la informacion al documento
-$pdf->SetCreator(NAME_AUTOR);
-$pdf->SetAuthor(NAME_AUTOR);
+$pdf->SetCreator(name_autor);
+$pdf->SetAuthor(name_autor);
 $pdf->SetTitle($_institution['nombre']);
 $pdf->SetSubject($_institution['propietario']);
 $pdf->SetKeywords($_institution['sigla']);
