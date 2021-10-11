@@ -133,48 +133,13 @@ span.block.text-left.text-success, span.block.text-left.text-danger {
 				<!--obtiene las asignaciones de unidad por producto, con sus respectivos precios -->
 				<?php 
 					$id_producto = ($producto) ? $producto['id_producto'] : 0;
-					$asignaciones = $db->query("select
-					p.id_producto,
-					tu.id_asignacion,
-					tu.id_unidad,
-					tu.unidad,
-					tu.sigla,
-					tu.descripcion,
-					tu.cantidad_unidad,
-					tp.id_precio,
-					tp.precio
-					from
-					inv_productos p
-					left join (
-						select
-						a.id_asignacion,
-						a.producto_id,
-						a.cantidad_unidad,
-						u.id_unidad,
-						u.unidad,
-						u.sigla,
-						u.descripcion
-						from
-						inv_asignaciones a
-						left join inv_unidades u on u.id_unidad = a.unidad_id
-						where a.estado = 'a'
-					) as tu 
-					on tu.producto_id =p.id_producto
-					left join (
-						select
-						asignacion_id,
-						producto_id,
-						id_precio,
-						precio
-						from
-						inv_precios
-						group by 
-						asignacion_id
-					) as tp 
-					on tp.producto_id =p.id_producto and  tu.id_asignacion = tp.asignacion_id
-					where p.id_producto= $id_producto 
-					group by 
-					tu.id_asignacion")->fetch();
+					$asignaciones = $db->query("SELECT u.id_unidad, u.unidad, u.sigla, a.cantidad_unidad, p.precio
+					FROM inv_unidades u
+					left JOIN inv_asignaciones a on a.unidad_id = u.id_unidad and a.estado='a'
+					LEFT JOIN inv_precios p ON p.asignacion_id = a.id_asignacion
+					WHERE a.producto_id = $id_producto
+					ORDER BY u.id_unidad
+					")->fetch();
 				?>
 
 				<td class="text-nowrap text-middle text-right text-sm" data-unidad="<?= $producto['id_producto']; ?>">
