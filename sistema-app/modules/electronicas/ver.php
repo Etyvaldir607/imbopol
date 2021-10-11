@@ -14,7 +14,12 @@ if (!$venta || $venta['empleado_id'] != $_user['persona_id']) {
 }
 
 // Obtiene los detalles
-$detalles = $db->select('d.*, p.codigo, p.nombre, p.nombre_factura')->from('inv_egresos_detalles d')->join('inv_productos p', 'd.producto_id = p.id_producto', 'left')->where('d.egreso_id', $id_venta)->order_by('id_detalle asc')->fetch();
+$detalles = $db->select('d.*, p.codigo, p.nombre, p.nombre_factura, u.unidad')
+->from('inv_egresos_detalles d')
+->join('inv_asignaciones a', 'a.id_asignacion = d.asignacion_id', 'left')
+->join('inv_unidades u', 'a.unidad_id = u.id_unidad', 'left')
+->join('inv_productos p', 'd.producto_id = p.id_producto', 'left')
+->where('d.egreso_id', $id_venta)->order_by('id_detalle asc')->fetch();
 
 // Obtiene la moneda oficial
 $moneda = $db->from('inv_monedas')->where('oficial', 'S')->fetch_first();
@@ -119,9 +124,10 @@ $permiso_reimprimir = in_array('reimprimir', $permisos);
                                     <th class='text-center'>Item</th>
 									<th>Código</th>
 									<th class='text-center'>Nombre</th>
-                                    <th class='text-right'>Cantidad</th>
-                                    <th class='text-right'>Precio</th>
 									<th class="text-center">Fecha de vencimiento</th>
+                                    <th class='text-right'>Cantidad</th>
+									<th class="text-nowrap">Tipo de unidad</th>
+                                    <th class='text-right'>Precio</th>
                                     <th class='text-right'>Descuento</th>
 									<th class='text-right'>Importe</th>
                                 </tr>
@@ -130,8 +136,12 @@ $permiso_reimprimir = in_array('reimprimir', $permisos);
                                 <?php $total = 0; ?>
 								<?php foreach ($detalles as $nro => $detalle) { ?>
 								<tr>
-									<?php $cantidad = escape($detalle['cantidad']); ?>
-									<?php $precio = escape($detalle['precio']);
+									<?php $cantidad = escape($detalle['cantidad']);
+									$precio = escape($detalle['precio']);
+									?>
+									<?php 
+									/*
+									$precio = escape($detalle['precio']);
                                     $pr = $db->select('*')->from('inv_productos a')->join('inv_unidades b', 'a.unidad_id = b.id_unidad')->where('a.id_producto',$detalle['producto_id'])->fetch_first();
                                     if($pr['unidad_id'] == $detalle['unidad_id']){
                                         $unidad = $pr['unidad'];
@@ -140,15 +150,17 @@ $permiso_reimprimir = in_array('reimprimir', $permisos);
                                         $unidad = $pr['unidad'];
                                         $cantidad = $cantidad/$pr['cantidad_unidad'];
                                     }
+									*/
                                     ?>
 									<?php $importe = $cantidad * $precio; ?>
 									<?php $total = $total + $importe; ?>
 									<th class="text-nowrap"><?= $nro + 1; ?></th>
 									<td class="text-nowrap"><?= escape($detalle['codigo']); ?></td>
 									<td class="text-nowrap"><?= escape($detalle['nombre_factura']); ?></td>
-									<td class="text-nowrap text-right"><?= $cantidad.' '.$unidad; ?></td>
-									<td class="text-nowrap text-right"><?= $precio; ?></td>
 									<td class="text-nowrap text-center"><?= escape($detalle['fecha_vencimiento']); ?></td>
+									<td class="text-nowrap text-right"><?= $cantidad.' '.$unidad; ?></td>
+									<td class="text-nowrap"><?= escape($detalle['unidad']); ?></td>
+									<td class="text-nowrap text-right"><?= $precio; ?></td>
 									<td class="text-nowrap text-right"><?= $detalle['descuento']; ?></td>
 									<td class="text-nowrap text-right"><?= number_format($importe, 2, '.', ''); ?></td>
 								</tr>
