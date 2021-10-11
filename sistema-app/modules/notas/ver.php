@@ -4,11 +4,7 @@
 $id_venta = (sizeof($params) > 0) ? $params[0] : 0;
 
 // Obtiene la venta
-$venta = $db->select('i.*, a.almacen, a.principal, e.nombres, e.paterno, e.materno')
-->from('inv_egresos i')
-->join('inv_almacenes a', 'i.almacen_id = a.id_almacen', 'left')
-->join('sys_empleados e', 'i.empleado_id = e.id_empleado', 'left')
-->where('id_egreso', $id_venta)->fetch_first();
+$venta = $db->select('i.*, a.almacen, a.principal, e.nombres, e.paterno, e.materno')->from('inv_egresos i')->join('inv_almacenes a', 'i.almacen_id = a.id_almacen', 'left')->join('sys_empleados e', 'i.empleado_id = e.id_empleado', 'left')->where('id_egreso', $id_venta)->fetch_first();
 
 // Verifica si existe el egreso
 if (!$venta) {
@@ -18,13 +14,7 @@ if (!$venta) {
 }
 
 // Obtiene los detalles
-$detalles = $db->select('d.*, p.codigo, p.nombre, p.nombre_factura, u.unidad')
-->from('inv_egresos_detalles d')
-->join('inv_productos p', 'd.producto_id = p.id_producto', 'left')
-->join('inv_unidades u', 'd.unidad_id = u.id_unidad', 'left')
-->where('d.egreso_id', $id_venta)
-->order_by('id_detalle asc')
-->fetch();
+$detalles = $db->select('d.*, p.codigo, p.nombre, p.nombre_factura')->from('inv_egresos_detalles d')->join('inv_productos p', 'd.producto_id = p.id_producto', 'left')->where('d.egreso_id', $id_venta)->order_by('id_detalle asc')->fetch();
 
 // Obtiene la moneda oficial
 $moneda = $db->from('inv_monedas')->where('oficial', 'S')->fetch_first();
@@ -40,7 +30,7 @@ $permisos = explode(',', permits);
 $permiso_editar = in_array('editar', $permisos);
 $permiso_mostrar = in_array('mostrar', $permisos);
 $permiso_reimprimir = in_array('obtener', $permisos);
-$permiso_modificar = in_array('modificar', $permisos);
+$permiso_modificar = in_array('modificar', 'true');
 
 ?>
 <?php require_once show_template('header-advanced'); ?>
@@ -95,8 +85,6 @@ $permiso_modificar = in_array('modificar', $permisos);
 									<th class="text-nowrap">Código</th>
 									<th class="text-nowrap">Nombre</th>
 									<th class="text-nowrap">Cantidad</th>
-									<th class="text-nowrap">Fecha de vencimiento</th>
-									<th class="text-nowrap">Tipo de unidad</th>
 									<th class="text-nowrap">Precio <?= escape($moneda); ?></th>
 									<th class="text-nowrap">Descuento (%)</th>
 									<th class="text-nowrap">Importe <?= escape($moneda); ?></th>
@@ -109,12 +97,8 @@ $permiso_modificar = in_array('modificar', $permisos);
 								<?php $total = 0; ?>
 								<?php foreach ($detalles as $nro => $detalle) { ?>
 								<tr>
-									<?php $cantidad = escape($detalle['cantidad']);
-									$precio = escape($detalle['precio']);
-									?>
-									<?php
-									/*
-									
+									<?php $cantidad = escape($detalle['cantidad']); ?>
+									<?php $precio = escape($detalle['precio']);
                                     $pr = $db->select('*')->from('inv_productos a')->join('inv_unidades b', 'a.unidad_id = b.id_unidad')->where('a.id_producto',$detalle['producto_id'])->fetch_first();
                                     if($pr['unidad_id'] == $detalle['unidad_id']){
                                         $unidad = $pr['unidad'];
@@ -123,7 +107,6 @@ $permiso_modificar = in_array('modificar', $permisos);
                                         $unidad = $pr['unidad'];
                                         $cantidad = $cantidad/$pr['cantidad_unidad'];
                                     }
-									*/
                                     ?>
 									<?php $importe = $cantidad * $precio; ?>
 									<?php $total = $total + $importe; ?>
@@ -131,8 +114,6 @@ $permiso_modificar = in_array('modificar', $permisos);
 									<td class="text-nowrap"><?= escape($detalle['codigo']); ?></td>
 									<td class="text-nowrap"><?= escape($detalle['nombre_factura']); ?></td>
 									<td class="text-nowrap text-right"><?= $cantidad.' '.$unidad; ?></td>
-									<td class="text-nowrap"><?= escape($detalle['fecha_vencimiento']); ?></td>
-									<td class="text-nowrap"><?= escape($detalle['unidad']); ?></td>
 									<td class="text-nowrap text-right"><?= $precio; ?></td>
 									<td class="text-nowrap text-right"><?= $detalle['descuento']; ?></td>
 									<td class="text-nowrap text-right"><?= number_format($importe, 2, '.', ''); ?></td>
@@ -146,7 +127,7 @@ $permiso_modificar = in_array('modificar', $permisos);
 							</tbody>
 							<tfoot>
 								<tr class="active">
-									<th class="text-nowrap text-right" colspan="8">Importe total <?= escape($moneda); ?></th>
+									<th class="text-nowrap text-right" colspan="6">Importe total <?= escape($moneda); ?></th>
 									<th class="text-nowrap text-right"><?= number_format($total, 2, '.', ''); ?></th>
 								</tr>
 							</tfoot>

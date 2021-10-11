@@ -29,7 +29,7 @@ if ($categoria) {
 	}
 
 	// Redirecciona a la pagina principal
-	redirect('?/tipo/listar');
+	redirect('?/categorias/listar');
 } else {
 	// Error 404
 	require_once not_found();

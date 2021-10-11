@@ -22,83 +22,22 @@ if (is_ajax() && is_post()) {
 			$id_almacen = ($almacen) ? $almacen['id_almacen'] : 0;
 
 			// Obtiene los productos con el valor buscado
-				$productos = $db->query("select
-				pf.id_producto,
-				pf.color,
-				pf.descripcion,
-				pf.imagen,
-				pf.codigo,
-				pf.codigo_barras,
-				pf.nombre,
-				pf.nombre_factura,
-				pf.cantidad_minima,
-				pf.precio_actual,
-				pf.unidad_id,
-				GROUP_CONCAT(
-				ifnull(tf.cantidad_ingresos, 0)
-				) AS cantidad_ingresos,
-				GROUP_CONCAT(
-				ifnull(tf.cantidad_egresos, 0)            
-				) AS cantidad_egresos,
-				GROUP_CONCAT(tf.fecha_vencimiento
-				) AS fecha_vencimiento,
-				GROUP_CONCAT(
-				ifnull(tf.cantidad_ingresos, 0) - ifnull(tf.cantidad_egresos , 0)
-				) as stock,
-				u.unidad,
-				u.sigla,
-				c.categoria
-			from
-				inv_productos pf
-			left join(
-				select
-					p.id_producto,
-					ifnull(ti.cantidad_ingresos, 0) AS cantidad_ingresos,
-					ifnull(te.cantidad_egresos, 0) AS cantidad_egresos,
-					ti.fecha_vencimiento AS fecha_vencimiento,
-					ifnull(ifnull(ti.cantidad_ingresos, 0) - ifnull(te.cantidad_egresos , 0), 0) as stock
-				from
-					inv_productos p
-			
-					left join (
-						select
-							d.producto_id,
-							d.fecha_vencimiento,
-							sum(d.cantidad) as cantidad_ingresos
-						from
-							inv_ingresos_detalles d
-							left join inv_ingresos i on i.id_ingreso = d.ingreso_id
-						where
-							i.almacen_id = $id_almacen
-						group by
-							d.producto_id,
-							d.fecha_vencimiento
-					) as 
-					ti on ti.producto_id = p.id_producto
-					left join (
-						select
-							d.producto_id,
-							d.fecha_vencimiento,
-							sum(d.cantidad) as cantidad_egresos
-						from
-							inv_egresos_detalles d
-							left join inv_egresos e on e.id_egreso = d.egreso_id
-						where
-							e.almacen_id = $id_almacen
-			
-						group by
-							d.producto_id,
-							d.fecha_vencimiento
-					) as te 
-					on te.producto_id = p.id_producto and ti.fecha_vencimiento = te.fecha_vencimiento
-				where ifnull(ifnull(ti.cantidad_ingresos, 0) - ifnull(te.cantidad_egresos , 0), 0) >= 1
-				order by ti.fecha_vencimiento asc
-			) as tf on tf.id_producto = pf.id_producto
-				left join inv_unidades u on u.id_unidad = pf.unidad_id
-				left join inv_categorias c on c.id_categoria = pf.categoria_id
-			where  fecha_vencimiento IS NOT NULL and (pf.codigo like '%" . $busqueda . "%' OR pf.codigo_barras like '%" . $busqueda . "%' OR pf.nombre like '%" . $busqueda . "%' OR c.categoria like '%" . $busqueda . "%')
-			group by pf.id_producto
-			order by pf.nombre asc")->fetch();
+				$productos = $db->query("SELECT p.id_producto, z.id_asignacion, z.unidad_id, z.unidade, p.descripcion, p.imagen, p.codigo, p.codigo_barras, p.nombre, p.nombre_factura, p.cantidad_minima, p.precio_actual, IFNULL(e.cantidad_ingresos, 0) AS cantidad_ingresos, IFNULL(s.cantidad_egresos, 0) AS cantidad_egresos, u.unidad, u.sigla, c.categoria
+					FROM inv_productos p
+					LEFT JOIN (SELECT d.producto_id, SUM(d.cantidad) AS cantidad_ingresos
+						   FROM inv_ingresos_detalles d
+						   LEFT JOIN inv_ingresos i ON i.id_ingreso = d.ingreso_id
+						   WHERE i.almacen_id = '$id_almacen' GROUP BY d.producto_id) AS e ON e.producto_id = p.id_producto
+					LEFT JOIN (SELECT d.producto_id, SUM(d.cantidad) AS cantidad_egresos
+						   FROM inv_egresos_detalles d LEFT JOIN inv_egresos e ON e.id_egreso = d.egreso_id
+						   WHERE e.almacen_id = '$id_almacen' GROUP BY d.producto_id) AS s ON s.producto_id = p.id_producto
+					LEFT JOIN inv_unidades u ON u.id_unidad = p.unidad_id LEFT JOIN inv_categorias c ON c.id_categoria = p.categoria_id
+					LEFT JOIN (SELECT w.producto_id, GROUP_CONCAT(w.id_asignacion SEPARATOR '|') AS id_asignacion, GROUP_CONCAT(w.unidad_id SEPARATOR '|') AS unidad_id, GROUP_CONCAT(w.unidad,':',w.otro_precio SEPARATOR '&') AS unidade
+					   FROM (SELECT *
+							FROM inv_asignaciones q
+								  LEFT JOIN inv_unidades u ON q.unidad_id = u.id_unidad
+										 ORDER BY u.unidad DESC) w GROUP BY w.producto_id ) z ON p.id_producto = z.producto_id
+					WHERE p.codigo like '%" . $busqueda . "%' OR p.codigo_barras like '%" . $busqueda . "%' OR p.nombre like '%" . $busqueda . "%' OR c.categoria like '%" . $busqueda . "%' order by p.nombre asc")->fetch();
 
 			// Devuelve los resultados
 			echo json_encode($productos);

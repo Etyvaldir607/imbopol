@@ -1,20 +1,6 @@
 <?php
-// Obtiene los formatos para la fecha
-$formato_textual = get_date_textual($_institution['formato']);
-$formato_numeral = get_date_numeral($_institution['formato']);
-
-// Obtiene el rango de fechas
-$gestion = date('Y');
-$gestion_base = date('Y-m-d');
-//$gestion_base = ($gestion - 16) . date('-m-d');
-$gestion_limite = ($gestion + 16) . date('-m-d');
-
-// Obtiene fecha inicial
-$fecha_inicial = (isset($params[0])) ? $params[0] : $gestion_base;
-$fecha_inicial = (is_date($fecha_inicial)) ? $fecha_inicial : $gestion_base;
-$fecha_inicial = date_encode($fecha_inicial);
-
-// obtiene permisos des sesion por rol
+//var_dump($_SESSION);
+//echo "<br><br>";
 foreach ($_SESSION as $key) {
 	if($key['rol_id'] == '2' || $key['rol_id'] == '1')
 		$rol_id =$key['rol_id'];
@@ -22,115 +8,14 @@ foreach ($_SESSION as $key) {
 		$rol_id =$key['rol_id'];
 	}
 }
-
+//echo $rol_id;
 // Obtiene el almacen principal
 $almacen = $db->from('inv_almacenes')->where('principal', 'S')->fetch_first();
 $id_almacen = ($almacen) ? $almacen['id_almacen'] : 0;
 // Verifica si existe el almacen
 if ($id_almacen != 0) {
 	// Obtiene los productos
-	$productos = $db->query("
-	select
-	p.id_producto,
-	p.codigo,
-	p.nombre_factura,
-	p.descripcion,
-	p.color,
-	p.nombre_factura,
-	p.cantidad_minima,
-	p.precio_actual,
-
-	tu.cantidad_unidad,
-	tp.id_precio,
-	tp.precio,
-		
-	ifnull(ti.cantidad_ingresos, 0) AS cantidad_ingresos,
-	ifnull(te.cantidad_egresos, 0) AS cantidad_egresos,
-	ifnull(ifnull(ti.cantidad_ingresos, 0) - ifnull(te.cantidad_egresos , 0), 0) as stock,
-	c.categoria,
-	GROUP_CONCAT(
-	ifnull(tu.id_asignacion, 0)
-	) AS id_asignacion,
-	GROUP_CONCAT(
-		ifnull(tu.asignacion, 0)
-		) AS asignacion,
-	GROUP_CONCAT(
-	ifnull(tu.id_unidad, 0)
-	) AS id_unidad,
-	GROUP_CONCAT(
-	ifnull(tu.unidad, 0)
-	) AS unidad,
-	GROUP_CONCAT(
-	ifnull(tu.cantidad_unidad, 0)
-	) AS cantidad_unidad,
-	GROUP_CONCAT(
-	ifnull(tp.id_precio, 0)
-	) AS id_precio,
-	GROUP_CONCAT(
-	ifnull(tp.precio, 0)            
-	) AS precio
-		from
-		inv_productos p
-		left join (
-			select
-			a.id_asignacion,
-			a.producto_id,
-			a.cantidad_unidad,
-			a.asignacion,
-			u.id_unidad,
-			u.unidad,
-			u.sigla,
-			u.descripcion
-			from
-			inv_asignaciones a
-			left join inv_unidades u on u.id_unidad = a.unidad_id
-			where a.estado = 'a'
-		) as tu 
-		on tu.producto_id =p.id_producto
-		left join (
-			select
-			asignacion_id,
-			producto_id,
-			id_precio,
-			precio
-			from
-			inv_precios
-			group by 
-			asignacion_id
-		) as tp 
-		on tp.producto_id =p.id_producto AND tu.id_asignacion = tp.asignacion_id
-		left join (
-			select
-				d.producto_id,
-				sum(d.cantidad * a.cantidad_unidad) as cantidad_ingresos
-			from
-				inv_ingresos_detalles d
-				left join inv_ingresos i on i.id_ingreso = d.ingreso_id
-				left join inv_asignaciones a ON d.unidad_id = a.unidad_id  and a.producto_id = d.producto_id and a.estado='a'           
-			where
-				i.almacen_id = 8
-			group by
-				d.producto_id
-		) as 
-		ti on ti.producto_id = p.id_producto
-		left join (
-			select
-				d.producto_id,
-				sum(d.cantidad * a.cantidad_unidad) as cantidad_egresos
-			from
-				inv_egresos_detalles d
-				left join inv_egresos e on e.id_egreso = d.egreso_id
-				left join inv_asignaciones a ON d.unidad_id = a.unidad_id and a.producto_id = d.producto_id and a.estado='a' 
-			where
-				e.almacen_id = 8 
-			group by
-				d.producto_id
-		) as
-		te on te.producto_id = p.id_producto
-		left join inv_categorias c on c.id_categoria = p.categoria_id
-	GROUP BY 
-	p.id_producto
-	")->fetch();
+	$productos = $db->query("select p.id_producto, p.codigo, p.nombre_factura, p.descripcion, p.color, p.nombre_factura, p.cantidad_minima, p.precio_actual, ifnull(e.cantidad_ingresos, 0) as cantidad_ingresos, ifnull(s.cantidad_egresos, 0) as cantidad_egresos, u.unidad, u.sigla, c.categoria from inv_productos p left join (select d.producto_id, sum(d.cantidad) as cantidad_ingresos from inv_ingresos_detalles d left join inv_ingresos i on i.id_ingreso = d.ingreso_id where i.almacen_id = $id_almacen group by d.producto_id ) as e on e.producto_id = p.id_producto left join (select d.producto_id, sum(d.cantidad) as cantidad_egresos from inv_egresos_detalles d left join inv_egresos e on e.id_egreso = d.egreso_id where e.almacen_id = $id_almacen group by d.producto_id ) as s on s.producto_id = p.id_producto left join inv_unidades u on u.id_unidad = p.unidad_id left join inv_categorias c on c.id_categoria = p.categoria_id")->fetch();
 } else {
 	$productos = null;
 }
@@ -140,7 +25,7 @@ $moneda = ($moneda) ? '(' . $moneda['sigla'] . ')' : '';
 // Obtiene el modelo almacenes
 $almacenes = $db->from('inv_almacenes')->order_by('almacen')->fetch();
 // Obtiene los proveedores
-$proveedores = $db->select('id_proveedor, proveedor')->from('inv_proveedores')->group_by('id_proveedor, proveedor')->order_by('id_proveedor, proveedor asc')->fetch();
+$proveedores = $db->select('id_proveedor, proveedor as nombre_proveedor')->from('inv_proveedores')->group_by('proveedor')->order_by('proveedor asc')->fetch();
 // Obtiene los permisos
 $permisos = explode(',', permits);
 // Almacena los permisos en variables
@@ -162,7 +47,7 @@ $permiso_listar = in_array('listar', $permisos);
 <div class="row">
 	<div class="col-md-6">
 		<div class="panel panel-default" data-servidor="<?= ip_local . name_project . '/ingreso.php'; ?>">
-			<div class="panel-heading" data-formato="<?= strtoupper($formato_textual); ?>" data-mascara="<?= $formato_numeral; ?>" data-gestion="<?= date_decode($gestion_base, $_institution['formato']); ?>">
+			<div class="panel-heading">
 				<h3 class="panel-title">
 					<span class="glyphicon glyphicon-list"></span>
 					<strong>Datos del ingreso</strong>
@@ -194,10 +79,10 @@ $permiso_listar = in_array('listar', $permisos);
 						<div class="form-group">
 							<label for="proveedor" class="col-sm-4 control-label">Proveedor:</label>
 							<div class="col-sm-8">
-								<select name="proveedor" id="proveedor" class="form-control" data-validation="required letternumber length" data-validation-allowing="-.#() " data-validation-length="max100">
+								<select name="nombre_proveedor" id="proveedor" class="form-control" data-validation="required letternumber length" data-validation-allowing="-.#() " data-validation-length="max100">
 									<option value="">Buscar</option>
 									<?php foreach ($proveedores as $elemento) { ?>
-										<option value="<?= escape($elemento['proveedor']); ?>"><?= escape($elemento['proveedor']); ?></option>
+										<option value="<?= escape($elemento['nombre_proveedor']); ?>"><?= escape($elemento['nombre_proveedor']); ?></option>
 									<?php } ?>
 								</select>
 							</div>
@@ -208,7 +93,7 @@ $permiso_listar = in_array('listar', $permisos);
 								<textarea name="descripcion" id="descripcion" class="form-control" autocomplete="off" data-validation="letternumber" data-validation-allowing="+-/.,:;#º()\n " data-validation-optional="true"></textarea>
 							</div>
 						</div>
-						<div class="table-responsive margin-none" >
+						<div class="table-responsive margin-none">
 							<table id="compras" class="table table-bordered table-condensed table-striped table-hover table-xl margin-none table-responsive-md">
 								<thead>
 									<tr class="active">
@@ -264,12 +149,12 @@ $permiso_listar = in_array('listar', $permisos);
 							</div>
 						</div>
 						<div class="form-group">
-							<label for="nombre_proveedor" class="col-sm-4 control-label">Proveedor:</label>
+							<label for="proveedor" class="col-sm-4 control-label">Proveedor:</label>
 							<div class="col-sm-8">
 								<select name="nombre_proveedor" id="proveedor" class="form-control" data-validation="required letternumber length" data-validation-allowing="-.#() " data-validation-length="max100">
 									<option value="">Buscar</option>
 									<?php foreach ($proveedores as $elemento) { ?>
-										<option value="<?= escape($elemento['proveedor']); ?>"><?= escape($elemento['proveedor']); ?></option>
+										<option value="<?= escape($elemento['nombre_proveedor']); ?>"><?= escape($elemento['nombre_proveedor']); ?></option>
 									<?php } ?>
 								</select>
 							</div>
@@ -284,21 +169,18 @@ $permiso_listar = in_array('listar', $permisos);
 							<table id="compras" class="table table-bordered table-condensed table-striped table-hover table-xl margin-none table-responsive-md">
 								<thead>
 									<tr class="active">
-										<th class="text-nowrap">Nº</th>
 										<th class="text-nowrap">Código</th>
 										<th class="text-nowrap">Nombre</th>
 										<th class="text-nowrap">Color</th>
-										<th class="text-nowrap">Fecha de vencimiento</th>
-										<th class="text-nowrap text-center">Unidad</th>
-										<th class="text-nowrap">Costo de compra</th>
-										<th class="text-nowrap text-center width-collapse">Cantidad</th>
+										<th class="text-nowrap">Cantidad</th>
+										<th class="text-nowrap">Costo</th>
 										<th class="text-nowrap">Importe</th>
 										<th class="text-nowrap text-center"><span class="glyphicon glyphicon-trash"></span></th>
 									</tr>
 								</thead>
 								<tfoot>
 									<tr class="active">
-										<th class="text-nowrap text-right" colspan="8">Importe total <?= escape($moneda); ?></th>
+										<th class="text-nowrap text-right" colspan="5">Importe total <?= escape($moneda); ?></th>
 										<th class="text-nowrap text-right" data-subtotal="">0.00</th>
 										<th class="text-nowrap text-center"><span class="glyphicon glyphicon-trash"></span></th>
 									</tr>
@@ -376,100 +258,17 @@ $permiso_listar = in_array('listar', $permisos);
 									<td class="text-nowrap"><?= escape($producto['categoria']); ?></td>
 									<td class="text-nowrap text-right"><?= escape($producto['cantidad_ingresos'] - $producto['cantidad_egresos']); ?></td>
 									<?php if ($rol_id == '1' ) { ?>
-
-										<!--obtiene las asignaciones de unidad por producto, con sus respectivos costos -->
-										<?php 
-											$id_producto = ($producto) ? $producto['id_producto'] : 0;
-											$asignaciones = $db->query("select
-											p.id_producto,
-											tu.id_asignacion,
-											tu.asignacion,
-											tu.id_unidad,
-											tu.unidad,
-											tu.sigla,
-											tu.descripcion,
-											tu.cantidad_unidad,
-											tp.id_precio,
-											tp.precio
-											from
-											inv_productos p
-											left join (
-												select
-												a.id_asignacion,
-												a.producto_id,
-												a.cantidad_unidad,
-												a.asignacion,
-												u.id_unidad,
-												u.unidad,
-												u.sigla,
-												u.descripcion
-												from
-												inv_asignaciones a
-												left join inv_unidades u on u.id_unidad = a.unidad_id
-												where a.estado = 'a'
-											) as tu 
-											on tu.producto_id =p.id_producto
-											left join (
-												select
-												asignacion_id,
-												producto_id,
-												id_precio,
-												precio
-												from
-												inv_precios
-												group by 
-												asignacion_id
-											) as tp 
-											on tp.producto_id =p.id_producto and  tu.id_asignacion = tp.asignacion_id
-											where p.id_producto= $id_producto 
-											group by 
-											tu.id_asignacion")->fetch();
-										?>
-
-										<?php 
-											// obteniendo unidades
-											$unidades  = explode(',', $producto['unidad']);
-											// obteniendo asignaciones
-											$asignaciones  = explode(',', $producto['asignacion']);
-											// obteniendo precios
-											$precios  = explode(',', $producto['precio']);
-										?>
-
-										<td class="text-nowrap text-middle text-right text-sm" data-contador="0" data-limit="<?= count($asignaciones); ?>" data-valor="<?= $producto['id_producto']; ?>" data-unidades="<?php echo htmlspecialchars(json_encode($asignaciones), ENT_QUOTES, 'UTF-8') ?>">
-											<!-- obteniendo unidades asignadas -->
-
-
-											<?php for ($x = 0; $x <= count($asignaciones) - 1; $x++) {?>
-												<!-- obteniendo fechas de productos por fecha de vencimiento -->	
-												<?php if($asignaciones[$x] != 'principal'){ ?>
-													<div class="asignacion-style">
-														<div class="col-sm-9">
-															<span class="block text-right text-success" >
-																-<?= escape($unidades[$x].': '); ?><b><?= escape($precios[$x]); ?>
-															</span>
-														</div>
-													</div>
-												<?php } else { ?>
-													<div class="asignacion-style">
-														<div class="col-sm-9">
-															<span class="block text-right text-success" >
-																-<?= escape($unidades[$x].': '); ?><b><?= escape($precios[$x]); ?>
-															</span>
-														</div>
-													</div>
-												<?php } ?>
-											<?php } ?>
-										</td>
+										<td class="text-nowrap text-right"><?= escape($producto['precio_actual']); ?></td>
 									<?php }elseif ($rol_id == '2') {?>
 										<td class="text-nowrap text-right"><?= escape($producto['precio_actual']); ?></td>
 									<?php	}elseif ($rol_id == '3') {?>
 										<td style="display: none;" class="text-nowrap text-right"><?= escape($producto['precio_actual']); ?></td>
 									<?php	}elseif ($rol_id == '4') {?>
 										<td style="display: none;" class="text-nowrap text-right"><?= escape($producto['precio_actual']); ?></td>
-									<?php	 }?>
+									<?php	}?>
 
 									<td class="text-nowrap">
-										<button type="button" class="btn btn-xs btn-primary" data-comprar="<?= $producto['id_producto']; ?>" onclick="prueba('<?= $producto['id_producto']; ?>')" data-toggle="tooltip" data-title="Comprar"><span class="glyphicon glyphicon-share-alt"></span></button>
+										<button type="button" class="btn btn-xs btn-primary" data-comprar="<?= $producto['id_producto']; ?>" data-toggle="tooltip" data-title="Comprar"><span class="glyphicon glyphicon-share-alt"></span></button>
 									</td>
 								</tr>
 							<?php } ?>
@@ -487,34 +286,53 @@ $permiso_listar = in_array('listar', $permisos);
 </div>
 <script src="<?= js; ?>/jquery.form-validator.min.js"></script>
 <script src="<?= js; ?>/jquery.form-validator.es.js"></script>
-<script src="<?= js; ?>/jquery.maskedinput.min.js"></script>
 <script src="<?= js; ?>/jquery.dataTables.min.js"></script>
 <script src="<?= js; ?>/dataTables.bootstrap.min.js"></script>
 <script src="<?= js; ?>/selectize.min.js"></script>
 <script src="<?= js; ?>/bootstrap-notify.min.js"></script>
 <script src="<?= js; ?>/buzz.min.js"></script>
-<script src="<?= js; ?>/jquery.dataFilters.min.js"></script>
-<script src="<?= js; ?>/moment.min.js"></script>
-<script src="<?= js; ?>/moment.es.js"></script>
-<script src="<?= js; ?>/bootstrap-datetimepicker.min.js"></script>
 <script>
 	var rol_id= "<?= $rol_id;?>";
-
-// funcion general para la busqueda y modales
+//console.log(rol_id);
 $(function () {
-	// definicion de variables globales
 	var $formulario = $('#formulario');
 	var blup = new buzz.sound('<?= media; ?>/blup.mp3');
-
-	// inicia el datatable para el filtrado
+	$.validate({
+		form: '#formulario',
+		modules: 'basic',
+		onSuccess: function () {
+			guardar_nota();
+		}
+	});
+	$formulario.on('submit', function (e) {
+		e.preventDefault();
+	});
+	var $modal_mostrar = $('#modal_mostrar'), $loader_mostrar = $('#loader_mostrar'), size, title, image;
+	$modal_mostrar.on('hidden.bs.modal', function () {
+		$loader_mostrar.show();
+		$modal_mostrar.find('.modal-dialog').attr('class', 'modal-dialog');
+		$modal_mostrar.find('.modal-title').text('');
+	}).on('show.bs.modal', function (e) {
+		size = $(e.relatedTarget).attr('data-modal-size');
+		title = $(e.relatedTarget).attr('data-modal-title');
+		image = $(e.relatedTarget).attr('src');
+		size = (size) ? 'modal-dialog ' + size : 'modal-dialog';
+		title = (title) ? title : 'Imagen';
+		$modal_mostrar.find('.modal-dialog').attr('class', size);
+		$modal_mostrar.find('.modal-title').text(title);
+		$modal_mostrar.find('[data-modal-image]').attr('src', image);
+	}).on('shown.bs.modal', function () {
+		$loader_mostrar.hide();
+	});
+	$('[data-comprar]').on('click', function () {
+		adicionar_producto($.trim($(this).attr('data-comprar')));
+	});
 	$('#productos').dataTable({
 		info: false,
 		lengthMenu: [[25, 50, 100, 500, -1], [25, 50, 100, 500, 'Todos']],
 		order: []
 	});
 	$('#productos_wrapper .dataTables_paginate').parent().attr('class', 'col-sm-12 text-right');
-
-	// inicia el selector de proveedor
 	$('#proveedor').selectize({
 		persist: false,
 		createOnBlur: true,
@@ -535,8 +353,6 @@ $(function () {
 			$('#proveedor').trigger('blur');
 		}
 	});
-
-	// inicia el selector de proveedor
 	$('#almacen').selectize({
 		persist: false,
 		onInitialize: function () {
@@ -555,181 +371,80 @@ $(function () {
 			$('#almacen').trigger('blur');
 		}
 	});
-
-	// valida los datos del formulario
-	$.validate({
-		form: '#formulario',
-		modules: 'basic',
-		onSuccess: function () {
-			guardar_compra();
-		}
-	});
-
-	// deshabilita el evento que lleva por defecto
-	$formulario.on('submit', function (e) {
-		e.preventDefault();
-	});
-
-	var $modal_mostrar = $('#modal_mostrar'), $loader_mostrar = $('#loader_mostrar'), size, title, image;
-	$modal_mostrar.on('hidden.bs.modal', function () {
-		$loader_mostrar.show();
-		$modal_mostrar.find('.modal-dialog').attr('class', 'modal-dialog');
-		$modal_mostrar.find('.modal-title').text('');
-	}).on('show.bs.modal', function (e) {
-		size = $(e.relatedTarget).attr('data-modal-size');
-		title = $(e.relatedTarget).attr('data-modal-title');
-		image = $(e.relatedTarget).attr('src');
-		size = (size) ? 'modal-dialog ' + size : 'modal-dialog';
-		title = (title) ? title : 'Imagen';
-		$modal_mostrar.find('.modal-dialog').attr('class', size);
-		$modal_mostrar.find('.modal-title').text(title);
-		$modal_mostrar.find('[data-modal-image]').attr('src', image);
-	}).on('shown.bs.modal', function () {
-		$loader_mostrar.hide();
-	});
-
-	// envia toda la tabla y el formulaario de compra 
-	$('[data-comprar]').on('click', function () {
-		adicionar_producto($.trim($(this).attr('data-comprar')));
-	});
-
-	// vacia toda la tabla y el formulaario de la compra
-	$('#formulario').on('reset', function () {
-		$('#compras tbody').find('[data-importe]').text('0.00');
-		$('#compras tbody').empty();
-		calcular_total();
-	});
-	// dispara el evento click
-	$('#formulario :reset').trigger('click');
-
-	// escucha el evento reset y limpia los select option
 	$(':reset').on('click', function () {
 		$('#proveedor')[0].selectize.clear();
 		$('#almacen')[0].selectize.clear();
 	});
+	$.validate({
+		modules: 'basic'
+	});
+	$('#formulario').on('reset', function () {
+//$('#compras tbody').find('[data-importe]').text('0.00');
+$('#compras tbody').empty();
+calcular_total();
 });
-
-
-/**  inicia date picker para cada celda */
-function adicionar_fecha(numero, id_producto){
-	var $producto = $('[data-producto=' + id_producto + '][data-position='+numero+ ']');
-	var $inicial_fecha = $producto.find('[data-fecha]');
-	// var $fecha = $producto.find('#fecha-'+id_producto );
-
-	var formato = $('[data-formato]').attr('data-formato');
-	var mascara = $('[data-mascara]').attr('data-mascara');
-	var gestion = $('[data-gestion]').attr('data-gestion');
-
-	$inicial_fecha.datetimepicker({
-		format: formato
-	});
-
-	$inicial_fecha.on('click', function (e) {
-		$inicial_fecha.val(e.date);
-		$fecha.data('DateTimePicker').minDate('now');
-	});
-}
-
-
-/** funcion adicionar producto */
+	$('#formulario :reset').trigger('click');
+});
 function adicionar_producto(id_producto) {
-	// definiendo base de la tabla
-	var $compras = $('#compras tbody');
-	// busca el dom compra - producto
-	var $producto = $compras.find('[data-producto=' + id_producto + ']');
-	// busca el dom compra - producto - cantidad
+	var $producto = $('[data-producto=' + id_producto + ']');
 	var $cantidad = $producto.find('[data-cantidad]');
-
-	// define un contador anonimo
-	var numero = $compras.find('[data-producto]').size() + 1;
-	// recupera el codigo de producto
+	var $compras = $('#compras tbody');
 	var codigo = $.trim($('[data-codigo=' + id_producto + ']').text());
-	// recupera el nombre de producto
 	var nombre = $.trim($('[data-nombre=' + id_producto + ']').text());
-	// recupera el color de producto
 	var color = $.trim($('[data-color=' + id_producto + ']').text());
-	// recupera un contador para cada producto
-	var contador = parseInt($('[data-valor=' + id_producto + ']')[0].dataset.contador);
-	var limit = parseInt($('[data-valor=' + id_producto + ']')[0].dataset.limit);
-
-    var valor =$.trim($('[data-valor=' + id_producto + ']').text());
-	var posicion = valor.indexOf(':');
-    var porciones = valor.split('-');
-	console.log(limit)
-
-
 	var plantilla = '';
 	var cantidad;
-	//console.log(nombre,color);
-	if (contador < limit ) {
-		/** seccion activa para bucle */
-		plantilla = '<tr class="active" data-producto="' + id_producto + '" data-position="'+numero+'">'+
-		'<td class="text-nowrap">' + numero + '</td>' +
+//console.log(nombre,color);
+if ($producto.size()) {
+	cantidad = $.trim($cantidad.val());
+	cantidad = ($.isNumeric(cantidad)) ? parseInt(cantidad) : 0;
+	cantidad = (cantidad < 9999999) ? cantidad + 1: cantidad;
+	$cantidad.val(cantidad).trigger('blur');
+} else {
+	if ("<?= $rol_id >= 3;?>") {
+		plantilla = '<tr class="active" data-producto="' + id_producto + '">' +
 		'<td class="text-nowrap"><input type="text" value="' + id_producto + '" name="productos[]" class="translate" tabindex="-1" data-validation="required number" data-validation-error-msg="Debe ser número">' + codigo + '</td>' +
 		'<td><input type="hidden" value="' + nombre + '" name="nprod[]">' + nombre + '</td>' + '<td>' + color + '</td>' +
-		'<td><input type="text" name="fechas[]"  value="<?= ($fecha_inicial != $gestion_base) ? date_decode($fecha_inicial, $_institution['formato']) : now(); ?>" id="fecha-' + id_producto + '"  class="form-control input-xs text-right" autocomplete="off" data-fecha="<?= now(); ?>" data-validation="date" data-validation-format="<?= $formato_textual; ?>" data-validation-optional="true" onclick="adicionar_fecha('+numero +',' + id_producto + ')"> </td>';
-		
-		if(porciones.length>2){
-			plantilla = plantilla+'<td><select name="unidad[]" id="unidad" data-xxx="true" class="form-control input-xs" >';
-			aparte = porciones[1].split(':');
-			for(var ic=1;ic<porciones.length;ic++){
-					parte = porciones[ic].split(':');
-				plantilla = plantilla+'<option value="' + parte[0] + '" data-yyy="' +parte[1]+ '" >' +parte[0]+ '</option>';
-				console.log(parte[0],parte[1] )
-			}
-			plantilla = plantilla+'</select></td>'+
-			'<td><input type="text" value="' + parseFloat(aparte[1]) + '" name="costos[]" class="form-control input-xs text-right" autocomplete="off" data-costo="' + parseFloat(aparte[1]) + '"  data-validation-error-msg="Debe ser un número decimal positivo" onkeyup="calcular_importe('+numero +',' + id_producto + ')"></td>';
-		}
-		else{
-			parte = porciones[1].split(':');
-			plantilla = plantilla + '<td><input type="text" value="' + parte[0] + '" name="unidad[]" class="form-control input-xs text-right" autocomplete="off" data-unidad="' + parte[0] + '" readonly data-validation-error-msg="Debe ser un número decimal positivo"></td>'+
-									'<td><input type="text" value="' + parseFloat(parte[1]) + '" name="costos[]" class="form-control input-xs text-right" autocomplete="off" data-costo="' + parseFloat(parte[1]) + '"  data-validation-error-msg="Debe ser un número decimal positivo" onkeyup="calcular_importe('+numero +',' + id_producto + ')"></td>';
-		}
-		plantilla = plantilla + 
-		'<td><input type="text" value="1" name="cantidades[]" class="form-control input-xs text-right" maxlength="7" autocomplete="off" data-cantidad="" data-validation="required number" data-validation-error-msg="Debe ser número entero positivo" onkeyup="calcular_importe('+numero +',' + id_producto + ')"></td>' +'<td class="text-nowrap text-right" data-importe="">0.00</td>' +
-			'<td class="text-nowrap text-center">' +
-				'<button type="button" class="btn btn-xs btn-primary" data-toggle="tooltip"  data-title="Item por fecha"  title=""  onclick="adicionar_producto_unidad('+numero +','+ id_producto+')"><span class="glyphicon glyphicon-plus"></span></button>'+
-				'<button type="button" class="btn btn-xs btn-danger" data-toggle="tooltip" data-title="Eliminar producto" tabindex="-1" onclick="eliminar_producto_unidad('+numero +', ' + id_producto + ')"><span class="glyphicon glyphicon-remove"></span></button>'+
-			'</td>' +
+		'<td><input type="text" value="1" name="cantidades[]" class="form-control input-xs text-right" maxlength="7" autocomplete="off" data-cantidad="" data-validation="required number" data-validation-error-msg="Debe ser número entero positivo" onkeyup="calcular_importe(' + id_producto + ')"></td>' +
+		'<td style="display: none;"><input type="text" value="0.00" name="costos[]" class="form-control input-xs text-right" autocomplete="off" data-costo="" data-validation="required number" data-validation-allowing="range[0.01;1000000.00],float" data-validation-error-msg="Debe ser número decimal positivo" onkeyup="calcular_importe(' + id_producto + ')" onblur="redondear_importe(' + id_producto + ')"></td>' +
+		'<td style="display: none;" class="text-nowrap text-right" data-importe="">0.00</td>' +
+		'<td class="text-nowrap text-center">' +
+		'<button type="button" class="btn btn-xs btn-danger" data-toggle="tooltip" data-title="Eliminar producto" tabindex="-1" onclick="eliminar_producto(' + id_producto + ')"><span class="glyphicon glyphicon-remove"></span></button>' +
+		'</td>' +
 		'</tr>';
-		//console.log(plantilla);
-		$compras.append(plantilla);
-		contador = contador + 1;
-		
-		$('[data-valor=' + id_producto + ']').attr("data-contador",   + contador );
-		$compras.find('[data-cantidad], [data-costo]').on('click', function () {
-			$(this).select();
-		});
-
-		//obtendra el precio inicial por cada producto
-		$compras.find('[data-xxx]').on('change', function () {
-            var v = $(this).find('option:selected').attr('data-yyy');
-            $(this).parent().parent().find('[data-costo]').val(parseFloat(v));
-            //$(this).parent().parent().find('[data-costo]').attr('value' ,parseFloat(v));
-            calcular_importe(numero, id_producto);
-        });
-
-
-		$compras.find('[title]').tooltip({
-			container: 'body',
-			trigger: 'hover'
-		});
-
-		// validar datos
-		$.validate({
-			form: '#formulario',
-			modules: 'basic',
-			onSuccess: function () {
-				guardar_compra();
-			}
-		});
+	}else{
+		if ("<?= $rol_id <= 2;?> " ) {
+			plantilla = '<tr class="active" data-producto="' + id_producto + '">' +
+			'<td class="text-nowrap"><input type="text" value="' + id_producto + '" name="productos[]" class="translate" tabindex="-1" data-validation="required number" data-validation-error-msg="Debe ser número">' + codigo + '</td>' +
+			'<td><input type="hidden" value="' + nombre + '" name="nprod[]">' + nombre + '</td>' + '<td>' + color + '</td>' +
+			'<td><input type="text" value="1" name="cantidades[]" class="form-control input-xs text-right" maxlength="7" autocomplete="off" data-cantidad="" data-validation="required number" data-validation-error-msg="Debe ser número entero positivo" onkeyup="calcular_importe(' + id_producto + ')"></td>' +
+			'<td><input type="text" value="0.00" name="costos[]" class="form-control input-xs text-right" autocomplete="off" data-costo="" data-validation="required number" data-validation-allowing="range[0.01;1000000.00],float" data-validation-error-msg="Debe ser número decimal positivo" onkeyup="calcular_importe(' + id_producto + ')" onblur="redondear_importe(' + id_producto + ')"></td>' +
+			'<td class="text-nowrap text-right" data-importe="">0.00</td>' +
+			'<td class="text-nowrap text-center">' +
+			'<button type="button" class="btn btn-xs btn-danger" data-toggle="tooltip" data-title="Eliminar producto" tabindex="-1" onclick="eliminar_producto(' + id_producto + ')"><span class="glyphicon glyphicon-remove"></span></button>' +
+			'</td>' +
+			'</tr>';
+		}
 	}
-	
-	calcular_importe(numero, id_producto);
-	adicionar_fecha(numero, id_producto);
+//console.log(plantilla);
+$compras.append(plantilla);
+$compras.find('[data-cantidad], [data-costo]').on('click', function () {
+	$(this).select();
+});
+$compras.find('[title]').tooltip({
+	container: 'body',
+	trigger: 'hover'
+});
+$.validate({
+	form: '#formulario',
+	modules: 'basic',
+	onSuccess: function () {
+		guardar_nota();
+	}
+});
 }
-
-/** funcion eliminar producto (no utilizada) */
+calcular_importe(id_producto);
+}
 function eliminar_producto(id_producto) {
 	bootbox.confirm('Está seguro que desea eliminar el producto?', function (result) {
 		if(result){
@@ -738,8 +453,6 @@ function eliminar_producto(id_producto) {
 		}
 	});
 }
-
-/** funcion redondear el costo de compra (no utilizada) */
 function redondear_importe(id_producto) {
 	var $producto = $('[data-producto=' + id_producto + ']');
 	var $costo = $producto.find('[data-costo]');
@@ -749,60 +462,21 @@ function redondear_importe(id_producto) {
 	$costo.val(costo);
 	calcular_importe(id_producto);
 }
-
-/** calcula el importe de cada item de producto */
-function calcular_importe(numero, id_producto) {
-	var $producto = $('[data-producto=' + id_producto + '][data-position='+numero+ ']');
+function calcular_importe(id_producto) {
+	var $producto = $('[data-producto=' + id_producto + ']');
 	var $cantidad = $producto.find('[data-cantidad]');
-	var $precio = $producto.find('[data-costo]');
+	var $costo = $producto.find('[data-costo]');
 	var $importe = $producto.find('[data-importe]');
-	var cantidad, precio, importe;
-
+	var cantidad, costo, importe;
 	cantidad = $.trim($cantidad.val());
 	cantidad = ($.isNumeric(cantidad)) ? parseInt(cantidad) : 0;
-	precio = $.trim($precio.val());
-	precio = ($.isNumeric(precio)) ? parseFloat(precio) : 0.00;
-	importe = cantidad * precio;
+	costo = $.trim($costo.val());
+	costo = ($.isNumeric(costo)) ? parseFloat(costo) : 0.00;
+	importe = cantidad * costo;
 	importe = importe.toFixed(2);
 	$importe.text(importe);
 	calcular_total();
 }
-
-/** adiciona item por unidad */
-function adicionar_producto_unidad(numero, id_producto){
-	var $compras = $('#compras tbody');
-	var $producto = $compras.find('[data-producto=' + id_producto + '][data-position='+numero+ ']');
-	var $cantidad = $producto.find('[data-cantidad]');
-	cantidad = $.trim($cantidad.val());
-	cantidad = ($.isNumeric(cantidad)) ? parseInt(cantidad) : 0;
-	cantidad = (cantidad < 9999999) ? cantidad + 1: cantidad;
-	$cantidad.val(cantidad).trigger('blur');
-	calcular_importe(numero, id_producto);
-}
-
-/** eliminar item generado por unidad */
-function eliminar_producto_unidad(numero, id_producto) {
-	// definiendo base de la tabla
-	var $compras = $('#compras tbody');
-	// elimina item de la posicion "numero"
-	$compras.find('[data-producto=' + id_producto + '][data-position='+numero+ ']').remove();
-	// recupera un contador para cada producto
-	var contador = parseInt($('[data-valor=' + id_producto + ']')[0].dataset.contador);
-	$('[data-valor=' + id_producto + ']').attr("data-contador",   + contador - 1 );
-	renumerar_productos();
-    calcular_total();
-}
-
-/**  reinicia la cantidad de registros actuales */
-function renumerar_productos() {
-	var $compras = $('#compras tbody');
-	var $productos = $compras.find('[data-producto]');
-	$productos.each(function (i) {
-		$(this).find('td:first').text(i + 1);
-	});
-}
-
-/**  obtiene el costo total de la compra */
 function calcular_total() {
 	var $compras = $('#compras tbody');
 	var $total = $('[data-subtotal]:first');
@@ -817,93 +491,81 @@ function calcular_total() {
 	$('[data-compras]:first').val($importes.size()).trigger('blur');
 	$('[data-total]:first').val(total.toFixed(2)).trigger('blur');
 }
-
-/**  inicia la peticion para guardar compra */
-function guardar_compra() {
+function guardar_nota() {
 	var data = $('#formulario').serialize();
-	console.log(data)
-	//$('#loader').fadeIn(100);
+	//console.log(data);
+	$('#loader').fadeIn(100);
 	$.ajax({
 		type: 'POST',
 		dataType: 'json',
 		url: '?/ingresos/guardar',
 		data: data
-	}).done(function (compra) {
-		// console.log(compra);
-		if (compra) {
+	}).done(function (venta) {
+		//console.log(venta);
+		if (venta) {
 			$.notify({
-				message: 'La compra fue realizada satisfactoriamente.'
+				message: 'La nota de entrega fue realizada satisfactoriamente.'
 			}, {
 				type: 'success'
-			}); 
+			});
+			imprimir_nota(venta);
+		} else {
 			$('#loader').fadeOut(100);
-			generar_pdf_compra(compra['id_ingreso']);
+			$.notify({
+				message: 'Ocurrió un problema en el proceso, no se puedo guardar los datos de la nota de entrega, verifique si la se guardó parcialmente.'
+			}, {
+				type: 'danger'
+			});
 		}
 	}).fail(function () {
 		$('#loader').fadeOut(100);
 		$.notify({
-			message: 'Ocurrió un problema en el proceso, no se puedo guardar los datos de la compra de entrega, verifique si la se guardó parcialmente2.'
+			message: 'Ocurrió un problema en el proceso, no se puedo guardar los datos de la nota de entrega, verifique si la se guardó parcialmente2.'
 		}, {
 			type: 'danger'
 		});
-		
-	}).always(function () {
-		$('#formulario :reset').trigger('click');
-		window.location.reload();
 	});
 }
-
-/**  inicia la peticion para generar pdf de la compra */
-function generar_pdf_compra(id) {
-	$id_ingreso = parseInt(id);
-	url = '?/ingresos/imprimir/' + $id_ingreso;
-	console.log(url)
-	window.open('?/ingresos/imprimir/' + $id_ingreso,'_blank');
-}
-
-/**  inicia la peticion para imprimir la compra */
-function imprimir_compra(compra) {
+function imprimir_nota(nota) {
 	var servidor = $.trim($('[data-servidor]').attr('data-servidor'));
-	//console.log(servidor);
-	$.ajax({
-		type: 'POST',
-		dataType: 'json',
-		url: servidor,
-		data: compra
-	}).done(function (respuesta) {
-		$('#loader').fadeOut(100);
-		switch (respuesta.estado) {
-			case 's':
-			window.location.reload();
-			break;
-			case 'p':
-			$.notify({
-				message: 'La impresora no responde, asegurese de que este conectada y registrada en el sistema, una vez solucionado el problema vuelva a intentarlo nuevamente.'
-			}, {
-				type: 'danger'
-			});
-			break;
-			default:
-			$.notify({
-				message: 'Ocurrió un problema durante el proceso, no se envió los datos para la impresión de la factura.'
-			}, {
-				type: 'danger'
-			});
-			break;
-		}
-	}).fail(function () {
-		$('#loader').fadeOut(100);
+//console.log(servidor);
+$.ajax({
+	type: 'POST',
+	dataType: 'json',
+	url: servidor,
+	data: nota
+}).done(function (respuesta) {
+	$('#loader').fadeOut(100);
+	switch (respuesta.estado) {
+		case 's':
+		window.location.reload();
+		break;
+		case 'p':
 		$.notify({
-			message: 'Ocurrió un problema durante el proceso, reinicie la terminal para dar solución al problema y si el problema persiste contactese con el con los desarrolladores.'
+			message: 'La impresora no responde, asegurese de que este conectada y registrada en el sistema, una vez solucionado el problema vuelva a intentarlo nuevamente.'
 		}, {
 			type: 'danger'
 		});
-	}).always(function () {
-		$('#formulario').trigger('reset');
-		$('#form_buscar_0').trigger('submit');
-		location.reload();
+		break;
+		default:
+		$.notify({
+			message: 'Ocurrió un problema durante el proceso, no se envió los datos para la impresión de la factura.'
+		}, {
+			type: 'danger'
+		});
+		break;
+	}
+}).fail(function () {
+	$('#loader').fadeOut(100);
+	$.notify({
+		message: 'Ocurrió un problema durante el proceso, reinicie la terminal para dar solución al problema y si el problema persiste contactese con el con los desarrolladores.'
+	}, {
+		type: 'danger'
 	});
+}).always(function () {
+	$('#formulario').trigger('reset');
+	$('#form_buscar_0').trigger('submit');
+});
 }
-
 </script>
 <?php require_once show_template('footer-empty'); ?>

@@ -21,8 +21,6 @@ if (is_ajax() && is_post()) {
 		$productos = (isset($_POST['productos'])) ? $_POST['productos'] : array();
         $unidad = (isset($_POST['unidad'])) ? $_POST['unidad']: array();
         $nombres = (isset($_POST['nombres'])) ? $_POST['nombres'] : array();
-		$fechas = (isset($_POST['fecha'])) ? $_POST['fecha'] : array();
-
 		$cantidades = (isset($_POST['cantidades'])) ? $_POST['cantidades'] : array();
 		$precios = (isset($_POST['precios'])) ? $_POST['precios'] : array();
 		$descuentos = (isset($_POST['descuentos'])) ? $_POST['descuentos'] : array();
@@ -31,17 +29,15 @@ if (is_ajax() && is_post()) {
 		$almacen_id = trim($_POST['almacen_id']);
 
 		//obtiene al cliente
-        $cliente = $db->select('*')->from('inv_clientes')->where(array('cliente' => $nombre_cliente, 'nit' => $nit_ci))->fetch_first();
-        if(!$cliente){
+        /*$cliente = $db->select('*')->from('inv_clientes')->where(array('cliente' => $nombre_cliente, 'nit' => $nit_ci))->fetch_first();
+        if(!cliente){
             $cl = array(
                 'cliente' => $nombre_cliente,
                 'nit' => $nit_ci,
-				'direccion'=>null,
-                'telefono' => $telefono,
-				'estado'=>'Si'
+                'telefono' => $telefono
             );
             $db->insert('inv_clientes',$cl);
-        }
+        }*/
 
 		// Obtiene el numero de nota
 		$nro_factura = $db->query("select count(id_egreso) + 1 as nro_factura from inv_egresos where tipo = 'Venta' and provisionado = 'S'")->fetch_first();
@@ -71,7 +67,7 @@ if (is_ajax() && is_post()) {
 			'nro_factura' => $nro_factura,
 			'nro_autorizacion' => '',
 			'codigo_control' => '',
-			'fecha_limite' => date('Y-m-d'),
+			'fecha_limite' => '0000-00-00',
 			'monto_total' => $monto_total,
 			'nit_ci' => $nit_ci,
 			'nombre_cliente' => mb_strtoupper($nombre_cliente, 'UTF-8'),
@@ -85,29 +81,21 @@ if (is_ajax() && is_post()) {
 
 		// Recorre los productos
 		foreach ($productos as $nro => $elemento) {
-            
-			
-
-			/*
-			$id_unidade=$db->select('*')->from('inv_asignaciones a')->join('inv_unidades u','a.unidad_id=u.id_unidad')->where(array('u.unidad' => $unidad[$nro], 'a.producto_id' => $productos[$nro]))->fetch_first();
+            $id_unidade=$db->select('*')->from('inv_asignaciones a')->join('inv_unidades u','a.unidad_id=u.id_unidad')->where(array('u.unidad' => $unidad[$nro], 'a.producto_id' => $productos[$nro]))->fetch_first();
             if($id_unidade){
                 $id_unidad = $id_unidade['id_unidad'];
                 $cantidad = $cantidades[$nro]*$id_unidade['cantidad_unidad'];
             }else{
-                $id_unidad = $db->select('id_unidad')->from('inv_unidades')->where('unidad',$unidad[$nro])->fetch_first()['id_unidad'];
+                $id_uni = $db->select('id_unidad')->from('inv_unidades')->where('unidad',$unidad[$nro])->fetch_first();
+                $id_unidad = $id_uni['id_unidad'];
                 $cantidad = $cantidades[$nro];
             }
-			*/
-			// recupera unidades
-			$id_unidad = $db->select('id_unidad')->from('inv_unidades')->where('unidad',$unidad[$nro])->fetch_first()['id_unidad'];
-
             // Forma el detalle
 			$detalle = array(
-                'precio' => (isset($precios[$nro])) ? $precios[$nro]: 0,
-                'unidad_id'=>$id_unidad,
-				'cantidad' => (isset($cantidades[$nro])) ? $cantidades[$nro]: 0,
-				'descuento' => (isset($descuentos[$nro])) ? $descuentos[$nro]: 0,
-				'fecha_vencimiento' => (isset($fechas[$nro])) ? $fechas[$nro]: 0,
+				'cantidad' => $cantidad,
+				'precio' => $precios[$nro],
+                'unidad_id' => $id_unidad,
+				'descuento' => $descuentos[$nro],
 				'producto_id' => $productos[$nro],
 				'egreso_id' => $egreso_id
 			);

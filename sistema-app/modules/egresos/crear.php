@@ -17,23 +17,7 @@ if (!$almacen) {
 	exit;
 }
 // Obtiene los productos
-$productos = $db->query("select p.id_producto, p.codigo, p.nombre, p.descripcion, p.color, p.cantidad_minima, p.precio_actual,
-ifnull(e.costo, 0) as costo,
-ifnull(e.cantidad_ingresos, 0) as cantidad_ingresos,
-ifnull(s.cantidad_egresos, 0) as cantidad_egresos, u.unidad, u.sigla, c.categoria 
-from inv_productos p 
-left JOIN (
-   select d.producto_id, d.costo, sum(d.cantidad) as cantidad_ingresos 
-   from inv_ingresos_detalles d
-   left join inv_ingresos i on i.id_ingreso = d.ingreso_id where i.almacen_id = $id_almacen  
-   group by d.producto_id, d.costo) as e on e.producto_id = p.id_producto 
-   left join (
-	   select d.producto_id, sum(d.cantidad) as cantidad_egresos 
-	   from inv_egresos_detalles d left join inv_egresos e on e.id_egreso = d.egreso_id where e.almacen_id = $id_almacen 
-	   group by d.producto_id) as s on s.producto_id = p.id_producto 
-	   left join inv_unidades u on u.id_unidad = p.unidad_id 
-	   left join inv_categorias c on c.id_categoria = p.categoria_id
-		")->fetch();
+$productos = $db->query("select p.id_producto, p.codigo, p.nombre, p.descripcion, p.color, p.cantidad_minima, p.precio_actual, ifnull(e.costo, 0) as costo, ifnull(e.cantidad_ingresos, 0) as cantidad_ingresos, ifnull(s.cantidad_egresos, 0) as cantidad_egresos, u.unidad, u.sigla, c.categoria from inv_productos p left join (select d.producto_id, d.costo, sum(d.cantidad) as cantidad_ingresos from inv_ingresos_detalles d left join inv_ingresos i on i.id_ingreso = d.ingreso_id where i.almacen_id = $id_almacen group by d.producto_id) as e on e.producto_id = p.id_producto left join (select d.producto_id, sum(d.cantidad) as cantidad_egresos from inv_egresos_detalles d left join inv_egresos e on e.id_egreso = d.egreso_id where e.almacen_id = $id_almacen group by d.producto_id) as s on s.producto_id = p.id_producto left join inv_unidades u on u.id_unidad = p.unidad_id left join inv_categorias c on c.id_categoria = p.categoria_id")->fetch();
 // Obtiene la moneda oficial
 $moneda = $db->from('inv_monedas')->where('oficial', 'S')->fetch_first();
 $moneda = ($moneda) ? '(' . $moneda['sigla'] . ')' : '';
