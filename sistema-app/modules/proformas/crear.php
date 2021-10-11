@@ -500,11 +500,37 @@ span.block.text-right.text-success, span.block.text-right.text-danger {
 									<?php } ?>
 								</td>
 
-								
-								<td class="text-right" data-valor="<?= $producto['id_producto']; ?>">
-									*<?= escape($producto['unidad'].': '); ?><b><?= escape($producto['precio_actual']); ?></b>
-									<?php foreach($otro_precio as $otro){ ?>
-										<br/>*<?= escape($otro['unidad'].': '); ?><b><?= escape($otro['otro_precio']); ?></b>
+								<!--obtiene las asignaciones de unidad por producto, con sus respectivos costos -->
+								<?php 
+									// obteniendo unidades
+									$unidades  = explode(',', $producto['unidad']);
+									// obteniendo asignaciones
+									$asignaciones  = explode(',', $producto['id_asignacion']);
+									// obteniendo precios
+									$precios  = explode(',', $producto['precio']);
+								?>
+
+								<td class="text-nowrap text-middle text-right text-sm" data-contador="0" data-limit="<?= count($asignaciones); ?>" data-valor="<?= $producto['id_producto']; ?>" data-val-unidades="<?= $producto['unidad'];?>"  data-val-cantidades="<?= $producto['cantidad_unidad'];?>" data-val-precios="<?= $producto['precio'];?>">
+									<!-- obteniendo unidades asignadas -->	
+									<?php for ($x = 0; $x <= count($asignaciones) - 1; $x++) {?>
+										<!-- obteniendo fechas de productos por fecha de vencimiento -->	
+										<?php if($asignaciones[$x] != 'principal'){ ?>
+											<div class="asignacion-style">
+												<div class="col-sm-9">
+													<span class="block text-right text-success" >
+														-<?= escape($unidades[$x].': '); ?><b><?= escape($precios[$x]); ?>
+													</span>
+												</div>
+											</div>
+										<?php } else { ?>
+											<div class="asignacion-style">
+												<div class="col-sm-9">
+													<span class="block text-right text-success" >
+														-<?= escape($unidades[$x].': '); ?><b><?= escape($precios[$x]); ?>
+													</span>
+												</div>
+											</div>
+										<?php } ?>
 									<?php } ?>
 								</td>
 
