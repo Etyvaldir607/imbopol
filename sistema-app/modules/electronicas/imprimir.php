@@ -3,7 +3,7 @@
 $id_egreso = (isset($params[0])) ? $params[0] : 0;
 
 if ($id_egreso == 0) {
-	// Obtiene las proformas
+	// Obtiene las facturas
 	$egresos = $db->select('i.*, a.almacen, a.principal, e.nombres, e.paterno, e.materno')
 				   ->from('inv_egresos i')
 				   ->join('inv_almacenes a', 'i.almacen_id = a.id_almacen', 'left')
@@ -121,7 +121,7 @@ if ($id_egreso == 0) {
 
 	// Estructura la tabla
 	$body = '';
-	foreach ($proformas as $nro => $factura) {
+	foreach ($facturas as $nro => $factura) {
 		$body .= '<tr>';
 		$body .= '<td>' . ($nro + 1) . '</td>';
 		$body .= '<td>' . escape(date_decode($factura['fecha_proforma'], $_institution['formato']) . ' ' . $factura['hora_proforma']) . '</td>';
@@ -135,7 +135,7 @@ if ($id_egreso == 0) {
 		$body .= '</tr>';
 	}
 	
-	$body = ($body == '') ? '<tr><td colspan="9" align="center">No existen proformas registrados en la base de datos</td></tr>' : $body;
+	$body = ($body == '') ? '<tr><td colspan="9" align="center">No existen facturas registrados en la base de datos</td></tr>' : $body;
 	
 	// Formateamos la tabla
 	$tabla = <<<EOD
@@ -228,7 +228,7 @@ EOD;
 	}
 	
 	$valor_total = number_format($total, 2, '.', '');
-	$body = ($body == '') ? '<tr><td colspan="7" align="center" class="all">Esta factura no tiene detalle, es muy importante que todos las proformas cuenten con un detalle de venta.</td></tr>' : $body;
+	$body = ($body == '') ? '<tr><td colspan="7" align="center" class="all">Esta factura no tiene detalle, es muy importante que todos las facturas cuenten con un detalle de venta.</td></tr>' : $body;
 	
 	// Formateamos la tabla
 	$tabla = <<<EOD
@@ -285,7 +285,6 @@ EOD;
 			<th class="all" align="right">$valor_total</th>
 		</tr>
 	</table>
-	<p>VALIDEZ DE LA OFERTA 15 DÍAS.</p>
 EOD;
 	
 	// Imprime la tabla
