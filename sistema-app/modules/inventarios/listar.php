@@ -35,8 +35,8 @@ $join = "";
 foreach ($almacenes as $nro => $almacen) {
 	$id = $almacen['id_almacen'];
 	$select = $select . ", ifnull(e$id.ingresos$id, 0) as ingresos$id, ifnull(s$id.egresos$id, 0) as egresos$id";
-	$join = $join . " left join (select d.producto_id, sum(d.cantidad) as ingresos$id from inv_ingresos_detalles d left join inv_ingresos i on i.id_ingreso = d.ingreso_id where i.almacen_id = $id group by d.producto_id) as e$id on e$id.producto_id = p.id_producto";
-	$join = $join . " left join (select d.producto_id, sum(d.cantidad) as egresos$id from inv_egresos_detalles d left join inv_egresos e on e.id_egreso = d.egreso_id where e.almacen_id = $id group by d.producto_id) as s$id on s$id.producto_id = p.id_producto";
+	$join = $join . " left join (select d.producto_id, sum(d.cantidad * a.cantidad_unidad) as ingresos$id from inv_ingresos_detalles d left join inv_asignaciones a on a.unidad_id = d.unidad_id and a.producto_id = d.producto_id and a.estado='a' left join inv_ingresos i on i.id_ingreso = d.ingreso_id where i.almacen_id = $id group by d.producto_id) as e$id on e$id.producto_id = p.id_producto";
+	$join = $join . " left join (select d.producto_id, sum(d.cantidad * a.cantidad_unidad) as egresos$id from inv_egresos_detalles d left join inv_asignaciones a on a.unidad_id = d.unidad_id and a.producto_id = d.producto_id and a.estado='a' left join inv_egresos e on e.id_egreso = d.egreso_id where e.almacen_id = $id group by d.producto_id) as s$id on s$id.producto_id = p.id_producto";
 }
 
 // Arma la consulta

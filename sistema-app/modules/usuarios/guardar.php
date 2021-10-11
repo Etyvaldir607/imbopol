@@ -61,8 +61,8 @@ if (is_post()) {
 				'email' => trim($email),
 				'avatar' => '',
 				'active' => trim($active),
-				'login_at' => '0000-00-00 00:00:00',
-				'logout_at' => '0000-00-00 00:00:00',
+				'login_at' => date('Y-m-d H:i:s'),
+				'logout_at' => date('Y-m-d H:i:s'),
 				'rol_id' => trim($rol_id),
 				'persona_id' => 0
 			);

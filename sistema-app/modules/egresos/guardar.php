@@ -14,7 +14,7 @@ if (is_post()) {
         require_once libraries . '/numbertoletter-class/NumberToLetterConverter.php';
         $almacen_id = trim($_POST['almacen_id']);
         $al = $db->from('inv_almacenes')->where('id_almacen',$almacen_id)->fetch_first();
-        $almacen1 = $al['almacen'];
+        $almacen1 = $al['almacen']; 
 		$tipo = trim($_POST['tipo']);
 		$descripcion = trim($_POST['descripcion']);
 		$productos = (isset($_POST['productos'])) ? $_POST['productos']: array();
@@ -69,9 +69,9 @@ if (is_post()) {
 			'nro_factura' => 0,
 			'nro_autorizacion' => 0,
 			'codigo_control' => '',
-			'fecha_limite' => '0000-00-00',
+			'fecha_limite' => date('Y-m-d'),
 			'monto_total' => $monto_total,
-			'nombre_cliente' => '',
+			'nombre_cliente' => 'erick',
 			'nit_ci' => 0,
 			'nro_registros' => $nro_registros,
 			'dosificacion_id' => 0,
@@ -86,9 +86,10 @@ if (is_post()) {
 		foreach ($productos as $nro => $elemento) {
 			// Forma el detalle
 			$detalle = array(
-				'cantidad' => $cantidades[$nro],
-				'precio' => $precios[$nro],
-				'descuento' => 0,
+                'precio' => (isset($precios[$nro])) ? $precios[$nro]: 0,
+                'unidad_id'=>'1',
+				'cantidad' => (isset($cantidades[$nro])) ? $cantidades[$nro]: 0,
+				'descuento' => (isset($descuentos[$nro])) ? $descuentos[$nro]: 0,
 				'producto_id' => $productos[$nro],
 				'egreso_id' => $egreso_id
 			);

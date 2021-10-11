@@ -93,6 +93,7 @@ $permiso_reimprimir = in_array('reimprimir', $permisos);
 									<th class="text-nowrap">Nombre</th>
 									<th class="text-nowrap">Cantidad</th>
 									<th class="text-nowrap">Precio <?= escape($moneda); ?></th>
+									<th class="text-center">Fecha de vencimiento</th>
 									<th class="text-nowrap">Descuento (%)</th>
 									<th class="text-nowrap">Importe <?= escape($moneda); ?></th>
 								</tr>
@@ -119,6 +120,7 @@ $permiso_reimprimir = in_array('reimprimir', $permisos);
 									<td class="text-nowrap"><?= escape($detalle['nombre_factura']); ?></td>
 									<td class="text-nowrap text-right"><?= $cantidad.' '.$unidad; ?></td>
 									<td class="text-nowrap text-right"><?= $precio; ?></td>
+									<td class="text-nowrap text-center"><?= escape($detalle['fecha_vencimiento']); ?></td>
 									<td class="text-nowrap text-right"><?= $detalle['descuento']; ?></td>
 									<td class="text-nowrap text-right"><?= number_format($importe, 2, '.', ''); ?></td>
 								</tr>

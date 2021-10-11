@@ -47,7 +47,7 @@ if (is_post()) {
 			$where = array('id_user' => $user['id_user']);
 			$user = array(
 				'login_at' => date('Y-m-d H:i:s'),
-				'logout_at' => '0000-00-00 00:00:00'
+				'logout_at' => date('Y-m-d H:i:s')
 			);
 			$db->where($where)->update('sys_users', $user);
 
