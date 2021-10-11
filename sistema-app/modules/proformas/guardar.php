@@ -85,7 +85,7 @@ if (is_ajax() && is_post()) {
             foreach ($productos as $nro => $elemento) {
                 
                 // recupera unidades
-                $id_unidad = $db->select('id_unidad')->from('inv_unidades')->where('unidad',$unidad[$nro])->fetch_first()['id_unidad'];
+                // $id_unidad = $db->select('id_unidad')->from('inv_unidades')->where('unidad',$unidad[$nro])->fetch_first()['id_unidad'];
                 /*
                 $id_unidade=$db->select('*')->from('inv_asignaciones a')->join('inv_unidades u','a.unidad_id=u.id_unidad')->where(array('u.unidad' => $unidad[$nro], 'a.producto_id' => $productos[$nro]))->fetch_first();
                 if($id_unidade){
@@ -98,6 +98,11 @@ if (is_ajax() && is_post()) {
                 }
                 */
 
+                // recupera unidades
+                $id_unidad = $db->select('id_unidad')->from('inv_unidades')->where('unidad',$unidad[$nro])->fetch_first()['id_unidad'];
+                $id_asignacion = $db->select('id_asignacion')->from('inv_asignaciones')->where(array('unidad_id'=>$id_unidad, 'estado' =>'a'))->fetch_first()['id_asignacion'];
+
+
                 // Forma el detalle
                 $detalle = array(
                     'precio' => (isset($precios[$nro])) ? $precios[$nro]: 0,
@@ -106,7 +111,8 @@ if (is_ajax() && is_post()) {
                     'descuento' =>(isset($descuentos[$nro])) ? $descuentos[$nro]: 0,
                     'fecha_vencimiento' => (isset($fechas[$nro])) ? $fechas[$nro]: 0,
                     'producto_id' => $productos[$nro],
-                    'proforma_id' => $proforma_id
+                    'proforma_id' => $proforma_id,
+                    'asignacion_id'=>$id_asignacion
                 );
 
                 // Genera los subtotales
@@ -143,6 +149,7 @@ if (is_ajax() && is_post()) {
 
 		// Instancia la respuesta
 		$respuesta = array(
+            'id_proforma'=>$proforma_id,
 			'papel_ancho' => 10,
 			'papel_alto' => 25,
 			'papel_limite' => 576,
