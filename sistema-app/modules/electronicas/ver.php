@@ -35,6 +35,7 @@ $permisos = explode(',', permits);
 $permiso_crear = in_array('crear', $permisos);
 $permiso_editar = in_array('editar', $permisos);
 $permiso_mostrar = in_array('mostrar', $permisos);
+$permiso_imprimir = in_array('imprimir', $permisos) || true;
 $permiso_reimprimir = in_array('reimprimir', $permisos);
 
 
@@ -53,6 +54,9 @@ $permiso_reimprimir = in_array('reimprimir', $permisos);
 			<div class="text-label">Para realizar una acción hacer clic en los botones:</div>
 		</div>
 		<div class="col-xs-12 col-sm-5 col-md-6 text-right">
+			<?php if ($permiso_imprimir) { ?>
+				<a href="?/electronicas/imprimir/<?= $venta['id_egreso']; ?>" class="btn btn-default" target="_blank"><i class="glyphicon glyphicon-file"></i><span class="hidden-xs"> Exportar</span></a>
+			<?php } ?>
 			<?php if ($permiso_reimprimir) { ?>
 			<button type="button" class="btn btn-info" data-reimprimir="true"><i class="glyphicon glyphicon-print"></i><span class="hidden-xs hidden-sm"> Reimprimir</span></button>
 			<?php } ?>
