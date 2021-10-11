@@ -1005,7 +1005,7 @@ function actualizar_stock(numero, id_producto){
 	var $ventas = $('#ventas tbody');
 	// recupera fecha seleccionada
 	var fecha_seleccionada =  $ventas.find('[data-producto=' + id_producto + ']').find('#fecha' + numero + ' :selected').val();
-	// recupera fecha seleccionada
+	// recupera stock seleccionado
 	var stock_seleccionado =  $ventas.find('[data-producto=' + id_producto + ']').find('#fecha' + numero + ' :selected').attr('data-stock');
 	// recupera cantidad que contiene tipo de unidad seleccionada
 	var cantidad_seleccionada =  $ventas.find('[data-producto=' + id_producto + ']').find('#unidad' + numero + ' :selected').attr('data-cantidad-unidad');
