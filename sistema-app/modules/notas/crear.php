@@ -1020,7 +1020,7 @@ function actualizar_stock(numero, id_producto){
 	// recupera posicion de fecha seleccionada
 	var position = fechas.indexOf(fecha_seleccionada);
 	// calcular cantidad ya usada
-	var cantidad_asignada = calcular_asignaciones(id_producto, fecha_seleccionada);
+	// var cantidad_asignada = calcular_asignaciones(id_producto, fecha_seleccionada);
 	// define cantidad minima para la fila
 	var cantidad_limite_celda = parseInt(stock_seleccionado/cantidad_seleccionada);
 	//actualizando limite
