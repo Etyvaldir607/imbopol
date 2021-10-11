@@ -1192,7 +1192,7 @@ function guardar_nota() {
 /**  inicia la peticion para generar pdf de la compra */
 function generar_pdf_venta(id) {
 	$id_egreso = parseInt(id);
-	url = '?/egresos/imprimir/' + $id_egreso;
+	url = '?/notas/imprimir/' + $id_egreso;
 	//console.log(url)
 	window.open(url,'_blank');
 }
