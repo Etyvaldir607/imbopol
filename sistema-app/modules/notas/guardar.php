@@ -123,6 +123,7 @@ if (is_ajax() && is_post()) {
 		
 		// Instancia la respuesta
 		$respuesta = array(
+			'id_egreso'=>$egreso_id,
 			'papel_ancho' => 10,
 			'papel_alto' => 25,
 			'papel_limite' => 576,
