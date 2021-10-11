@@ -1144,7 +1144,7 @@ function guardar_proforma() {
 			}, {
 				type: 'success'
 			});
-			imprimir_proforma(proforma);
+			generar_pdf_cotizacion(proforma.id_proforma);
 		} else {
 			
 			$('#loader').fadeOut(100);
@@ -1162,7 +1162,19 @@ function guardar_proforma() {
 		}, {
 			type: 'danger'
 		});
+	}).always(function (){
+		$('#formulario :reset').trigger('click');
+		window.location.reload();
 	});
+}
+
+
+/**  inicia la peticion para generar pdf de la compra */
+function generar_pdf_cotizacion(id) {
+	$id_proforma = parseInt(id);
+	url = '?/proformas/imprimir/' + $id_proforma;
+	//console.log(url)
+	window.open(url,'_blank');
 }
 
 function imprimir_proforma(proforma) {
