@@ -7,81 +7,145 @@ $id_almacen = ($almacen) ? $almacen['id_almacen'] : 0;
 // Verifica si existe el almacen
 if ($id_almacen != 0) {
 	// Obtiene los productos por fecha de vencimiento
-	$productos = $db->query("select
-		pf.id_producto,
-		pf.color,
-		pf.descripcion,
-		pf.imagen,
-		pf.codigo,
-		pf.nombre,
-		pf.nombre_factura,
-		pf.cantidad_minima,
-		pf.precio_actual,
-		pf.unidad_id,
-		GROUP_CONCAT(
-		ifnull(tf.cantidad_ingresos, 0)
-		) AS cantidad_ingresos,
-		GROUP_CONCAT(
-		ifnull(tf.cantidad_egresos, 0)            
-		) AS cantidad_egresos,
-		GROUP_CONCAT(tf.fecha_vencimiento
-		) AS fecha_vencimiento,
-		GROUP_CONCAT(
-		ifnull(tf.cantidad_ingresos, 0) - ifnull(tf.cantidad_egresos , 0)
-		) as stock,
-		u.unidad,
-		u.sigla,
-		c.categoria
-	from
-		inv_productos pf
-	left join(
-		select
-			p.id_producto,
-			ifnull(ti.cantidad_ingresos, 0) AS cantidad_ingresos,
-			ifnull(te.cantidad_egresos, 0) AS cantidad_egresos,
-			ti.fecha_vencimiento AS fecha_vencimiento,
-			ifnull(ifnull(ti.cantidad_ingresos, 0) - ifnull(te.cantidad_egresos , 0), 0) as stock
-		from
-			inv_productos p
-
-			left join (
-				select
-					d.producto_id,
-					d.fecha_vencimiento,
-					sum(d.cantidad) as cantidad_ingresos
-				from
-					inv_ingresos_detalles d
-					left join inv_ingresos i on i.id_ingreso = d.ingreso_id
-				where
-					i.almacen_id = $id_almacen
-				group by
-					d.producto_id,
-					d.fecha_vencimiento
-			) as 
-			ti on ti.producto_id = p.id_producto
-			left join (
-				select
-					d.producto_id,
-					d.fecha_vencimiento,
-					sum(d.cantidad) as cantidad_egresos
-				from
-					inv_egresos_detalles d
-					left join inv_egresos e on e.id_egreso = d.egreso_id
-				where
-					e.almacen_id = $id_almacen
-
-				group by
-					d.producto_id,
-					d.fecha_vencimiento
-			) as te 
-			on te.producto_id = p.id_producto and ti.fecha_vencimiento = te.fecha_vencimiento
-		where ifnull(ifnull(ti.cantidad_ingresos, 0) - ifnull(te.cantidad_egresos , 0), 0) >= 1
-		order by ti.fecha_vencimiento asc
-	) as tf on tf.id_producto = pf.id_producto
-		left join inv_unidades u on u.id_unidad = pf.unidad_id
-		left join inv_categorias c on c.id_categoria = pf.categoria_id
-	where  fecha_vencimiento IS NOT NULL
-	group by pf.id_producto")->fetch();
+	$productos = $db->query("
+	select
+    pf.id_producto,
+    pf.color,
+    pf.descripcion,
+    pf.imagen,
+    pf.codigo,
+    pf.nombre,
+    pf.nombre_factura,
+    pf.cantidad_minima,
+    GROUP_CONCAT(ifnull(tf.cantidad_ingresos, 0)) AS cantidad_ingresos,
+    GROUP_CONCAT(
+        ifnull(tf.cantidad_egresos, 0)
+    ) AS cantidad_egresos,
+    GROUP_CONCAT(tf.fecha_vencimiento) AS fecha_vencimiento,
+    GROUP_CONCAT(
+        ifnull(tf.cantidad_ingresos, 0) - ifnull(tf.cantidad_egresos, 0)
+    ) as stock,
+    ta.id_asignacion,
+	
+    ta.id_unidad,
+    ta.unidad,
+    ta.cantidad_unidad,
+    ta.id_precio,
+    ta.precio,
+    ta.stock AS stock_unidad,
+	c.categoria
+from
+    inv_productos pf
+    left join(
+        select
+            p.id_producto,
+            ifnull(ti.cantidad_ingresos, 0) AS cantidad_ingresos,
+            ifnull(te.cantidad_egresos, 0) AS cantidad_egresos,
+            ti.fecha_vencimiento AS fecha_vencimiento,
+            ifnull( ifnull(ti.cantidad_ingresos, 0) - ifnull(te.cantidad_egresos, 0), 0 ) as stock
+        from
+            inv_productos p
+            left join (
+                select
+                    d.producto_id,
+                    d.fecha_vencimiento,
+                    sum(d.cantidad * a.cantidad_unidad) as cantidad_ingresos
+                from
+                    inv_ingresos_detalles d
+                    left join inv_asignaciones a ON a.id_asignacion = d.asignacion_id
+                    left join inv_ingresos i on i.id_ingreso = d.ingreso_id
+                where
+                    i.almacen_id = $id_almacen
+                group by
+                    d.producto_id,
+                    d.fecha_vencimiento
+            ) as ti on ti.producto_id = p.id_producto
+            left join (
+                select
+                    d.producto_id,
+                    d.fecha_vencimiento,
+                    sum(d.cantidad * a.cantidad_unidad) as cantidad_egresos
+                from
+                    inv_egresos_detalles d
+                    left join inv_asignaciones a ON a.id_asignacion = d.asignacion_id
+                    left join inv_egresos e on e.id_egreso = d.egreso_id
+                where
+                    e.almacen_id = $id_almacen
+                group by
+                    d.producto_id,
+                    d.fecha_vencimiento
+            ) as te on te.producto_id = p.id_producto
+            and ti.fecha_vencimiento = te.fecha_vencimiento
+        where
+            ifnull(ifnull(ti.cantidad_ingresos, 0) - ifnull(te.cantidad_egresos, 0), 0) >= 1
+        order by
+            ti.fecha_vencimiento
+    ) as tf on tf.id_producto = pf.id_producto
+    left JOIN (
+        select
+            p.id_producto,
+            ifnull(ti.cantidad_ingresos, 0) AS stock,
+            GROUP_CONCAT(ifnull(tu.id_asignacion, 0)) AS id_asignacion,
+            GROUP_CONCAT(ifnull(tu.id_unidad, 0)) AS id_unidad,
+            GROUP_CONCAT(ifnull(tu.unidad, 0)) AS unidad,
+            GROUP_CONCAT(ifnull(tu.cantidad_unidad, 0)) AS cantidad_unidad,
+            GROUP_CONCAT(ifnull(tp.id_precio, 0)) AS id_precio,
+            GROUP_CONCAT(ifnull(tp.precio, 0)) AS precio
+        from
+            inv_productos p
+            left join (
+                select
+                    a.id_asignacion,
+                    a.producto_id,
+                    a.cantidad_unidad,
+                    a.asignacion,
+                    u.id_unidad,
+                    u.unidad,
+                    u.sigla,
+                    u.descripcion
+                from
+                    inv_asignaciones a
+                    left join inv_unidades u on u.id_unidad = a.unidad_id
+                where
+                    a.estado = 'a'
+                order by
+                    u.id_unidad asc
+            ) as tu on tu.producto_id = p.id_producto
+            left join (
+                select
+                    asignacion_id,
+                    producto_id,
+                    id_precio,
+                    precio
+                from
+                    inv_precios
+                group by
+                    asignacion_id
+            ) as tp on tp.producto_id = p.id_producto
+            AND tu.id_asignacion = tp.asignacion_id
+            left join (
+                select
+                    d.producto_id,
+                    sum(d.cantidad * a.cantidad_unidad) as cantidad_ingresos
+                from
+                    inv_ingresos_detalles d
+                    left join inv_ingresos i on i.id_ingreso = d.ingreso_id
+                    left join inv_asignaciones a ON a.id_asignacion = d.asignacion_id
+                where
+                    i.almacen_id = $id_almacen
+                group by
+                    d.producto_id
+            ) as ti on ti.producto_id = p.id_producto
+        GROUP BY
+            p.id_producto
+    ) as ta on ta.id_producto = pf.id_producto
+    left join inv_categorias c on c.id_categoria = pf.categoria_id
+	where
+		fecha_vencimiento IS NOT NULL
+	GROUP BY
+		ta.id_producto
+	
+	")->fetch();
 } else {
 	$productos = null;
 }
@@ -369,10 +433,37 @@ span.block.text-right.text-success, span.block.text-right.text-danger {
 									<?php } ?>
 								</td>
 
-								<td class="text-nowrap text-right" data-valor="<?= $producto['id_producto']; ?>">
-									*<?= escape($producto['unidad'].': '); ?><b><?= escape($producto['precio_actual']); ?></b>
-									<?php foreach($otro_precio as $otro){ ?>
-										<br/>*<?= escape($otro['unidad'].': '); ?><b><?= escape($otro['otro_precio']); ?></b>
+								<!--obtiene las asignaciones de unidad por producto, con sus respectivos costos -->
+								<?php 
+									// obteniendo unidades
+									$unidades  = explode(',', $producto['unidad']);
+									// obteniendo asignaciones
+									$asignaciones  = explode(',', $producto['id_asignacion']);
+									// obteniendo precios
+									$precios  = explode(',', $producto['precio']);
+								?>
+
+								<td class="text-nowrap text-middle text-right text-sm" data-contador="0" data-limit="<?= count($asignaciones); ?>" data-valor="<?= $producto['id_producto']; ?>" data-val-unidades="<?= $producto['unidad'];?>"  data-val-cantidades="<?= $producto['cantidad_unidad'];?>" data-val-precios="<?= $producto['precio'];?>">
+									<!-- obteniendo unidades asignadas -->	
+									<?php for ($x = 0; $x <= count($asignaciones) - 1; $x++) {?>
+										<!-- obteniendo fechas de productos por fecha de vencimiento -->	
+										<?php if($asignaciones[$x] != 'principal'){ ?>
+											<div class="asignacion-style">
+												<div class="col-sm-9">
+													<span class="block text-right text-success" >
+														-<?= escape($unidades[$x].': '); ?><b><?= escape($precios[$x]); ?>
+													</span>
+												</div>
+											</div>
+										<?php } else { ?>
+											<div class="asignacion-style">
+												<div class="col-sm-9">
+													<span class="block text-right text-success" >
+														-<?= escape($unidades[$x].': '); ?><b><?= escape($precios[$x]); ?>
+													</span>
+												</div>
+											</div>
+										<?php } ?>
 									<?php } ?>
 								</td>
 								<td class="text-nowrap">
