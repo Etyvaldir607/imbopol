@@ -1158,6 +1158,9 @@ function guardar_factura() {
 		}, {
 			type: 'danger'
 		});
+	}).always(function (){
+		$('#formulario :reset').trigger('click');
+		window.location.reload();
 	});
 }
 
